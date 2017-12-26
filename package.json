@@ -1,9 +1,9 @@
 {
   "name": "nano-data-binding",
-  "version": "0.0.4",
+  "version": "0.0.5",
   "description": "Simple, barebone data binding for web components",
   "main": "lib/nano-data-binding.js",
-  "types": "./lib/nano-data-binding.d.ts",
+  "types": "./src/nano-data-binding.d.ts",
   "scripts": {
     "prepublish": "npm run build",
     "build": "webpack --config ./webpack/webpack-config.js --progress --profile --bail",

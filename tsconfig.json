@@ -15,6 +15,7 @@
         "noUnusedParameters": true,
         "noUnusedLocals": true,
         "declaration": true,
+        "declarationDir": "./src/",
     },
     "exclude": [
         "node_modules",
