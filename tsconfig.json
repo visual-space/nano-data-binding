@@ -10,14 +10,14 @@
         ],
         "target": "ES6",
         "noImplicitAny": true,
-        "allowJs": true,
-        "outDir": "./build/",
+        "outDir": "./lib/",
         "sourceMap": true,
         "noUnusedParameters": true,
-        "noUnusedLocals": true
+        "noUnusedLocals": true,
+        "declaration": true,
     },
     "exclude": [
         "node_modules",
-        "build"
+        "lib"
     ]
 }

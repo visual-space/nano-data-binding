@@ -1,5 +1,4 @@
-// import { nanoBind, nanoBindAll } from './nano.data.bind'
-import { nanoBind, nanoBindAll } from './nano.data.bind'
+import { nanoBind, nanoBindAll } from './nano-data-binding'
 
 // Mocks
 import { MockWebCmp, MockArr } from './mocks/nano-data-bind.mock'

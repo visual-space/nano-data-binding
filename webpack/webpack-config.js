@@ -1,4 +1,4 @@
-const webpack = require('webpack'),
+let webpack = require('webpack'),
     path = require('path'),
     UglifyJsPlugin = require('uglifyjs-webpack-plugin')
 
@@ -7,15 +7,14 @@ const LIB_DIR = path.join(__dirname, '../lib'),
     SRC_DIR = path.join(__dirname, '../src'),
     NODE_MODULES_DIR = path.join(__dirname, '../node_modules')
 
-// Shared between prod and dev
 module.exports = {
 
-    entry: './src/nano.data.bind.ts',
+    entry: './src/nano-data-binding.ts',
 
     output: {
         path: LIB_DIR,
         publicPath: '/',
-        filename: 'nano.data.bind.js'
+        filename: 'nano-data-binding.js'
     },
 
     resolve: {

@@ -1,6 +1,8 @@
 # Nano data binding
-First demo vesion.
-Samples and tutorials and better documentation coming soon.
+
+Nano data binding for web components. It avoids the need of installing any of the big frameworks. It does not implement any change detection or a virtual dom. Basically, it directly binds the web component context properties to the dom elements defined in the template. In other ways, this is strictly useful to remove the boilerüplate from imperative web components using declarative syntax in the templates. One fundamental expectation is that a state store is implemented (redux, nano-state-store). Having a unidirectional state management strategy, ensures that no extra operations are executed when state changes. Everything just reacts to the store.
+
+This is first demo vesion, several improvements are still under way. Samples and tutorials and better documentation coming soon.
 
 ## Installation and usage
 

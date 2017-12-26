@@ -35,7 +35,7 @@ module.exports = function (config) {
             ],
             exclude: [
                 'node_modules',
-                'build'
+                'lib'
             ],
         },
         reporters: ['progress', 'kjhtml', 'karma-typescript'], // , 'html'
