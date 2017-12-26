@@ -1,3 +1,4 @@
+* Update README to something easier to read
 * Adding documentation
 * Adding examples
 * Data binding to context properties
