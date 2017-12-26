@@ -16,7 +16,7 @@
     "Web",
     "components"
   ],
-  "author": "Adrian Moisa",
+  "author": "Adrian Moisa <code@adrian.moisa.ro> (http://adrianmoisa.ro)",
   "license": "MIT",
   "bugs": {
     "url": "https://github.com/visual-space/nano-data-binding/issues"
