@@ -1,6 +1,6 @@
 
 // Interfaces
-import { DataBind, StringOrHTMLElement, Listener, Listeners, Changes } from './interfaces/nano.data.bind'
+import { DataBind, StringOrHTMLElement, Listener, Listeners, Changes } from './interfaces/nano-data-binding'
 
 // Debug
 // let debug = require('debug')('ndb:NanoDataBind')
