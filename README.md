@@ -16,7 +16,7 @@ Now you can use in the html templates the following data bindings: `n-data`, `n-
             n-data="${MOCK_EVENT} : { mockValue: event.detail }"
             n-if="${MOCK_EVENT} : event.detail"
             n-for="${MOCK_EVENT} : event.detail"
-            n-class="${MOCK_EVENT} : { active: event.detail, enabled: event.detail }"
+            n-class="${MOCK_EVENT} : { active: event.detail }"
             n-call="${MOCK_EVENT} : event.detail">
         </div>
     </mock-web-cmp>

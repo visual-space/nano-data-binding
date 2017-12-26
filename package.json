@@ -1,11 +1,12 @@
 {
   "name": "nano-data-binding",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "Simple, barebone data binding for web components",
   "main": "build/nano-data-binding.js",
+  "types": "./src/interfaces/index.d.ts",
   "scripts": {
-    "test": "karma start",
-    "build": "webpack --config ./webpack/webpack-config.js --progress --profile --bail"
+    "build": "webpack --config ./webpack/webpack-config.js --progress --profile --bail",
+    "test": "karma start"
   },
   "repository": {
     "type": "git",
