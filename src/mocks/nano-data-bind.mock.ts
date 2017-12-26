@@ -1,5 +1,3 @@
-import { DEBUG } from '../../../../config/app.config'
-
 /**
  * ====== NANO DATA BIND MOCK ======
  * Mock webcompoents used in the testing of nano data bindings
@@ -11,8 +9,8 @@ import { DEBUG } from '../../../../config/app.config'
 export type MockArr = {[key: string]: number}[]
 
 // Debug
-let debug = require('debug')('vs:MockWebCmp')
-DEBUG.instance && debug('Instantiate MockWebCmp')
+let debug = require('debug')('ndb:MockWebCmp')
+debug('Instantiate MockWebCmp')
 
 /** Mocks core web components (abstract classes used by templates) */
 class _MockWebCmp extends HTMLElement {
@@ -43,7 +41,7 @@ export class MockWebCmp extends _MockWebCmp {
     private aaa_SetGet_Value: number
     set aaa_SetGet(val: number) {
         this.aaa_SetGet_Value = val
-        DEBUG.input && debug('aaa_SetGet', val)
+        debug('aaa_SetGet', val)
     }
     get aaa_SetGet(): number {
         return this.aaa_SetGet_Value
@@ -67,7 +65,7 @@ export class MockWebCmp extends _MockWebCmp {
 
     constructor() {
         super()
-        DEBUG.constr && debug('Construct MockWebCmp')
+        debug('Construct MockWebCmp')
 
         // Truly private values
         let value: number
@@ -83,7 +81,7 @@ export class MockWebCmp extends _MockWebCmp {
                 },
                 set(val: number) {
                     value = val
-                    DEBUG.input && debug('aaa_SetGet_DefinedProperty', val)
+                    debug('aaa_SetGet_DefinedProperty', val)
                 }
             },
 
@@ -99,7 +97,7 @@ export class MockWebCmp extends _MockWebCmp {
         // Also make sure that intelissense is not ignring this property
         this.aaa_NonEnumerable_Property = 2
         
-        DEBUG.constr && debug('Initial values', this.aaa_Private_Property, this.aaa_NonEnumerable_Property)
+        debug('Initial values', this.aaa_Private_Property, this.aaa_NonEnumerable_Property)
     }
 
     // In instance (property)

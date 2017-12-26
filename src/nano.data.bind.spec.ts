@@ -1,5 +1,5 @@
 // import { nanoBind, nanoBindAll } from './nano.data.bind'
-import { nanoBind, nanoBindAll } from 'C:/Projects/VisualSpace/public/shared/services/nano.data.bind'
+import { nanoBind, nanoBindAll } from './nano.data.bind'
 
 // Mocks
 import { MockWebCmp, MockArr } from './mocks/nano-data-bind.mock'

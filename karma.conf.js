@@ -1,4 +1,4 @@
-let webpackConfig = require('./webpack/webpack-development'),
+let webpackConfig = require('./webpack/webpack-config'),
     path = require('path')
 
 // Karma configuration

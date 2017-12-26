@@ -1,11 +1,10 @@
-import { DEBUG } from '../../../config/app.config'
 
 // Interfaces
-import { DataBind, StringOrHTMLElement, Listener, Listeners, Changes } from '../interfaces/nano.data.bind'
+import { DataBind, StringOrHTMLElement, Listener, Listeners, Changes } from './interfaces/nano.data.bind'
 
 // Debug
-let debug = require('debug')('vs:NanoDataBind')
-DEBUG.instance && debug('Instantiate NanoDataBind')
+let debug = require('debug')('ndb:NanoDataBind')
+debug('Instantiate NanoDataBind')
 
 /**
  * ====== Nano Data Bindings ======
@@ -137,7 +136,7 @@ remListenersFromRemNodes()
  * Only `bind()` accepts also DOM ellements
  */
 export function nanoBind(parent: HTMLElement, ...selectors: StringOrHTMLElement[]): HTMLElement[] {
-    if (DEBUG.util && DEBUG.verbose) debug('Nano bind', { parent, selectors })
+    debug('Nano bind', { parent, selectors })
     let children: HTMLElement[],
         child: HTMLElement,
         selAreStrings: boolean,
@@ -146,7 +145,7 @@ export function nanoBind(parent: HTMLElement, ...selectors: StringOrHTMLElement[
     // Validation
     selAreStrings = selectors.reduce((val, sel) => val && typeof sel === `string`, true)
     selAreElements = selectors.reduce((val, sel) => val && sel instanceof HTMLElement, true)
-    if (DEBUG.util && DEBUG.verbose) debug('All selectors are strings', selAreStrings, 'All selectors are elements', selAreElements)
+    debug('All selectors are strings', selAreStrings, 'All selectors are elements', selAreElements)
     
     if (arguments.length < 1)
         throw Error('nanoBind() failed. First param missing. Provide a HTMLElement.')
@@ -196,14 +195,14 @@ export function nanoBind(parent: HTMLElement, ...selectors: StringOrHTMLElement[
  * `bindAll()` does not accept HTMLElement selectors. Use `bind()` instead.
  */
 export function nanoBindAll(parent: HTMLElement, ...selectors: string[]): HTMLElement[] {
-    if (DEBUG.util && DEBUG.verbose) debug('Nano bind', { parent, selectors })
+    debug('Nano bind', { parent, selectors })
     let children: HTMLElement[] = [],
         childrenCache: HTMLElement[],
         selAreStrings: boolean
         
     // Validation
     selAreStrings = selectors.reduce((val, sel) => val && typeof sel === `string`, true)
-    if (DEBUG.util && DEBUG.verbose) debug('All selectors are strings', selAreStrings)
+    debug('All selectors are strings', selAreStrings)
     
     if (arguments.length < 1)
         throw Error('nanoBind() failed. First param missing. Provide a HTMLElement.')
@@ -245,7 +244,7 @@ export function nanoBindAll(parent: HTMLElement, ...selectors: string[]): HTMLEl
  * TODO Copy only instance methods instaed of everything.
  */
 function bindContextToChildren(parent: HTMLElement, children: HTMLElement[]) {
-    if (DEBUG.util && DEBUG.verbose) debug('Bind context to children', [parent, children])
+    debug('Bind context to children', [parent, children])
 
     children.forEach(child => {
 
@@ -266,7 +265,7 @@ function bindContextToChildren(parent: HTMLElement, children: HTMLElement[]) {
  * <!> All event listeners are automatically cleaned up when the component is destroyed
  */
 function parseDataBindAttributes(parent: HTMLElement, children: HTMLElement[]): void {
-    if (DEBUG.util && DEBUG.verbose) debug('Parse data bind attributes', [parent, children])
+    debug('Parse data bind attributes', [parent, children])
 
     children.forEach(child => {
         let dataBind: DataBind = <DataBind>{ parent, child },
@@ -292,7 +291,7 @@ function parseDataBindAttributes(parent: HTMLElement, children: HTMLElement[]): 
             if (isDataBind) {
                 propertyNameMatch = attr.nodeValue.match(ContextProperty)
                 eventNameMatch = attr.nodeValue.match(CustomEvent)
-                if (DEBUG.util && DEBUG.verbose) debug('Dot Regex', propertyNameMatch, 'Colon regex', eventNameMatch)
+                debug('Dot Regex', propertyNameMatch, 'Colon regex', eventNameMatch)
 
                 // Some scenarios can match both regex expressions (ex: n-class)
                 // We need to make sure we pick the first match
@@ -301,7 +300,7 @@ function parseDataBindAttributes(parent: HTMLElement, children: HTMLElement[]): 
                     colonIndex = attr.nodeValue.indexOf(':')
                     if (dotIndex > colonIndex) dotIsFirst = false
                     else if (colonIndex > dotIndex) colonIsFirst = false
-                    if (DEBUG.util && DEBUG.verbose) debug('Dot and Colon race condition fix', {dotIndex, colonIndex, dotIsFirst, colonIsFirst})
+                    debug('Dot and Colon race condition fix', {dotIndex, colonIndex, dotIsFirst, colonIsFirst})
                 }
 
                 // Source - Context property
@@ -321,7 +320,7 @@ function parseDataBindAttributes(parent: HTMLElement, children: HTMLElement[]): 
                 dataBind.source = dotIsFirst ? propertyName : eventName
                 dataBind.rule = attr.nodeName
 
-                if (DEBUG.util && DEBUG.verbose) debug(`Parsed data bind`, { dataBind })
+                debug(`Parsed data bind`, { dataBind })
             }
             
             // n-if uses a placehodler comment that will control the visibility of the target/child element
@@ -329,7 +328,7 @@ function parseDataBindAttributes(parent: HTMLElement, children: HTMLElement[]): 
                 placeholderIndex = Array.prototype.indexOf.call(child.parentElement.childNodes, child) - 1
                 placeholder = child.parentElement.childNodes[placeholderIndex]
                 isComment = placeholder.nodeType === 8
-                if (DEBUG.util && DEBUG.verbose) debug(`Recovered IF data bind placeholder`, { isComment, placeholderIndex, placeholder, dataBind })
+                debug(`Recovered IF data bind placeholder`, { isComment, placeholderIndex, placeholder, dataBind })
                     
                 // Create placeholder only once
                 if (isComment !== true) setupIfDataBindPlaceholder(dataBind)
@@ -369,7 +368,7 @@ function parseDataBindAttributes(parent: HTMLElement, children: HTMLElement[]): 
 
                 // Add the custom event listener
                 document.addEventListener(dataBind.source, eventHandler)
-                if (DEBUG.util && DEBUG.verbose) debug('Added custom event listener', dataBind.source)
+                debug('Added custom event listener', dataBind.source)
             }
         })
 
@@ -390,7 +389,7 @@ function isAttrDataBind(attribute: Attr): boolean {
     // Detect data bind syntax
     isListener = attributeNames.indexOf(attribute.nodeName) !== -1
 
-    if (DEBUG.util && DEBUG.verbose) debug('Is attribute event listener', attribute.nodeName, isListener)
+    debug('Is attribute event listener', attribute.nodeName, isListener)
     return isListener
 }
 
@@ -401,7 +400,7 @@ function isAttrDataBind(attribute: Attr): boolean {
  */
 function evaluateDataBind(dataBind: DataBind): void {
     dataBind.event = event as CustomEvent
-    if (DEBUG.util && DEBUG.verbose) debug(`Evaluate data bind`, { dataBind })
+    debug(`Evaluate data bind`, { dataBind })
     let { rule } = dataBind
 
     // Evaluate the string (attribute value) depending on the rule (attribute name)
@@ -459,7 +458,7 @@ function bindDataToElem(dataBind: DataBind): void {
     for (inputId in inputs) {
         (child as any)[inputId] = inputs[inputId]
     }
-    if (DEBUG.util && DEBUG.verbose) debug(`Write data bind values to element`, { inputs, dataBind })
+    debug(`Write data bind values to element`, { inputs, dataBind })
 }
 
 /** 
@@ -475,7 +474,7 @@ function setupIfDataBindPlaceholder(dataBind: DataBind): void {
         // Setup placeholder comment 
         placeholder = document.createComment('')
         dataBind.placeholder = placeholder
-        if (DEBUG.util && DEBUG.verbose) debug(`Setup if data bind placeholder`, { dataBind })
+        debug(`Setup if data bind placeholder`, { dataBind })
     
         // Hidden element clone
         ;(placeholder as any)._hiddenElement = child.cloneNode()
@@ -512,14 +511,14 @@ function toggleIfDataBindElement(dataBind: DataBind): void {
         isVisible: boolean,
         ifElement: HTMLElement
 
-    if (DEBUG.util && DEBUG.verbose) debug(`Toggle IF data bind element`, { dataBind })
+    debug(`Toggle IF data bind element`, { dataBind })
 
     // Capture returned value from executed code
     dataBind.modifier = 'this._evalOutput = '
 
     // Retrieve visibility value from evaluated code
     isVisible = evalInContext.call(placeholder, dataBind)
-    if (DEBUG.util && DEBUG.verbose) debug(`IF element is visible`, isVisible)
+    debug(`IF element is visible`, isVisible)
 
     // Fail safe for repeated values (same value multiple times in a row)
     if (isVisible === false && child === undefined) return
@@ -530,7 +529,7 @@ function toggleIfDataBindElement(dataBind: DataBind): void {
     ifElement.innerHTML = (placeholder as any)._hiddenElement.innerHTML
 
     if (isVisible === true) {
-        if (DEBUG.util && DEBUG.verbose) debug(`Insert child`, {ifElement})
+        debug(`Insert child`, {ifElement})
 
         // Inset the hidden element in document
         placeholder.parentNode.insertBefore(ifElement, placeholder.nextSibling)
@@ -542,7 +541,7 @@ function toggleIfDataBindElement(dataBind: DataBind): void {
         nanoBind(parent, ifElement)
 
     } else if (isVisible === false) {
-        if (DEBUG.util && DEBUG.verbose) debug(`Remove child`)
+        debug(`Remove child`)
 
         // Remove the IF element
         dataBind.child.remove()
@@ -586,7 +585,7 @@ function updateItemsInForList (dataBind: DataBind) {
     changes.added = newItems.filter(itm => !oldItems.includes(itm))
     changes.removed = oldItems.filter(itm => !newItems.includes(itm))
 
-    if (DEBUG.util && DEBUG.verbose) debug(`Update items in for list`, { newItems, oldItems, changes, dataBind })
+    debug(`Update items in for list`, { newItems, oldItems, changes, dataBind })
 
     // Validation
     elems.forEach(el => {
@@ -607,7 +606,7 @@ function updateItemsInForList (dataBind: DataBind) {
         removedElems.push(child.children[i])
     })
 
-    if (DEBUG.util && DEBUG.verbose) debug('Removed old element', {removedElems})
+    debug('Removed old element', {removedElems})
     removedElems.forEach( remEl => remEl.remove() )
 
     // Add new elements
@@ -621,7 +620,7 @@ function updateItemsInForList (dataBind: DataBind) {
         ;(elem as any).forItemData = add // TODO Add custom inputs
         child.insertBefore(elem, child.children[i])
 
-        if (DEBUG.util && DEBUG.verbose) debug('Added new element', {elem, add})
+        debug('Added new element', {elem, add})
     })
 
 }
@@ -633,7 +632,7 @@ function addCssClassesToElem(dataBind: DataBind): void {
     dataBind.modifier = 'this._evalOutput = '
     
     let classesObj: { [key: string]: boolean } = evalInContext.call(child, dataBind)
-    if (DEBUG.util && DEBUG.verbose) debug(`Add css classes to element`, { classesObj, dataBind })
+    debug(`Add css classes to element`, { classesObj, dataBind })
 
     let classes: string[] = Object.keys(classesObj)
     classes.forEach(cssClass => {
@@ -651,19 +650,19 @@ function callChildContextMethod(dataBind: DataBind): void {
     dataBind.modifier = 'this.'
 
     evalInContext.call(child, dataBind)
-    if (DEBUG.util && DEBUG.verbose) debug(`Call child context method`, { dataBind })
+    debug(`Call child context method`, { dataBind })
 }
 
 /** Evaluates a string in a given context */
 function evalInContext(dataBind: DataBind): any {
     let { modifier, code } = dataBind
-    if (DEBUG.util && DEBUG.verbose) debug(`Evaluate in context`, { dataBind })
+    debug(`Evaluate in context`, { dataBind })
 
     eval(modifier + code)
 
     // Some expression might assign a value to `this._evalOutput`
     // These prefixes are added in `evaluateAttrString` depending on the data bind type
-    if (DEBUG.util && DEBUG.verbose) debug('Eval output', this._evalOutput)
+    debug('Eval output', this._evalOutput)
 
     // Returns undefined when the children context is not available (code is evaluated in global context)
     // This is a silent fail because it is a common one that it is actually expected.
@@ -681,10 +680,10 @@ function evalInContext(dataBind: DataBind): any {
  *     This approach also solves their problem
  */
 function remListenersFromRemNodes(): void {
-    if (DEBUG.util && DEBUG.verbose) debug(`Remove listeners from removed nodes`)
+    debug(`Remove listeners from removed nodes`)
 
     var mutObs = new MutationObserver(e => {
-        if (DEBUG.util && DEBUG.verbose) debug(`Document body mutated`, e)
+        debug(`Document body mutated`, e)
 
         // Detect removed nodes with custom event listeners
         if (e[0].removedNodes) {
@@ -704,13 +703,13 @@ function remListenersFromRemNodes(): void {
 function removeCustomListeners(): void {
     let listeners: Listeners = this._customListeners,
         tagName: string = this.tagName.toLowerCase()
-    if (DEBUG.util && DEBUG.verbose) debug(`Remove all custom event listeners from "<${tagName}>"`, listeners)
+    debug(`Remove all custom event listeners from "<${tagName}>"`, listeners)
 
     // Remove all listeners
     for (let eventName in listeners) {
         let eventHandler = listeners[eventName]
         document.removeEventListener(eventName, eventHandler)
-        if (DEBUG.util && DEBUG.verbose) debug(`Removed custom event listener "${eventName}" from "<${tagName}>"`)
+        debug(`Removed custom event listener "${eventName}" from "<${tagName}>"`)
     }
 }
 
