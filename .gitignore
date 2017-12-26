@@ -5,6 +5,7 @@
 !/.gitignore
 !/CHANGES.md
 !/karma.conf.js
+!/LICENSE
 !/package.json
 !/README.md
 !/ROADMAP.md
