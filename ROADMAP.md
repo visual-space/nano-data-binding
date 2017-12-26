@@ -1,3 +1,6 @@
+* Finish writting all the tests
+* Improved webpack configuration
+* Restore optional debug logs
 * Update README to something easier to read
 * Adding documentation
 * Adding examples

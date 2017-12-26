@@ -1,5 +1,6 @@
 const webpack = require('webpack'),
-    path = require('path')
+    path = require('path'),
+    UglifyJsPlugin = require('uglifyjs-webpack-plugin')
 
 // Constants
 const LIB_DIR = path.join(__dirname, '../lib'),
@@ -33,6 +34,10 @@ module.exports = {
         ]
 
     },
+
+    plugins: [
+      new UglifyJsPlugin()
+    ],
 
     stats: {
         colors: true,

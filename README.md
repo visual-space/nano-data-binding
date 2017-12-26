@@ -1,6 +1,8 @@
-# Nano data binding
+# Nano data binding 0.0.0
+First demo vesion.
+Samples and tutorials and better documentation coming soon.
 
-## Controlling which contetxt memebers are bound 
+## Controlling which context members are bound 
 * Functions are part of the `__proto__` lookup object.
 * They will be ignored by Object.assign in `nanoBind()` and in `nanoBindAll()`.
 * Object.assign only copies an object instance's own properties.
