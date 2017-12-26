@@ -1,6 +1,31 @@
-# Nano data binding 0.0.0
+# Nano data binding
 First demo vesion.
 Samples and tutorials and better documentation coming soon.
+
+## Installation and usage
+
+Download latest package from npm: 
+
+    npm i nano-data-binding --save
+
+No need to import anything. `nanoBind()` and `nanoBindAll()` are available as globals.
+Now you can use in the html templates the following data bindings: `n-data`, `n-if`, `n-for`, `n-class`, `n-call`.
+
+    <mock-web-cmp class="parent">
+        <div class="data-bind child" 
+            n-data="${MOCK_EVENT} : { mockValue: event.detail }"
+            n-if="${MOCK_EVENT} : event.detail"
+            n-for="${MOCK_EVENT} : event.detail"
+            n-class="${MOCK_EVENT} : { active: event.detail, enabled: event.detail }"
+            n-call="${MOCK_EVENT} : event.detail">
+        </div>
+    </mock-web-cmp>
+
+In order to activate the data binds you just need to type the following in your web component.
+
+    nanoBind(this, '.child')
+
+Follow on twitter: [@visual-space](https://twitter.com/visual_space), [@adriancmoisa](https://twitter.com/adriancmoisa)
 
 ## Controlling which context members are bound 
 * Functions are part of the `__proto__` lookup object.
@@ -28,7 +53,7 @@ Samples and tutorials and better documentation coming soon.
 * Beware when using a `get, set` pair together with a private property to cache the value. 
 * ES6 classes don't have private, public modifiers so everything is copied. That means, a private property leaks in the children.
 
-## No real private in typescirpt
+## No real private in typescript
 * Not having true privates in javascript ES6 classes is a terrible drawback
 * It is not possible trough some simple notatioan to gain truly private variables and methods
 * Either we declare them in constructor which has a performance penality of not using inheritance (each intsance gets a copy)

@@ -38,7 +38,7 @@ module.exports = function (config) {
                 'build'
             ],
         },
-        reporters: ['progress', 'html', 'kjhtml', 'karma-typescript'],
+        reporters: ['progress', 'kjhtml', 'karma-typescript'], // , 'html'
         htmlReporter: {
             outputDir: 'reports/karma-html',
             templatePath: null,

@@ -57,6 +57,8 @@ const EventEvalString = /(\:[\s\S]*)/gm
 
 // Expose bind methods globally
 // No need to import nanoBind in all the files
+if ((window as any).nanoBind) console.warn('Some other lib is using the same globals as nano-data-bind')
+if ((window as any).nanoBindAll) console.warn('Some other lib is using the same globals as nano-data-bind')
 ;(window as any).nanoBind = nanoBind
 ;(window as any).nanoBindAll = nanoBindAll
 
