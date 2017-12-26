@@ -17,7 +17,7 @@ import { DataBind, StringOrHTMLElement, Listener, Listeners, Changes } from './i
  * <!> All these utils will be used in all files, having them as globals spares a lot of imports.
  *     Each of these methods has a global typescript definition matched.
  * <!> Please be a good citisen and don't start dumping everything in the global context.
- * <!> Before extending this file with any functionality please reconsider if it is really needed.
+ * <!> Before extending the data bindings with any functionality please reconsider if it is really needed.
  *     The main goal of this file is to be easy to read and understand in 30 minutes for most developers, all in under 600 lines of code.
  *     Anything more will result in a new framework that is as complex and mysterious as previous frameworks.
  *     Any change that those not conform to these constraints will be rejected.

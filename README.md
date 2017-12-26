@@ -1,8 +1,13 @@
 # Nano data binding
 
-Nano data binding for web components. It avoids the need of installing any of the big frameworks. It does not implement any change detection or a virtual dom. Basically, it directly binds the web component context properties to the dom elements defined in the template. In other ways, this is strictly useful to remove the boilerüplate from imperative web components using declarative syntax in the templates. One fundamental expectation is that a state store is implemented (redux, nano-state-store). Having a unidirectional state management strategy, ensures that no extra operations are executed when state changes. Everything just reacts to the store.
+**Add basic data binding to native web components apps without importing any of the big frameworks.**
 
-This is first demo vesion, several improvements are still under way. Samples and tutorials and better documentation coming soon.
+`nano-data-binding` is a small set of data binding attributes that replace the typical code you would write to get the same effect in vanilaJS without any frameworks around. The main objective is to keep the script easy to read in under 30 mins by most devs. Nothing fancy, easy to understand e2e.
+
+Follow on twitter: [@visual-space](https://twitter.com/visual_space), [@adriancmoisa](https://twitter.com/adriancmoisa)
+
+**This is first demo vesion, several improvements are still under way.**<br/>
+**Samples and tutorials and better documentation coming soon.**
 
 ## Installation and usage
 
@@ -27,9 +32,17 @@ In order to activate the data binds you just need to type the following in your 
 
     nanoBind(this, '.child')
 
-Follow on twitter: [@visual-space](https://twitter.com/visual_space), [@adriancmoisa](https://twitter.com/adriancmoisa)
+## What to expect
+* **Not a framework** - This is not a framework! This is a simple script that adds basic data binding syntax to web components. The objective of this entire script is to keep the codebase as close to vanila JS as possible while avoiding some boilerplate.
+* **Eliminates boilerplate code** - Interpolation in multiline string templates is static, no actual data binds are created. In order to update a static template a lot of boilerplate code is needed. Using a few basic data binding tags can shrink a significant amount of code.
+* **No crazy magic** - `nano-data-binding` does not implement any change detection or a virtual dom. Basically, you control precisly what property or event connects to what web component or dom element. 
+* **Unidirectional flow** - One fundamental expectation is that a state store is implemented (redux, nano-state-store). Having an unidirectional state management strategy, ensures that no extra operations are executed when state changes. Everything just reacts to the store. Basically there is no output data bind, only inputs. This is an intentional design choice meant to encourage proper implementation of state store architecture. 
+* **Defined as globals** All these utils will be used in all files, having them as globals spares a lot of imports. Each of these methods has a global typescript definition matched.
+* **Manual init** - These data binds could be done automatically for every component, however this is not really needed, and it could actually be harmful. Having total control over the binding process gives opportunity for some creative binds, altough in practice it's best to stick to binding to the parent web component.
+* **No overengineering** - Before contributing any functionality please reconsider if it will keep the code simple. The main goal of this file is to be easy to read and understand in 30 minutes for most developers, all in under 600 lines of code. Anything more will result in a new framework that is as complex and mysterious as previous frameworks. Any PR that those not conform to these constraints will be rejected.
+* **Simple code** - It is best if you spend 30 mins to read the source code to clearly understand what happens after a data bind is initialised. Extra effort was spend documenting the code so it can be easily digested.
 
-## Controlling which context members are bound 
+## Controlling which methods and properties are copied to the targeted elements
 * Functions are part of the `__proto__` lookup object.
 * They will be ignored by Object.assign in `nanoBind()` and in `nanoBindAll()`.
 * Object.assign only copies an object instance's own properties.
@@ -86,7 +99,7 @@ Follow on twitter: [@visual-space](https://twitter.com/visual_space), [@adriancm
 * Developers already have a strong expectation taht a component will receive inputs just from the parent
 * Receiving inputs (data binds) from other levels than the parent can be hard to read, confusing, and hard to maintan.
 
-## Avoid Caching references 
+## Avoid caching references 
 * Caching references of `n-if` elements will prevent them from being released and destroyed.
 * The script does not intend to provide additional API that can safely get references without interfering with `n-if`. 
 * The developers need to be aware of this limitation in order to keep this script lightweight.
