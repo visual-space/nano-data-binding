@@ -6,9 +6,7 @@
 
 Follow on twitter: [@visual-space](https://twitter.com/visual_space), [@adriancmoisa](https://twitter.com/adriancmoisa)
 
-**This is first demo vesion, several improvements are still under way.**<br/>
-**Samples, tutorials and better documentation coming soon.**
-**Until then, the best place to learn more about this script is by running `npm run test` and reading the tests descriptions.**
+**This is first demo vesion, several improvements are still under way. Samples, tutorials and better documentation coming soon. Until then, the best place to learn more about this script is by running `npm run test` and reading the tests descriptions.**
 
 ## Installation and usage
 
@@ -38,9 +36,9 @@ In order to activate the data binds you just need to type the following in your 
     nanoBind(this, '.child')
 
 ## What to expect
-* **Not a framework** - This is not a framework! This is a simple script that adds basic data binding syntax to web components. The objective of this entire script is to keep the codebase as close to vanila JS as possible while avoiding some boilerplate.
+* **Not a framework** - This is not a framework! This is a simple script that adds basic data binding syntax to web components. The objective of this entire script is to keep the codebase as close as possible to vanila JS while avoiding some boilerplate code.
 * **Eliminates boilerplate code** - Interpolation in multiline string templates is static, no actual data binds are created. In order to update a static template a lot of boilerplate code is needed. Using a few basic data binding tags can shrink a significant amount of code.
-* **No crazy magic** - `nano-data-binding` does not implement any change detection or a virtual dom. Basically, you control precisly what property or event connects to what web component or dom element. This is just a fancy wrapper that automatically calls `Object.assign()` between the parent and the children and than waits for new values of the bound properties to arrive.
+* **No crazy magic** - `nano-data-binding` does not implement any change detection or a virtual dom. Basically, you control precisely what property or event connects to what web component or dom element. This is just a fancy wrapper that automatically calls `Object.assign()` between the parent and the children and than waits for new values of the bound properties to arrive.
 * **Unidirectional flow** - One fundamental expectation is that a state store is implemented (redux, nano-state-store). Having an unidirectional state management strategy, ensures that no extra operations are executed when state changes. Everything just reacts to the store. Basically there is no output data bind, only inputs. This is an intentional design choice meant to encourage proper implementation of state store architecture. 
 * **Defined as globals** - All these utils will be used in all files, having them as globals spares a lot of imports. Each of these methods has a global typescript definition matched.
 * **Manual init** - These data binds could be done automatically for every component, however this is not really needed, and it could actually be harmful. Having total control over the binding process gives opportunity for some creative binds. In practice it's best to create simple bindings between the parent web component and it's direct childrens. A develoepr would expect to see this kind of relation, anything else is confusing unless properly coded and documented.
@@ -49,7 +47,7 @@ In order to activate the data binds you just need to type the following in your 
 
 ## Planned features
 The overall plan is to keep te script simple.
-* This is still work in progress, so far only binding to custom events was implemented. This is because the host project uses an experimental events based state store. Soon binding to context properties will be done.
+* This is experimental work in progress. So far, only binding to custom events was implemented. This is because the host project uses an experimental events based state store. Soon binding to context properties will be available.
 * Adding `trackkBy()`option for the `n-for` rule.
 * Syntax for automatically binding to observables not just events.
 * Finishing writting also the non-essential tests.
@@ -57,11 +55,11 @@ The overall plan is to keep te script simple.
 * Adding performacne benchmarks
 
 ## Controlling which methods and properties are copied to the targeted elements
-Functions are part of the `__proto__` lookup object. They will be ignored by `Object.assign()` in `nanoBind()` and in `nanoBindAll()`. `Object.assign()` only copies an object instance's own enumerable properties.
+Functions are part of the `__proto__` lookup object. They will be ignored by `Object.assign()` in `nanoBind()` and in `nanoBindAll()`. `Object.assign()` only copies own enumerable properties from an object instance. So baiscally, keeping methods in the prototype emulates the private modifier in the case of the data binding. The object still shows the methods but `Object.assign()` ignores them.
 
-Altough it might seem this is a bug for the moment we use it as a feature in order to copy only the desired methods from a class. However these methods are part of the instance, that means they take extra space in memory. Further testing is necessary to understand what is the otpimal solution in this case. Considering that these data bindings should be used only in web components, the memory use is not that excessive.
+Altough it might seem this is a bug, it is useful for copying only the desired methods from a class. However these methods are part of the instance, that means they take extra space in memory. In order to prevent this issue it is best to define methods as functions in prtotype and only reference then in the instance sa that they can be transfered via reference by `Object.assign()`
 
-Keeping methods on the prototype chain is not the same thing as private but what we need is to prevent property collision on data binding so non-enumerable is enough. Less thechnical knowledge is needed to understand this solution than wekmaps or symbols. It also expresses more clarity of intent.
+Keeping methods on the prototype chain is not the same thing as private but what we need is to prevent property collision on data binding so non-enumerable is enough. Less technical knowledge is needed to understand this solution than weakmaps or symbols. It also has more clarity of intent.
 
 When assigning from a node to another no other methods and properties are assigned besides the instance onse. All details about the node are preserved. Try this to see what happens `console.log(Object.assign({}, someElement))`.
 
