@@ -3,7 +3,7 @@
   "version": "0.0.5",
   "description": "Simple, barebone data binding for web components",
   "main": "lib/nano-data-binding.js",
-  "types": "./src/nano-data-binding.d.ts",
+  "typings": "./src/nano-data-binding.d.ts",
   "scripts": {
     "prepublish": "npm run build",
     "build": "webpack --config ./webpack/webpack-config.js --progress --profile --bail",
