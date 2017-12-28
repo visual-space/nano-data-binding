@@ -1,3 +1,5 @@
+* Restore debug statements
+* Remove them in the build process
 * Finish writting all the tests
 * Improved webpack configuration
 * Restore optional debug logs

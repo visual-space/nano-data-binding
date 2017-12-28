@@ -277,7 +277,8 @@ function parseDataBindAttributes(parent: HTMLElement, children: HTMLElement[]): 
                 dataBind.template = child.innerHTML
                 child.innerHTML = ''
             }
-
+           
+            // debug('Data bind', { dataBind })
             if (isDataBind && dataBind.origin === CONTEXT_PROP) {
 
                 // prefix: any = 
@@ -339,7 +340,7 @@ function isAttrDataBind(attribute: Attr): boolean {
  */
 function evaluateDataBind(dataBind: DataBind): void {
     dataBind.event = event as CustomEvent
-    //debug('Evaluate data bind`, { dataBind })
+    //debug('Evaluate data bind', { dataBind })
     let { rule } = dataBind
 
     // Evaluate the string (attribute value) depending on the rule (attribute name)
@@ -586,10 +587,11 @@ function callChildContextMethod(dataBind: DataBind): void {
     let { child } = dataBind
 
     // Only execute code
-    dataBind.modifier = 'this.'
+    // dataBind.modifier = 'this.' // DEPRECATED - User should have control over the context used to invoke the bound method
+    dataBind.modifier = ''
 
     evalInContext.call(child, dataBind)
-    //debug('Call child context method`, { dataBind })
+    //debug('Call child context method', { dataBind })
 }
 
 /** Evaluates a string in a given context */

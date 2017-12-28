@@ -8,6 +8,7 @@ MockWebCmp
  * ====== NANO DATA BIND SPEC ======
  * Extensive testing was done for the data bondoings to make sure they work as expected no matter what other modificaitons are made
  * The data bindings will be used globally and they need to be tested thoroughly
+ * <!> Each test receives it's own unique event. This is done via the `setupTemplate` method automatically.
  * TODO Curretn tests setup leaks events between tests. Using unique event names would need 
  */
 
@@ -726,7 +727,7 @@ describe('NanoDataBind', () => {
       
         beforeEach(() => setupTemplate(`
             <mock-web-cmp class="parent">
-                <div class="data-bind child" n-call="${MOCK_EVENT} : event.detail"></div>
+                <div class="data-bind child" n-call="${MOCK_EVENT} : this.mockMethod(event.detail)"></div>
             </mock-web-cmp>
         `))
         afterEach(() => document.querySelector('.container').remove())
@@ -735,15 +736,14 @@ describe('NanoDataBind', () => {
             let parent: any = document.querySelector('.parent'),
                 child: any = document.querySelector('.child')
 
-            parent.mockMethod = function () {
-                this.MockProperty = 5
+            parent.mockMethod = function (val: boolean) {
+                this.MockProperty = val
             }
 
             nanoBind(parent, child)
+            dispatchEvent(MOCK_EVENT+id, 5)
 
             expect(child.mockMethod).toBeDefined()
-            expect(child.MockProperty).toBeUndefined()
-            child.mockMethod()
             expect(child.MockProperty).toEqual(5)
             
         })
@@ -797,7 +797,7 @@ describe('NanoDataBind', () => {
                     n-if="${MOCK_EVENT} : event.detail"
                     n-for="${MOCK_EVENT} : event.detail"
                     n-class="${MOCK_EVENT} : { active: event.detail, enabled: event.detail }"
-                    n-call="${MOCK_EVENT} : event.detail">
+                    n-call="${MOCK_EVENT} : mockMethod(event.detail)">
                 </div>
             </mock-web-cmp>
         `))
