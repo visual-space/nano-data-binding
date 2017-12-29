@@ -57,6 +57,7 @@ export type Listener = (e: CustomEvent) => void
 
 /** Dictionary of listeners used to cached them for later deletion */
 export type Listeners = { [key: string]: Listener }
+export type Subscriptions = { [key: string]: any }
 
 /** Delta between old items and new items. Used in n-for. */
 export interface Changes {

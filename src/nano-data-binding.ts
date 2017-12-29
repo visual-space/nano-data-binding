@@ -1,5 +1,5 @@
 // Interfaces
-import { DataBind, StringOrHTMLElement, Listener, Listeners, Changes } from './interfaces/nano-data-binding'
+import { DataBind, StringOrHTMLElement, Listener, Listeners, Subscriptions, Changes } from './interfaces/nano-data-binding'
 
 // Debug
 let Debug = require('debug'), debug = Debug ? Debug('ndb:NanoDataBind') : () => {}
@@ -47,7 +47,7 @@ remListenersFromRemNodes()
 
 /** 
  * Creates references in the child context to all the methods in the parent context, including the inherited ones from abstract classes 
- * Only `bind()` accepts also DOM ellements
+ * Accepts both css selectors and DOM elements
  */
 export function nanoBind(parent: HTMLElement, ...selectors: StringOrHTMLElement[]): HTMLElement[] {
     debug('Nano bind', { parent, selectors })
@@ -96,16 +96,14 @@ export function nanoBind(parent: HTMLElement, ...selectors: StringOrHTMLElement[
         children = [...selectors as HTMLElement[]]
     }
 
-    // <!> Carefully read the doc comments for this methods
-    bindContextToChildren(parent, children)
-    initDataBind(parent, children)
-
+    initDataBinds(parent, children)
     return children
 }
 
 /** 
- * Same as `bind()` but using `querySelectorAll()`.
- * `bindAll()` does not accept HTMLElement selectors. Use `bind()` instead.
+ * Creates references in the child context to all the methods in the parent context, including the inherited ones from abstract classes 
+ * Accepts onöy css selectors and calls `querySelectorAll()`
+ * `nanoBindAll()` does not accept HTMLElement selectors. Use `nanoBind()` instead.
  */
 export function nanoBindAll(parent: HTMLElement, ...selectors: string[]): HTMLElement[] {
     debug('Nano bind', { parent, selectors })
@@ -132,7 +130,6 @@ export function nanoBindAll(parent: HTMLElement, ...selectors: string[]): HTMLEl
     if (selAreStrings === false)
         throw Error('nanoBind() failed. Not all selectors have the same type.')
 
-
     // Get the dom elements
     selectors.forEach(selector => {
         childrenCache = Array.from(parent.querySelectorAll(selector))
@@ -145,11 +142,51 @@ export function nanoBindAll(parent: HTMLElement, ...selectors: string[]): HTMLEl
     // Filter out invalid selectors
     children = children.filter(child => child !== null)
 
-    // <!> Carefully read the doc comments for this methods
-    bindContextToChildren(parent, children)
-    initDataBind(parent, children)
-
+    initDataBinds(parent, children)
     return children
+}
+
+// ====== EVALUATE NANO BIND ATTIRBUTES / RULES. SELECT BEHAVIOR ======
+
+/**
+ * <!> The event handler will be evaluated in the context of the child element
+ * <!> All event listeners are automatically cleaned up when the component is destroyed
+ */
+function initDataBinds(parent: HTMLElement, children: HTMLElement[]): void { 
+    
+    // Bind
+    bindContextToChildren(parent, children)
+
+    children.forEach(child => {
+        let attributes: Attr[] = Array.from(child.attributes),
+            dataBind: DataBind = <DataBind>{ parent, child },
+            listeners: Listeners = {},
+            subscriptions: Subscriptions = {}
+
+        attributes.forEach(attr => {
+
+            // Ignore other attributes
+            if (!isAttrDataBind(attr)) {return}
+            
+            // Parse
+            Object.assign(dataBind, getDataBindFromAttribute(attr))
+
+            // Cache
+            cacheValuesInDom(dataBind)
+
+            // Watch
+            let refs = watchForValueChanges(dataBind)
+            if (dataBind.origin === ORIGIN.Event) Object.assign(listeners, refs)
+            if (dataBind.origin === ORIGIN.Observable) Object.assign(subscriptions, refs)
+
+        })
+
+        // <!> Provide an easy method for removing all custom listeners when the child element is destroyed
+        ;(child as any)._nano_listeners = listeners
+        ;(child as any)._nano_subscriptions = subscriptions
+
+    })
+
 }
 
 /** 
@@ -171,86 +208,72 @@ function bindContextToChildren(parent: HTMLElement, children: HTMLElement[]) {
     })
 }
 
-// ====== EVALUATE NANO BIND ATTIRBUTES / RULES. SELECT BEHAVIOR ======
+function getDataBindFromAttribute (attribute: Attr): DataBind {
+    let dataBind: DataBind = <DataBind>{
+        origin: getDataBindOrigin(attribute),
+        rule: getDataBindRule(attribute),
+        source: getDataBindSource(attribute),
+        code: getDataBindCode(attribute)
+    }
+    debug('Get data bind from attribute', {dataBind})
+    return dataBind
+}
 
-/**
- * <!> The event handler will be evaluated in the context of the child element
- * <!> All event listeners are automatically cleaned up when the component is destroyed
- */
-function initDataBind(parent: HTMLElement, children: HTMLElement[]): void { 
+function cacheValuesInDom (dataBind: DataBind) {
+    debug('Cache values in DOM', dataBind)
+    let { child } = dataBind,
+        placeholderIndex: number, // Used to identify the position of the targeted IF element and then find the placeholder comment
+        placeholder: Node, // A placeholder comment will be present if the data bind was already initialised
+        isComment: boolean // Double check that the placeholder is the right node
+    
+    if (dataBind.rule === RULE.If) {
 
-    children.forEach(child => {
-        let dataBind: DataBind = <DataBind>{ parent, child },
-            attributes: Attr[] = Array.from(child.attributes),
-            customListeners: Listeners = {},
-            placeholderIndex: number, // Used to identify the position of the targeted IF element and then find the placeholder comment
-            placeholder: Node, // A placeholder comment will be present if the data bind was already initialised
-            isComment: boolean // Double check that the placeholder is the right node
-
-        attributes.forEach(attr => {
-
-            // Ignore all attributes that do not have any nano data bind syntax
-            if (!isAttrDataBind(attr)) {return}
-            // TODO split in smaller methods
+        // n-if uses a placehodler comment that will control the visibility of the target/child element
+        placeholderIndex = Array.prototype.indexOf.call(child.parentElement.childNodes, child) - 1
+        placeholder = child.parentElement.childNodes[placeholderIndex]
+        isComment = placeholder.nodeType === 8
+        debug('Recovered IF data bind placeholder', { isComment, placeholderIndex, placeholder, dataBind })
             
-            // Data bind
-            dataBind.origin = getDataBindOrigin(attr)
-            dataBind.rule = getDataBindRule(attr)
-            dataBind.source = getDataBindSource(attr)
-            dataBind.code = getDataBindCode(attr)
-            debug('Initialise data bind', { dataBind })
-            
-            // Cache values in DOM
-            if (dataBind.rule === RULE.If) {
+        // Create placeholder only once
+        if (isComment !== true) setupIfDataBindPlaceholder(dataBind)
 
-                // n-if uses a placehodler comment that will control the visibility of the target/child element
-                placeholderIndex = Array.prototype.indexOf.call(child.parentElement.childNodes, child) - 1
-                placeholder = child.parentElement.childNodes[placeholderIndex]
-                isComment = placeholder.nodeType === 8
-                debug('Recovered IF data bind placeholder', { isComment, placeholderIndex, placeholder, dataBind })
-                    
-                // Create placeholder only once
-                if (isComment !== true) setupIfDataBindPlaceholder(dataBind)
+    } else if (dataBind.rule === RULE.For) {
+        
+        // Cache original html for reuse when the list is updated
+        dataBind.template = child.innerHTML
+        child.innerHTML = ''
 
-            } else if (dataBind.rule === RULE.For) {
-                
-                // Cache original html for reuse when the list is updated
-                dataBind.template = child.innerHTML
-                child.innerHTML = ''
+    }
+}
 
-            }
-           
-            // Watch for value changes
-            if (dataBind.origin === ORIGIN.Property) {
+function watchForValueChanges (dataBind: DataBind): Listeners | Subscriptions {
+    debug('Watch for value changes', dataBind)
+    let listeners: Listeners = {},
+        subscriptions: Subscriptions = {}
 
-                // To implement
+    if (dataBind.origin === ORIGIN.Property) {
 
-            } else if (dataBind.origin === ORIGIN.Event) {
+        // To implement
 
-                // Prepare the event handlers
-                let eventHandler: Listener = () => evaluateDataBind(dataBind)
+    } else if (dataBind.origin === ORIGIN.Event) {
 
-                // Cache the handlers so they ca be removed later
-                customListeners[dataBind.source] = eventHandler
+        // Prepare the event handlers
+        let eventHandler: Listener = () => evaluateDataBind(dataBind)
 
-                // Add the custom event listener
-                document.addEventListener(dataBind.source, eventHandler)
-                debug('Added custom event listener', dataBind.source)
+        // Cache the handlers so they ca be removed later
+        listeners[dataBind.source] = eventHandler
 
-            } else if (dataBind.origin === ORIGIN.Observable) {
+        // Add the custom event listener
+        document.addEventListener(dataBind.source, eventHandler)
+        debug('Added custom event listener', dataBind.source)
+        return listeners
 
-                // To implement
+    } else if (dataBind.origin === ORIGIN.Observable) {
 
-            }
+        // To implement
+        return subscriptions
 
-        })
-
-        // <!> Provide an easy method for removing all custom listeners when the child element is destroyed
-        ;(child as any)._nano_listeners = customListeners
-        ;(child as any)._nano_subscriptions = customListeners
-
-    })
-
+    }
 }
 
 /** 
