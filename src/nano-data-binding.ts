@@ -1,59 +1,34 @@
-
 // Interfaces
 import { DataBind, StringOrHTMLElement, Listener, Listeners, Changes } from './interfaces/nano-data-binding'
 
 // Debug
-// let debug = require('debug')('ndb:NanoDataBind')
-// //debug('Instantiate NanoDataBind')
+let Debug = require('debug'), debug = Debug ? Debug('ndb:NanoDataBind') : () => {}
+debug('Instantiate NanoDataBind')
 
 /**
  * ====== Nano Data Bindings ======
- * <!> This is not a framework! These are some simple global utils that add basic data binding to web components.
- *     The objective of this entire script is to keep the codebase as close to vanila JS as possible while avoiding some boilerplate. 
- * <!> Interpolation in multiline string templates is static, no actual data binds are created.
- *     In order to update a static template a lot of boilerplate code is needed.
- *     Using a few basic data binding tags can shrink a significant amount of code.
- * <!> These data binds could be done automatically for every component, however this is not really needed, and it could be harmful.
- * <!> All these utils will be used in all files, having them as globals spares a lot of imports.
- *     Each of these methods has a global typescript definition matched.
- * <!> Please be a good citisen and don't start dumping everything in the global context.
- * <!> Before extending the data bindings with any functionality please reconsider if it is really needed.
- *     The main goal of this file is to be easy to read and understand in 30 minutes for most developers, all in under 600 lines of code.
- *     Anything more will result in a new framework that is as complex and mysterious as previous frameworks.
- *     Any change that those not conform to these constraints will be rejected.
- * 
- * REFACTOR Instead of creating 10K event listeners use one event listener that is executing all the registered operations.
- *     Maybe a default property for events would be useful. For complex pages rendering twice is not a good idea.
- *     Apparently, in the debug log in the tests it looks like some event listeners are not cleaned. Must review carefully.
- *     The oreder of events seems strange.
- *     Connet co observables and auto unsubscribe
- *
- * REFACOTR Hunt for memory leaks, Most likely there are a lot of them right now
- * 
- * TODO nanoBindAll(parent, children)
- *
+ * <!> Nomenclature
+ *     Origin - The source type of the value: context property, event or observable
+ *     Source - The name of the property, event or observable
+ *     Rule - Is the expected behavior that happens when a databind is created
+ *     Code - In order to execute that behavior a certain code syntax is expected as input in the data bind
  */
 
-// Data binding attributes names
-const RULE = {
-    Data: 'n-data',
-    If: 'n-if',
-    For: 'n-for',
-    Class: 'n-class',
-    Call: 'n-call',
+/** Where is the source value caming from */
+const ORIGIN = {
+    Property: 'p-',
+    Event: 'e-',
+    Observable: 'o-'
 }
 
-// Data bind origins (method of reading the soruce value)
-const CONTEXT_PROP = 'ContextProperty'
-const CUSTOM_EVENT = 'CustomEvent'
-
-// Dot notation - Binds to context property. Matches only first occurence
-const ContextProperty = /(^[^.]*\.)/gm
-const PropEvalString = /(\.[\s\S]*)/gm
-
-// Colon notation - Binds to custom event. Matches only first occurence
-const CustomEvent = /(^[^:]*\:)/gm
-const EventEvalString = /(\:[\s\S]*)/gm
+/** Each rule triggers a specific behavior */
+const RULE = {
+    Data: 'data',
+    If: 'if',
+    For: 'for',
+    Class: 'class',
+    Call: 'call',
+}
 
 // Expose bind methods globally
 // No need to import nanoBind in all the files
@@ -68,23 +43,23 @@ let parser = new DOMParser()
 // <!> Automatically remove listeners
 remListenersFromRemNodes()
 
-// ====== BIND ======
+// ====== BIND PARENT INSTANCE MEMBERS TO CHILD ======
 
 /** 
  * Creates references in the child context to all the methods in the parent context, including the inherited ones from abstract classes 
  * Only `bind()` accepts also DOM ellements
  */
 export function nanoBind(parent: HTMLElement, ...selectors: StringOrHTMLElement[]): HTMLElement[] {
-    //debug('Nano bind', { parent, selectors })
+    debug('Nano bind', { parent, selectors })
     let children: HTMLElement[],
         child: HTMLElement,
         selAreStrings: boolean,
         selAreElements: boolean
 
     // Validation
-    selAreStrings = selectors.reduce((val, sel) => val && typeof sel === `string`, true)
+    selAreStrings = selectors.reduce((val, sel) => val && typeof sel === 'string', true)
     selAreElements = selectors.reduce((val, sel) => val && sel instanceof HTMLElement, true)
-    //debug('All selectors are strings', selAreStrings, 'All selectors are elements', selAreElements)
+    debug('All selectors are strings', selAreStrings, 'All selectors are elements', selAreElements)
     
     if (arguments.length < 1)
         throw Error('nanoBind() failed. First param missing. Provide a HTMLElement.')
@@ -123,10 +98,9 @@ export function nanoBind(parent: HTMLElement, ...selectors: StringOrHTMLElement[
 
     // <!> Carefully read the doc comments for this methods
     bindContextToChildren(parent, children)
-    parseDataBindAttributes(parent, children)
+    initDataBind(parent, children)
 
     return children
-
 }
 
 /** 
@@ -134,14 +108,14 @@ export function nanoBind(parent: HTMLElement, ...selectors: StringOrHTMLElement[
  * `bindAll()` does not accept HTMLElement selectors. Use `bind()` instead.
  */
 export function nanoBindAll(parent: HTMLElement, ...selectors: string[]): HTMLElement[] {
-    //debug('Nano bind', { parent, selectors })
+    debug('Nano bind', { parent, selectors })
     let children: HTMLElement[] = [],
         childrenCache: HTMLElement[],
         selAreStrings: boolean
         
     // Validation
-    selAreStrings = selectors.reduce((val, sel) => val && typeof sel === `string`, true)
-    //debug('All selectors are strings', selAreStrings)
+    selAreStrings = selectors.reduce((val, sel) => val && typeof sel === 'string', true)
+    debug('All selectors are strings', selAreStrings)
     
     if (arguments.length < 1)
         throw Error('nanoBind() failed. First param missing. Provide a HTMLElement.')
@@ -173,7 +147,7 @@ export function nanoBindAll(parent: HTMLElement, ...selectors: string[]): HTMLEl
 
     // <!> Carefully read the doc comments for this methods
     bindContextToChildren(parent, children)
-    parseDataBindAttributes(parent, children)
+    initDataBind(parent, children)
 
     return children
 }
@@ -183,12 +157,12 @@ export function nanoBindAll(parent: HTMLElement, ...selectors: string[]): HTMLEl
  * TODO Copy only instance methods instaed of everything.
  */
 function bindContextToChildren(parent: HTMLElement, children: HTMLElement[]) {
-    //debug('Bind context to children', [parent, children])
+    debug('Bind context to children', [parent, children])
 
     children.forEach(child => {
 
         // Bind parent context 
-        // Instance properties only, nothing from __proto__
+        // <!> Only methods defined on the instance, nothing is copied from __proto__
         Object.assign(child, parent)
         
         // Cache the parent/ancestor context
@@ -197,108 +171,61 @@ function bindContextToChildren(parent: HTMLElement, children: HTMLElement[]) {
     })
 }
 
-// ====== DATA BINDING ======
+// ====== EVALUATE NANO BIND ATTIRBUTES / RULES. SELECT BEHAVIOR ======
 
 /**
  * <!> The event handler will be evaluated in the context of the child element
  * <!> All event listeners are automatically cleaned up when the component is destroyed
  */
-function parseDataBindAttributes(parent: HTMLElement, children: HTMLElement[]): void {
-    //debug('Parse data bind attributes', [parent, children])
+function initDataBind(parent: HTMLElement, children: HTMLElement[]): void { 
 
     children.forEach(child => {
         let dataBind: DataBind = <DataBind>{ parent, child },
             attributes: Attr[] = Array.from(child.attributes),
             customListeners: Listeners = {},
-            isDataBind: boolean,
-            propertyNameMatch: RegExpMatchArray,
-            eventNameMatch: RegExpMatchArray,
-            propertyName: string,
-            eventName: string,
-            dotIndex: number,
-            colonIndex: number,
-            dotIsFirst: boolean = true,
-            colonIsFirst: boolean = true,
             placeholderIndex: number, // Used to identify the position of the targeted IF element and then find the placeholder comment
             placeholder: Node, // A placeholder comment will be present if the data bind was already initialised
             isComment: boolean // Double check that the placeholder is the right node
 
         attributes.forEach(attr => {
-            isDataBind = isAttrDataBind(attr)
 
-            // Get the type and value
-            if (isDataBind) {
-                propertyNameMatch = attr.nodeValue.match(ContextProperty)
-                eventNameMatch = attr.nodeValue.match(CustomEvent)
-                //debug('Dot Regex', propertyNameMatch, 'Colon regex', eventNameMatch)
-
-                // Some scenarios can match both regex expressions (ex: n-class)
-                // We need to make sure we pick the first match
-                if (propertyNameMatch && eventNameMatch) {
-                    dotIndex = attr.nodeValue.indexOf('.')
-                    colonIndex = attr.nodeValue.indexOf(':')
-                    if (dotIndex > colonIndex) dotIsFirst = false
-                    else if (colonIndex > dotIndex) colonIsFirst = false
-                    //debug('Dot and Colon race condition fix', {dotIndex, colonIndex, dotIsFirst, colonIsFirst})
-                }
-
-                // Source - Context property
-                if (propertyNameMatch && dotIsFirst) {
-                    propertyName = propertyNameMatch[0].replace('.', '').trim()
-                    dataBind.code = attr.nodeValue.match(PropEvalString)[0].replace('.', '')
-                    dataBind.origin = CONTEXT_PROP
-
-                // Source - Custom event
-                } else if (eventNameMatch && colonIsFirst) {
-                    eventName = eventNameMatch[0].replace(':', '').trim()
-                    dataBind.code = attr.nodeValue.match(EventEvalString)[0].replace(':', '')
-                    dataBind.origin = CUSTOM_EVENT
-                }
-
-                // Source, Rule
-                dataBind.source = dotIsFirst ? propertyName : eventName
-                dataBind.rule = attr.nodeName
-
-                //debug('Parsed data bind`, { dataBind })
-            }
+            // Ignore all attributes that do not have any nano data bind syntax
+            if (!isAttrDataBind(attr)) {return}
+            // TODO split in smaller methods
             
-            // n-if uses a placehodler comment that will control the visibility of the target/child element
+            // Data bind
+            dataBind.origin = getDataBindOrigin(attr)
+            dataBind.rule = getDataBindRule(attr)
+            dataBind.source = getDataBindSource(attr)
+            dataBind.code = getDataBindCode(attr)
+            debug('Initialise data bind', { dataBind })
+            
+            // Cache values in DOM
             if (dataBind.rule === RULE.If) {
+
+                // n-if uses a placehodler comment that will control the visibility of the target/child element
                 placeholderIndex = Array.prototype.indexOf.call(child.parentElement.childNodes, child) - 1
                 placeholder = child.parentElement.childNodes[placeholderIndex]
                 isComment = placeholder.nodeType === 8
-                //debug('Recovered IF data bind placeholder`, { isComment, placeholderIndex, placeholder, dataBind })
+                debug('Recovered IF data bind placeholder', { isComment, placeholderIndex, placeholder, dataBind })
                     
                 // Create placeholder only once
                 if (isComment !== true) setupIfDataBindPlaceholder(dataBind)
+
             } else if (dataBind.rule === RULE.For) {
                 
                 // Cache original html for reuse when the list is updated
                 dataBind.template = child.innerHTML
                 child.innerHTML = ''
+
             }
            
-            // debug('Data bind', { dataBind })
-            if (isDataBind && dataBind.origin === CONTEXT_PROP) {
+            // Watch for value changes
+            if (dataBind.origin === ORIGIN.Property) {
 
-                // prefix: any = 
+                // To implement
 
-                // // Prepare the event handlers
-                // let property: string = type.split(BIND.ContextProperty)[1],
-                //     value: any = (context as any)[property]
-                // // var handler = {
-                // //     get: function(target, name) {
-                // //         return name in target ?
-                // //             target[name] :
-                // //             37;
-                // //     }
-                // // };
-
-                // // var p = new Proxy({}, handler);
-
-                // console.log('TEST context property data bind', property, value)
-
-            } else if (isDataBind && dataBind.origin === CUSTOM_EVENT) {
+            } else if (dataBind.origin === ORIGIN.Event) {
 
                 // Prepare the event handlers
                 let eventHandler: Listener = () => evaluateDataBind(dataBind)
@@ -308,29 +235,22 @@ function parseDataBindAttributes(parent: HTMLElement, children: HTMLElement[]): 
 
                 // Add the custom event listener
                 document.addEventListener(dataBind.source, eventHandler)
-                //debug('Added custom event listener', dataBind.source)
+                debug('Added custom event listener', dataBind.source)
+
+            } else if (dataBind.origin === ORIGIN.Observable) {
+
+                // To implement
+
             }
+
         })
 
         // <!> Provide an easy method for removing all custom listeners when the child element is destroyed
-        ;(child as any)._customListeners = customListeners
+        ;(child as any)._nano_listeners = customListeners
+        ;(child as any)._nano_subscriptions = customListeners
 
     })
 
-}
-
-// ====== EVENT LISTENERS ======
-
-/** Detect an attribute that triggers an event listener (colon notation) */
-function isAttrDataBind(attribute: Attr): boolean {
-    let attributeNames: string[] = [RULE.Call, RULE.Class, RULE.Data, RULE.For, RULE.If],
-        isListener: boolean
-
-    // Detect data bind syntax
-    isListener = attributeNames.indexOf(attribute.nodeName) !== -1
-
-    //debug('Is attribute event listener', attribute.nodeName, isListener)
-    return isListener
 }
 
 /** 
@@ -340,10 +260,10 @@ function isAttrDataBind(attribute: Attr): boolean {
  */
 function evaluateDataBind(dataBind: DataBind): void {
     dataBind.event = event as CustomEvent
-    //debug('Evaluate data bind', { dataBind })
+    debug('Evaluate data bind', { dataBind })
     let { rule } = dataBind
 
-    // Evaluate the string (attribute value) depending on the rule (attribute name)
+    // Evaluate the attribute value depending on the rule (attribute name)
     switch (dataBind.rule) {
 
         case RULE.Data:
@@ -378,7 +298,7 @@ function evaluateDataBind(dataBind: DataBind): void {
     }
 }
 
-// ====== DATA BINDING BEHAVIORS ======
+// ====== RULES / BEHAVIORS ======
 
 /**
  * Binds the values defined in the descriptor object to the child element
@@ -398,7 +318,7 @@ function bindDataToElem(dataBind: DataBind): void {
     for (inputId in inputs) {
         (child as any)[inputId] = inputs[inputId]
     }
-    //debug('Write data bind values to element`, { inputs, dataBind })
+    debug('Write data bind values to element', { inputs, dataBind })
 }
 
 /** 
@@ -414,11 +334,11 @@ function setupIfDataBindPlaceholder(dataBind: DataBind): void {
         // Setup placeholder comment 
         placeholder = document.createComment('')
         dataBind.placeholder = placeholder
-        //debug('Setup if data bind placeholder`, { dataBind })
+        debug('Setup if data bind placeholder', { dataBind })
     
         // Hidden element clone
-        ;(placeholder as any)._hiddenElement = child.cloneNode()
-        ;(placeholder as any)._hiddenElement.innerHTML = child.innerHTML
+        ;(placeholder as any)._nano_originalElement = child.cloneNode()
+        ;(placeholder as any)._nano_originalElement.innerHTML = child.innerHTML
     
         // Insert placeholder
         child.parentNode.insertBefore(placeholder, child)
@@ -428,48 +348,54 @@ function setupIfDataBindPlaceholder(dataBind: DataBind): void {
         //     dispatch the same custom event with with the detail value set on true
         child.remove()
 
-        // Release the old one from memory
+        // Release the original element from memory
         delete dataBind.child
 
-        // Data bind the placeholder TODO Reuse the bind logic
-        if (origin === CUSTOM_EVENT) {
+        // Data bind the placeholder
+        if (origin === ORIGIN.Event) {
 
             // Add event
             let handler: Listener = () => toggleIfDataBindElement(dataBind)
             document.addEventListener(source, handler)
-            ;(placeholder as any)._customListeners = { source: handler }
+            ;(placeholder as any)._nano_listeners = { source: handler }
 
-        } else if (origin === CONTEXT_PROP) {
-            console.warn('If data bind not implemented for context properties')
+        } else if (origin === ORIGIN.Property) {
+
+            // Not implemented
+
+        } else if (origin === ORIGIN.Observable) {
+
+            // Not implemented
+
         }
 
 }
 
-/** Toggle the  an element using a commnet node as a placeholder */
+/** Toggle the  an element using a comment node as a placeholder */
 function toggleIfDataBindElement(dataBind: DataBind): void {
     let { child, placeholder, parent } = dataBind,
         isVisible: boolean,
         ifElement: HTMLElement
 
-    //debug('Toggle IF data bind element`, { dataBind })
+    debug('Toggle IF data bind element', { dataBind })
 
     // Capture returned value from executed code
     dataBind.modifier = 'this._evalOutput = '
 
     // Retrieve visibility value from evaluated code
     isVisible = evalInContext.call(placeholder, dataBind)
-    //debug('IF element is visible`, isVisible)
+    debug('IF element is visible', isVisible)
 
     // Fail safe for repeated values (same value multiple times in a row)
     if (isVisible === false && child === undefined) return
     if (isVisible === true && child !== undefined) return
 
     // Clone the placeholder clone. Prevents any cross communication between instances
-    ifElement = (placeholder as any)._hiddenElement.cloneNode()
-    ifElement.innerHTML = (placeholder as any)._hiddenElement.innerHTML
+    ifElement = (placeholder as any)._nano_originalElement.cloneNode()
+    ifElement.innerHTML = (placeholder as any)._nano_originalElement.innerHTML
 
     if (isVisible === true) {
-        //debug('Insert child`, {ifElement})
+        debug('Insert child', {ifElement})
 
         // Inset the hidden element in document
         placeholder.parentNode.insertBefore(ifElement, placeholder.nextSibling)
@@ -481,7 +407,7 @@ function toggleIfDataBindElement(dataBind: DataBind): void {
         nanoBind(parent, ifElement)
 
     } else if (isVisible === false) {
-        //debug('Remove child`)
+        debug('Remove child')
 
         // Remove the IF element
         dataBind.child.remove()
@@ -500,12 +426,6 @@ function toggleIfDataBindElement(dataBind: DataBind): void {
  *     In order to encourage a simpler cleaner architecture, items are expected to be defined as webcomponents
  *     The performance cost is minimal to non-existent, and having two web components defined in the same file is permited
  * <!> Compares the old list with the new list, extracts the changes and then it syncs the dom with the new list
- * TODO A `trackBy()` method that takes care of the performance in case the references are lost
- * TODO What if data has duplicate identifiers?
- * TODO What if arrays have gaps? (This is allowed in js)
- * TODO For the moment a standard socket property is used. But in order to make this work with 
- *      any components we need a way to specify what info goes to what inputs 
- *      while also specifying which part of the event is the soruce
  */
 function updateItemsInForList (dataBind: DataBind) {
     let { child } = dataBind,
@@ -518,14 +438,14 @@ function updateItemsInForList (dataBind: DataBind) {
         elems: HTMLElement[] = Array.from(child.children),
         oldItems: any[] = elems.map((el: any) => el._nForDataBInd)
     if (newItems.constructor !== Array) {
-        console.warn(`Cannot render list. Only arrays are accepted. ${logDataBindDetails(dataBind)}`)
+        console.warn(`Cannot render list. Only arrays are accepted. ${mapLogDataBindInfo(dataBind)}`)
         return
     }
 
     changes.added = newItems.filter(itm => !oldItems.includes(itm))
     changes.removed = oldItems.filter(itm => !newItems.includes(itm))
 
-    //debug('Update items in for list`, { newItems, oldItems, changes, dataBind })
+    debug('Update items in for list', { newItems, oldItems, changes, dataBind })
 
     // Validation
     elems.forEach(el => {
@@ -546,7 +466,7 @@ function updateItemsInForList (dataBind: DataBind) {
         removedElems.push(child.children[i])
     })
 
-    //debug('Removed old element', {removedElems})
+    debug('Removed old element', {removedElems})
     removedElems.forEach( remEl => remEl.remove() )
 
     // Add new elements
@@ -560,7 +480,7 @@ function updateItemsInForList (dataBind: DataBind) {
         ;(elem as any).forItemData = add // TODO Add custom inputs
         child.insertBefore(elem, child.children[i])
 
-        //debug('Added new element', {elem, add})
+        debug('Added new element', {elem, add})
     })
 
 }
@@ -572,12 +492,12 @@ function addCssClassesToElem(dataBind: DataBind): void {
     dataBind.modifier = 'this._evalOutput = '
     
     let classesObj: { [key: string]: boolean } = evalInContext.call(child, dataBind)
-    //debug('Add css classes to element`, { classesObj, dataBind })
+    debug('Add css classes to element', { classesObj, dataBind })
 
     let classes: string[] = Object.keys(classesObj)
     classes.forEach(cssClass => {
         if (typeof classesObj[cssClass] !== 'boolean') 
-            console.warn(`Cannot match class, value is not boolean. ${logDataBindDetails(dataBind)}`)
+            console.warn(`Cannot match class, value is not boolean. ${mapLogDataBindInfo(dataBind)}`)
         classesObj[cssClass] === true ? child.classList.add(cssClass) : child.classList.remove(cssClass)
     })
 }
@@ -591,28 +511,10 @@ function callChildContextMethod(dataBind: DataBind): void {
     dataBind.modifier = ''
 
     evalInContext.call(child, dataBind)
-    //debug('Call child context method', { dataBind })
+    debug('Call child context method', { dataBind })
 }
 
-/** Evaluates a string in a given context */
-function evalInContext(dataBind: DataBind): any {
-    let { modifier, code } = dataBind
-    //debug('Evaluate in context`, { dataBind })
-
-    eval(modifier + code)
-
-    // Some expression might assign a value to `this._evalOutput`
-    // These prefixes are added in `evaluateAttrString` depending on the data bind type
-    //debug('Eval output', this._evalOutput)
-
-    // Returns undefined when the children context is not available (code is evaluated in global context)
-    // This is a silent fail because it is a common one that it is actually expected.
-    // The n-if rule if triggered again with a false value will not be able to evalute 
-    // the code in a child context because it does not have a child, only the placeholder.
-    return this._evalOutput
-}
-
-// ====== REMOVE EVENT LISTNERS ======
+// ====== AUTO REMOVE EVENT LISTENERS, SUBSCRIPTIONS ======
 
 /**
  * Observe when child nodes are removed
@@ -621,15 +523,16 @@ function evalInContext(dataBind: DataBind): any {
  *     This approach also solves their problem
  */
 function remListenersFromRemNodes(): void {
-    //debug('Remove listeners from removed nodes`)
+    debug('Remove listeners from removed nodes')
 
     var mutObs = new MutationObserver(e => {
-        //debug('Document body mutated`, e)
+        debug('Document body mutated', e)
 
         // Detect removed nodes with custom event listeners
         if (e[0].removedNodes) {
             [...(e[0] as any).removedNodes].forEach(node => {
-                (node as any).tagName && removeCustomListeners.call(node)
+                (node as any).tagName && removeEventListeners.call(node)
+                (node as any).tagName && removeSubscriptions.call(node)
             })
         }
     })
@@ -640,24 +543,93 @@ function remListenersFromRemNodes(): void {
     })
 }
 
-/** Removes listeners that were setup by the bind() method */
-function removeCustomListeners(): void {
-    let listeners: Listeners = this._customListeners//,
-        //tagName: string = this.tagName.toLowerCase()
-    //debug('Remove all custom event listeners from "<${tagName}>"`, listeners)
+/** Removes listeners that were setup by the data binds */
+function removeEventListeners(): void {
+    let listeners: Listeners = this._nano_listeners,
+        tagName: string = this.tagName.toLowerCase()
+    debug(`Remove event listeners from "<${tagName}>"`, listeners)
 
     // Remove all listeners
     for (let eventName in listeners) {
         let eventHandler = listeners[eventName]
         document.removeEventListener(eventName, eventHandler)
-        //debug('Removed custom event listener "${eventName}" from "<${tagName}>"`)
+        // debug(`Removed custom event listener "${eventName}" from "<${tagName}>"`) // Verbose
+    }
+}
+
+/** Removes observables that were setup by the data binds */
+function removeSubscriptions(): void {
+    let subscriptions: any = this._nano_subscriptions,
+        tagName: string = this.tagName.toLowerCase()
+    debug(`Remove subscriptions from "<${tagName}>"`, subscriptions)
+
+    // Remove all listeners
+    for (let id in subscriptions) {
+        let subscription = subscriptions[id]
+        subscription.unsubscribe()
+        // debug(`Removed subscription "${id}" from "<${tagName}>"`) // Verbose
     }
 }
 
 // ====== UTILS ======
 
-/** Small helper method used to render extra details about the data bind in error messages */
-function logDataBindDetails(dataBind: DataBind): string {
+/** Detect attributes with nano data bind syntax */
+function isAttrDataBind(attribute: Attr): boolean {
+    const MATCH_DATA_BIND = /(^[peo]-(data|if|for|class|call)$)/g
+    let isListener: boolean = attribute.nodeName.search(MATCH_DATA_BIND) === 0
+    // debug('Is attribute data bind', attribute.nodeName, isListener) // Verbose
+    return isListener
+}
+
+function getDataBindOrigin(attribute: Attr): string {
+    let origin: string = attribute.nodeName.substring(0,2)
+    // debug('Get data bind rule', attribute.nodeName, origin) // Verbose
+    return origin   
+}
+
+function getDataBindRule(attribute: Attr): string {
+    let rule: string = attribute.nodeName.substring(2,7)
+    // debug('Get data bind rule', attribute.nodeName, rule) // Verbose
+    return rule   
+}
+
+function getDataBindSource(attribute: Attr): string {
+    const MATCH_SOURCE = /(^[^.]*,)/gm
+    let source: string = attribute.nodeValue.match(MATCH_SOURCE)[0].replace(',','')
+    // debug('Get data bind source', attribute.nodeName, source) // Verbose
+    return source
+}
+
+function getDataBindCode(attribute: Attr): string {
+    const MATCH_CODE = /(,[\s\S]*)/gm
+    let rule: string = attribute.nodeValue.match(MATCH_CODE)[0].replace(',','')
+    // debug('Get data bind code', attribute.nodeName, rule) // Verbose
+    return rule
+}
+
+/** 
+ * Evaluates a string in a given context. 
+ * Useful to trigger behaviors associated with data bind rules.
+ */
+function evalInContext(dataBind: DataBind): any {
+    let { modifier, code } = dataBind
+    debug('Evaluate in context', { dataBind })
+
+    eval(modifier + code)
+
+    // Some expression might assign a value to `this._evalOutput`
+    // These prefixes are added in `evaluateAttrString` depending on the data bind type
+    debug('Eval output', this._evalOutput)
+
+    // Returns undefined when the children context is not available (code is evaluated in global context)
+    // This is a silent fail because it is a common one that it is actually expected.
+    // The n-if rule if triggered again with a false value will not be able to evalute 
+    // the code in a child context because it does not have a child, only the placeholder.
+    return this._evalOutput
+}
+
+/** Render extra details about the data bind in debug log messages */
+function mapLogDataBindInfo(dataBind: DataBind): string {
     let { parent, child, origin, source, rule, code } = dataBind,
         parentTagName = `<${parent.tagName.toLowerCase()}>`,
         childTagName = `<${child.tagName.toLowerCase()}>`

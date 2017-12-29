@@ -1,4 +1,4 @@
-import { nanoBind, nanoBindAll } from './nano-data-binding'
+import { nanoBind/*, nanoBindAll*/ } from './nano-data-binding'
 
 // Mocks
 import { MockWebCmp, MockArr } from './mocks/nano-data-bind.mock'
@@ -17,7 +17,7 @@ MockWebCmp
 ;(window as any).debug = require('debug')
 declare var debug: any
 
-const MOCK_EVENT = 'MOCK_EVENT'
+const mockEvent = 'mockEvent'
 
 describe('NanoDataBind', () => {
 
@@ -72,9 +72,8 @@ describe('NanoDataBind', () => {
     })
     
     // ====== BINDS PROPERTIES & METHODS FROM PARENT CONTEXT ======
-    // TODO Check also for props not only mehtods
 
-    describe('Binds properties from parent context', () => {
+    describe('Binds properties & methods from parent context', () => {
         beforeEach(() => setupTemplate(`
             <mock-web-cmp class="parent">
                 <div class="data-bind child child-1"></div>
@@ -196,61 +195,158 @@ describe('NanoDataBind', () => {
 
     })
 
-    // ====== ALL DATA BINDS ======
+    // ====== COMMON SPECS FOR ALL DATA BINDS ======
 
     describe('Common specs for all data binds', () => {
 
         beforeEach(() => setupTemplate(`
             <mock-web-cmp class="parent">
-                <div class="data-bind child data" n-data="${MOCK_EVENT} : {customInput: event.detail}"></div>
-                <div class="data-bind child if" n-if="${MOCK_EVENT} : event.detail"></div>
-                <div class="data-bind child for" n-for="${MOCK_EVENT} : event.detail"></div>
-                <div class="data-bind child class" n-class="${MOCK_EVENT} : {active: event.detail, enabled: event.detail}"></div>
-                <div class="data-bind child call" n-call="${MOCK_EVENT} : event.detail"></div>
+                <div class="data-bind child data" e-data="mockEvent, {customInput: event.detail}"></div>
+                <div class="data-bind child if" e-if="mockEvent, event.detail"></div>
+                <div class="data-bind child for" e-for="mockEvent, event.detail"></div>
+                <div class="data-bind child class" e-class="mockEvent, {active: event.detail, enabled: event.detail}"></div>
+                <div class="data-bind child call" e-call="mockEvent, mockMehtod(event.detail)"></div>
             </mock-web-cmp>
         `))
         afterEach(() => document.querySelector('.container').remove())
 
-        xit('Removes event listeners when element is destroyed', () => {
-            let parent: MockWebCmp = document.querySelector('.parent')//,
-                // children = document.querySelectorAll('.child')
-
-            // nanoBindAll(parent, children) // RESTORE when nanoBindAll() is implemented
-            nanoBindAll(parent, '.data', '.if', '.for', '.class', '.call' )
-            dispatchEvent(MOCK_EVENT+id, true)
-
-            expect(1).toBeDefined(1)
-        })
-
         xit('Matches with or without whitespace', () => { })
-        xit('Matches the first colon or first dot', () => { })
         xit('Matches multiline html', () => { })
-        xit('Matches only first occurence dot', () => { })
-        xit('Matches only first occurence colon', () => { })
-        // REVIEW
-        // This behavior could be actually dangerous. 
-        // Complex code that goes against the separation of data computation from the rendering of components can be written.
-        // This behavior can be potatentially useful in limited set of situations that usually can be handled in better ways.
-        xit('When the source value is updated the value of another local value can be used to update the target', () => { })
-        // TODO Implement
-        xit('value defaults to event.detail if no property is provided', () => { })
-        // TODO Implement
-        xit('Defaults to property bind if no operation token was provided ".", ":". "$"', () => { })
+
+    })
+
+    // ====== CONTEXT PROPERTY BINDS ======
+
+    describe('Context property binds', () => {
+
+        beforeEach(() => setupTemplate(`
+            <mock-web-cmp class="parent">
+                <div class="data-bind child data" e-data="mockProperty, {customInput: mockProperty}"></div>
+                <div class="data-bind child if" e-if="mockProperty, mockProperty"></div>
+                <div class="data-bind child for" e-for="mockProperty, mockProperty"></div>
+                <div class="data-bind child class" e-class="mockProperty, {active: mockProperty, enabled: mockProperty}"></div>
+                <div class="data-bind child call" e-call="mockProperty, mockMehtod(mockProperty)"></div>
+            </mock-web-cmp>
+        `))
+        afterEach(() => document.querySelector('.container').remove())
+
         xit('Property - Instantiates with the initial value', () => { })
+        xit('Matches only the first occurence of the origin token "."', () => { }) 
+        xit('When the source value is updated the value of another local value can be used to update the target', () => { }) // REVIEW, can be confusing
+
+    })
+
+    // <!> This is actually the most commmon notation for most uses cases.
+    describe('Context property binds shorthand', () => {
+
+        beforeEach(() => setupTemplate(`
+            <mock-web-cmp class="parent">
+                <div class="data-bind child data" e-data="mockProperty"></div>
+                <div class="data-bind child data" e-data="mockProperty, {customInput}"></div>
+                <div class="data-bind child if" e-if="mockProperty"></div>
+                <div class="data-bind child for" e-for="mockProperty"></div>
+                <div class="data-bind child class" e-class="mockProperty, {active, enabled}"></div>
+                <div class="data-bind child call" e-call="mockMehtod(mockProperty)"></div>
+            </mock-web-cmp>
+        `))
+        afterEach(() => document.querySelector('.container').remove())
+
+        xit('Defaults to property bind if no origin token was specified [".", ":", "$"]', () => { }) // TODO Implement
+
+    })
+
+    // ====== CUSTOM EVENT BINDS ======
+
+    describe('Custom event binds', () => {
+
+        beforeEach(() => setupTemplate(`
+            <mock-web-cmp class="parent">
+                <div class="data-bind child data" p-data="mockEvent, {customInput: event.detail}"></div>
+                <div class="data-bind child if" p-if="mockEvent, event.detail"></div>
+                <div class="data-bind child for" p-for="mockEvent, event.detail"></div>
+                <div class="data-bind child class" p-class="mockEvent, {active: event.detail, enabled: event.detail}"></div>
+                <div class="data-bind child call" p-call="mockEvent, mockMehtod(event.detail)"></div>
+            </mock-web-cmp>
+        `))
+        afterEach(() => document.querySelector('.container').remove())
+
+        xit('Matches only the first occurence of the origin token ":"', () => { })
+        xit('When the source value is updated the value of another local value can be used to update the target', () => { }) // REVIEW, can be confusing
+        xit('Removes event listeners when element is destroyed', () => {})
+
+    })
+
+    describe('Custom event binds shorthand', () => {
+
+        beforeEach(() => setupTemplate(`
+            <mock-web-cmp class="parent">
+                <div class="data-bind child data" p-data="mockEvent"></div>
+                <div class="data-bind child data" p-data="mockEvent, {customInput}"></div>
+                <div class="data-bind child if" p-if="mockEvent"></div>
+                <div class="data-bind child for" p-for="mockEvent"></div>
+                <div class="data-bind child class" p-class="mockEvent, {active, enabled}"></div>
+                <div class="data-bind child call" p-call="mockEvent, mockMehtod(event.detail)"></div>
+            </mock-web-cmp>
+        `))
+        afterEach(() => document.querySelector('.container').remove())
+
+        xit('Defaults to event.detail if no event detail property (source) is specified', () => { }) // TODO Implement
+
+    })
+
+    // ====== OBSERVABLES BINDS ======
+    
+    // Implement
+    // Also implment shortnotaion tests after implmenting observables
+    describe('Observable binds', () => {
+
+        beforeEach(() => setupTemplate(`
+            <mock-web-cmp class="parent">
+                <div class="data-bind child data" o-data="mockObservable, {customInput: payload}"></div>
+                <div class="data-bind child if" o-if="mockObservable, payload"></div>
+                <div class="data-bind child for" o-for="mockObservable, payload"></div>
+                <div class="data-bind child class" o-class="mockObservable, {active: payload, enabled: payload}"></div>
+                <div class="data-bind child call" o-call="mockObservable, payload"></div>
+            </mock-web-cmp>
+        `))
+        afterEach(() => document.querySelector('.container').remove())
+
+        xit('Matches only the first occurence of the origin token "$"', () => { })
+        xit('When the source value is updated the value of another local value can be used to update the target', () => { }) // REVIEW, can be confusing
+        xit('Removes subscriptions when element is destroyed', () => {})
+
+    })
+    
+    // Implement
+    describe('Observable binds shorthand', () => {
+
+        beforeEach(() => setupTemplate(`
+            <mock-web-cmp class="parent">
+                <div class="data-bind child data" o-data="mockObservable"></div>
+                <div class="data-bind child data" o-data="mockObservable, {customInput}"></div>
+                <div class="data-bind child if" o-if="mockObservable"></div>
+                <div class="data-bind child for" o-for="mockObservable"></div>
+                <div class="data-bind child class" o-class="mockObservable, {active, enabled}"></div>
+                <div class="data-bind child call" o-call="mockObservable, mockMehtod(payload)"></div>
+            </mock-web-cmp>
+        `))
+        afterEach(() => document.querySelector('.container').remove())
+
+        xit('Defaults to event.detail if no event detail property (source) is specified', () => { }) // TODO Implement
 
     })
 
     // ====== DATA ======
 
-    describe('Data bind n-data=""', () => {
+    describe('Data bind e-data=""', () => {
 
         beforeEach(() => setupTemplate(`
             <mock-web-cmp class="parent">
-                <div class="data-bind child" n-data="${MOCK_EVENT} : { 
+                <div class="data-bind child" e-data="mockEvent, { 
                     mockValue: event.detail, 
                     secondMockValue: event.detail 
                 }">
-                <!--<div class="data-bind short" n-data="mockValue . { mockValue }">-->
+                <!--<div class="data-bind short" e-data="mockValue, { mockValue }">-->
                 </div>
             </mock-web-cmp>
         `))
@@ -261,7 +357,7 @@ describe('NanoDataBind', () => {
                 child: MockWebCmp = document.querySelector('.child')
 
             nanoBind(parent, child)
-            dispatchEvent(MOCK_EVENT+id, 1)
+            dispatchEvent(mockEvent+id, 1)
             expect((child as any).mockValue).toEqual(1)
         })
 
@@ -270,7 +366,7 @@ describe('NanoDataBind', () => {
                 child: MockWebCmp = document.querySelector('.child')
 
             nanoBind(parent, child)
-            dispatchEvent(MOCK_EVENT+id, 1)
+            dispatchEvent(mockEvent+id, 1)
             expect((child as any).mockValue).toEqual(1)
             expect((child as any).secondMockValue).toEqual(1)
         })
@@ -282,11 +378,11 @@ describe('NanoDataBind', () => {
 
     // ====== IF ======
     
-    describe('Data bind n-if=""', () => {
+    describe('Data bind e-if=""', () => {
         
         beforeEach(() => setupTemplate(`
             <mock-web-cmp class="parent">
-                <div class="data-bind child" n-if="${MOCK_EVENT} : event.detail"></div>
+                <div class="data-bind child" e-if="mockEvent, event.detail"></div>
             </mock-web-cmp>
         `))
         afterEach(() => document.querySelector('.container').remove())
@@ -307,7 +403,7 @@ describe('NanoDataBind', () => {
                 getChild = () => document.querySelector('.child')
 
             nanoBind(parent, child)
-            dispatchEvent(MOCK_EVENT+id, false)
+            dispatchEvent(mockEvent+id, false)
 
             expect(getChild()).toEqual(null)
         })
@@ -318,7 +414,7 @@ describe('NanoDataBind', () => {
                 getChild = () => document.querySelector('.child')
 
             nanoBind(parent, child)
-            dispatchEvent(MOCK_EVENT+id, true)
+            dispatchEvent(mockEvent+id, true)
 
             expect(getChild().tagName).toEqual('DIV')
         })
@@ -329,9 +425,9 @@ describe('NanoDataBind', () => {
                 getChild = () => document.querySelector('.child')
 
             nanoBind(parent, child)
-            dispatchEvent(MOCK_EVENT+id, true)
+            dispatchEvent(mockEvent+id, true)
             expect(getChild().tagName).toEqual('DIV')
-            dispatchEvent(MOCK_EVENT+id, true)
+            dispatchEvent(mockEvent+id, true)
             expect(getChild().tagName).toEqual('DIV')
         })
         
@@ -341,9 +437,9 @@ describe('NanoDataBind', () => {
                 getChild = () => document.querySelector('.child')
 
             nanoBind(parent, child)
-            dispatchEvent(MOCK_EVENT+id, true)
+            dispatchEvent(mockEvent+id, true)
             expect(getChild().tagName).toEqual('DIV')
-            dispatchEvent(MOCK_EVENT+id, false)
+            dispatchEvent(mockEvent+id, false)
             expect(getChild()).toEqual(null)
         })
 
@@ -367,7 +463,7 @@ describe('NanoDataBind', () => {
     // ====== FOR ======
     // <!> TODO After implementing rack by also update the tests
     
-    describe('Data bind n-for=""', () => {
+    describe('Data bind e-for=""', () => {
 
         /** Small util used to retrieve data associated with the list elements */
         function getListDataFromEls(children: HTMLCollection) {
@@ -376,7 +472,7 @@ describe('NanoDataBind', () => {
 
         beforeEach(() => setupTemplate(`
             <mock-web-cmp class="parent">
-                <div class="data-bind child" n-for="${MOCK_EVENT} : event.detail">
+                <div class="data-bind child" e-for="mockEvent, event.detail">
                     <div class="item"></div>
                 </div>
             </mock-web-cmp>
@@ -393,7 +489,7 @@ describe('NanoDataBind', () => {
                 storedArr: MockArr
 
             nanoBind(parent, child)
-            dispatchEvent(MOCK_EVENT+id, mockArr)
+            dispatchEvent(mockEvent+id, mockArr)
             storedArr = getListDataFromEls(child.children)
 
             expect(child.children.length).toEqual(3)
@@ -413,9 +509,9 @@ describe('NanoDataBind', () => {
                 storedArr: MockArr
 
             nanoBind(parent, child)
-            dispatchEvent(MOCK_EVENT+id, mockArr)
+            dispatchEvent(mockEvent+id, mockArr)
             storedArr = getListDataFromEls(child.children)
-            dispatchEvent(MOCK_EVENT+id, mockArr) // Should fail.
+            dispatchEvent(mockEvent+id, mockArr) // Should fail.
 
             expect(child.children.length).toEqual(3)
             expect(storedArr).toEqual(mockArr)
@@ -435,7 +531,7 @@ describe('NanoDataBind', () => {
                 storedArr: MockArr
 
             nanoBind(parent, child)
-            dispatchEvent(MOCK_EVENT+id, mockArr)
+            dispatchEvent(mockEvent+id, mockArr)
             storedArr = getListDataFromEls(child.children)
 
             expect(child.children.length).toEqual(3)
@@ -461,11 +557,11 @@ describe('NanoDataBind', () => {
                 storedArr: MockArr
 
             nanoBind(parent, child)
-            dispatchEvent(MOCK_EVENT+id, mockArr)
+            dispatchEvent(mockEvent+id, mockArr)
             expect(child.children.length).toEqual(3)
 
             mockArr.shift()
-            dispatchEvent(MOCK_EVENT+id, mockArr)
+            dispatchEvent(mockEvent+id, mockArr)
             storedArr = getListDataFromEls(child.children)
 
             expect(child.children.length).toEqual(2)
@@ -487,18 +583,18 @@ describe('NanoDataBind', () => {
                 storedArr: MockArr
 
             nanoBind(parent, child)
-            dispatchEvent(MOCK_EVENT+id, mockArr)
+            dispatchEvent(mockEvent+id, mockArr)
             expect(child.children.length).toEqual(3)
 
             mockArr.length = 0
-            dispatchEvent(MOCK_EVENT+id, mockArr)
+            dispatchEvent(mockEvent+id, mockArr)
             expect(child.children.length).toEqual(0)
 
             // Keep old arr reference intact
             mockArr.push({ a: 4 })
             mockArr.push({ b: 5 })
             mockArr.push({ c: 6 }) 
-            dispatchEvent(MOCK_EVENT+id, mockArr)
+            dispatchEvent(mockEvent+id, mockArr)
             storedArr = getListDataFromEls(child.children)
 
             expect(child.children.length).toEqual(3)
@@ -520,15 +616,15 @@ describe('NanoDataBind', () => {
                 storedArr: MockArr
 
             nanoBind(parent, child)
-            dispatchEvent(MOCK_EVENT+id, mockArr)
+            dispatchEvent(mockEvent+id, mockArr)
             expect(child.children.length).toEqual(3)
 
             mockArr.shift()
-            dispatchEvent(MOCK_EVENT+id, mockArr)
+            dispatchEvent(mockEvent+id, mockArr)
             expect(child.children.length).toEqual(2)
 
             mockArr.unshift({ a: 4 })
-            dispatchEvent(MOCK_EVENT+id, mockArr)
+            dispatchEvent(mockEvent+id, mockArr)
             storedArr = getListDataFromEls(child.children)
 
             expect(child.children.length).toEqual(3)
@@ -549,11 +645,11 @@ describe('NanoDataBind', () => {
                 storedArr: MockArr
 
             nanoBind(parent, child)
-            dispatchEvent(MOCK_EVENT+id, mockArr)
+            dispatchEvent(mockEvent+id, mockArr)
             expect(child.children.length).toEqual(3)
 
             mockArr.unshift({ z: 4 })
-            dispatchEvent(MOCK_EVENT+id, mockArr)
+            dispatchEvent(mockEvent+id, mockArr)
             storedArr = getListDataFromEls(child.children)
 
             expect(child.children.length).toEqual(4)
@@ -577,13 +673,13 @@ describe('NanoDataBind', () => {
                 storedArr: MockArr
 
             nanoBind(parent, child)
-            dispatchEvent(MOCK_EVENT+id, mockArr)
+            dispatchEvent(mockEvent+id, mockArr)
             expect(child.children.length).toEqual(3)
 
             mockArr.unshift({ x: 4 })
             mockArr.splice(2, 0, { y: 5 })
             mockArr.splice(3, 0, { z: 6 })
-            dispatchEvent(MOCK_EVENT+id, mockArr)
+            dispatchEvent(mockEvent+id, mockArr)
             storedArr = getListDataFromEls(child.children)
 
             expect(child.children.length).toEqual(6)
@@ -607,13 +703,13 @@ describe('NanoDataBind', () => {
                 storedArr: MockArr
 
             nanoBind(parent, child)
-            dispatchEvent(MOCK_EVENT+id, mockArr)
+            dispatchEvent(mockEvent+id, mockArr)
             expect(child.children.length).toEqual(3)
 
             mockArr.shift()
             mockArr[0].b = 5
             mockArr.push({ d: 4 })
-            dispatchEvent(MOCK_EVENT+id, mockArr)
+            dispatchEvent(mockEvent+id, mockArr)
             storedArr = getListDataFromEls(child.children)
 
             expect(child.children.length).toEqual(3)
@@ -636,13 +732,13 @@ describe('NanoDataBind', () => {
                 storedArr: MockArr
 
             nanoBind(parent, child)
-            dispatchEvent(MOCK_EVENT+id, mockArr)
+            dispatchEvent(mockEvent+id, mockArr)
             expect(child.children.length).toEqual(3)
 
             let el0 = mockArr[0]
             mockArr.shift()
             mockArr.splice(1,0,el0)
-            dispatchEvent(MOCK_EVENT+id, mockArr)
+            dispatchEvent(mockEvent+id, mockArr)
             storedArr = getListDataFromEls(child.children)
 
             expect(child.children.length).toEqual(3)
@@ -662,11 +758,11 @@ describe('NanoDataBind', () => {
     
     // ====== CLASS ======
 
-    describe('Data bind n-class=""', () => {
+    describe('Data bind e-class=""', () => {
         
         beforeEach(() => setupTemplate(`
             <mock-web-cmp class="parent">
-                <div class="data-bind child" n-class="${MOCK_EVENT} : {active: event.detail, enabled: event.detail}"></div>
+                <div class="data-bind child" e-class="mockEvent, {active: event.detail, enabled: event.detail}"></div>
             </mock-web-cmp>
         `))
         afterEach(() => document.querySelector('.container').remove())
@@ -689,7 +785,7 @@ describe('NanoDataBind', () => {
             nanoBind(parent, child)
 
             expect(child.classList.contains('active')).toBeFalsy()
-            dispatchEvent(MOCK_EVENT+id, true)
+            dispatchEvent(mockEvent+id, true)
             expect(child.classList.contains('active')).toBeTruthy()
         })
         
@@ -699,7 +795,7 @@ describe('NanoDataBind', () => {
 
             nanoBind(parent, child)
 
-            dispatchEvent(MOCK_EVENT+id, true)
+            dispatchEvent(mockEvent+id, true)
             expect(child.classList.contains('active')).toBeTruthy()
             expect(child.classList.contains('enabled')).toBeTruthy()
         })
@@ -711,9 +807,9 @@ describe('NanoDataBind', () => {
             nanoBind(parent, child)
 
             expect(child.classList.contains('active')).toBeFalsy()
-            dispatchEvent(MOCK_EVENT+id, true)
+            dispatchEvent(mockEvent+id, true)
             expect(child.classList.contains('active')).toBeTruthy()
-            dispatchEvent(MOCK_EVENT+id, false)
+            dispatchEvent(mockEvent+id, false)
             expect(child.classList.contains('active')).toBeFalsy()
         })
         
@@ -723,11 +819,11 @@ describe('NanoDataBind', () => {
     
     // ====== CALL ======
 
-    describe('Data bind n-call=""', () => {
+    describe('Data bind e-call=""', () => {
       
         beforeEach(() => setupTemplate(`
             <mock-web-cmp class="parent">
-                <div class="data-bind child" n-call="${MOCK_EVENT} : this.mockMethod(event.detail)"></div>
+                <div class="data-bind child" e-call="mockEvent, this.mockMethod(event.detail)"></div>
             </mock-web-cmp>
         `))
         afterEach(() => document.querySelector('.container').remove())
@@ -741,7 +837,7 @@ describe('NanoDataBind', () => {
             }
 
             nanoBind(parent, child)
-            dispatchEvent(MOCK_EVENT+id, 5)
+            dispatchEvent(mockEvent+id, 5)
 
             expect(child.mockMethod).toBeDefined()
             expect(child.MockProperty).toEqual(5)
@@ -751,16 +847,16 @@ describe('NanoDataBind', () => {
     
     // ====== DEEP NESTING DATA BIND ======
 
-    describe('Deep nesting of n-data="" data binds', () => {
+    describe('Deep nesting of e-data="" data binds', () => {
 
         // <!> Chaining properties in multiple levels from the same web component is possible
         //     However this practice is strongly discouraged.
         //     Developers already have a strong expectation taht a component will receive inputs just from the parent
         //     Receiving inputs (data binds) from other levels than the parent can be hard to read, confusing, and hard to maintan.
         beforeEach(() => setupTemplate(`
-            <mock-web-cmp class="level-1" n-data="${MOCK_EVENT} : { mockValueL1: event.detail }">
-                <mock-web-cmp class="level-2" n-data="mockValueL1 . { mockValueL2 }">
-                    <mock-web-cmp class="level-3" n-data="mockValueL2 . { mockValueL3 }">
+            <mock-web-cmp class="level-1" e-data="mockEvent, { mockValueL1: event.detail }">
+                <mock-web-cmp class="level-2" e-data="mockValueL1, { mockValueL2 }">
+                    <mock-web-cmp class="level-3" e-data="mockValueL2, { mockValueL3 }">
                     </mock-web-cmp>
                 </mock-web-cmp>
             </mock-web-cmp>
@@ -777,7 +873,7 @@ describe('NanoDataBind', () => {
             expect((lvl3 as any).mockValue).toBeUndefined()
 
             nanoBind(lvl1, lvl2, lvl3)
-            dispatchEvent(MOCK_EVENT+id, 1)
+            dispatchEvent(mockEvent+id, 1)
 
             expect((lvl1 as any).mockValue).toEqual(1)
             expect((lvl2 as any).mockValue).toEqual(1)
@@ -793,19 +889,19 @@ describe('NanoDataBind', () => {
         beforeEach(() => setupTemplate(`
             <mock-web-cmp class="parent">
                 <div class="data-bind child" 
-                    n-data="${MOCK_EVENT} : { mockValue: event.detail }"
-                    n-if="${MOCK_EVENT} : event.detail"
-                    n-for="${MOCK_EVENT} : event.detail"
-                    n-class="${MOCK_EVENT} : { active: event.detail, enabled: event.detail }"
-                    n-call="${MOCK_EVENT} : mockMethod(event.detail)">
+                    e-data="mockEvent, { mockValue: event.detail }"
+                    e-if="mockEvent, event.detail"
+                    e-for="mockEvent, event.detail"
+                    e-class="mockEvent, { active: event.detail, enabled: event.detail }"
+                    e-call="mockEvent, mockMethod(event.detail)">
                 </div>
             </mock-web-cmp>
         `))
         afterEach(() => document.querySelector('.container').remove())
         
         xit('Data bind attributes order does not matter', () => {})
-        xit('Same event - n-if rule is executed first so that the other rules are not computed without reason', () => {})
-        xit('Same event - n-call rule is executed last so that it can interact with the element after the data binds have changed', () => {})
+        xit('Same event - e-if rule is executed first so that the other rules are not computed without reason', () => {})
+        xit('Same event - e-call rule is executed last so that it can interact with the element after the data binds have changed', () => {})
     })
 
 })
@@ -828,7 +924,7 @@ function setupTemplate(template: string) {
     
     // <!> Suffix all event names with a unique id
     // The counter increments once per test, exactly what we need
-    template = template.replace(/(MOCK_EVENT)/g, `MOCK_EVENT${++id}`)
+    template = template.replace(/(mockEvent)/g, `mockEvent${++id}`)
     
     // Simple nested web component with basic content
     container.innerHTML = template
