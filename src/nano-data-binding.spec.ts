@@ -1,4 +1,4 @@
-import { nanoBind/*, nanoBindAll*/ } from './nano-data-binding'
+import { nanoBind/*, nanoBindAll*/ } from './services/selectors'
 
 // Mocks
 import { MockWebCmp, MockArr } from './mocks/nano-data-bind.mock'
@@ -215,90 +215,69 @@ describe('NanoDataBind', () => {
 
     })
 
-    // ====== CONTEXT PROPERTY BINDS ======
+    // ====== ORIGIN CONTEXT PROPERTY ======
 
-    describe('Context property binds', () => {
+    describe('Origin - Context property', () => {
 
         beforeEach(() => setupTemplate(`
             <mock-web-cmp class="parent">
-                <div class="data-bind child data" e-data="mockProperty, {customInput: mockProperty}"></div>
-                <div class="data-bind child if" e-if="mockProperty, mockProperty"></div>
-                <div class="data-bind child for" e-for="mockProperty, mockProperty"></div>
-                <div class="data-bind child class" e-class="mockProperty, {active: mockProperty, enabled: mockProperty}"></div>
-                <div class="data-bind child call" e-call="mockProperty, mockMehtod(mockProperty)"></div>
+                <div class="data-bind child data" p-data="mockDataProp, {customInput: mockProperty}"></div>
+                <div class="data-bind child if" p-if="mockIfProp, mockProperty"></div>
+                <div class="data-bind child for" p-for="mockForProp, mockProperty"></div>
+                <div class="data-bind child class" p-class="mockClassProp, {active: mockProperty, enabled: mockProperty}"></div>
+                <div class="data-bind child call" p-call="mockCallProp, mockMehtod(mockProperty)"></div>
             </mock-web-cmp>
         `))
         afterEach(() => document.querySelector('.container').remove())
 
-        xit('Property - Instantiates with the initial value', () => { })
-        xit('Matches only the first occurence of the origin token "."', () => { }) 
+        it('Property - Instantiates with the initial value', () => {
+            let parent: MockWebCmp = document.querySelector('.parent'),
+                dataEl: HTMLElement = document.querySelector('.child.data'),
+                ifEl: HTMLElement = document.querySelector('.child.if'),
+                forEl: HTMLElement = document.querySelector('.child.for'),
+                classEl: HTMLElement = document.querySelector('.child.class'),
+                callEl: HTMLElement = document.querySelector('.child.call'),
+                getIfEl = () => document.querySelector('.child.if')
+
+            nanoBind(parent, dataEl, ifEl, forEl, classEl, callEl)
+            ;(parent as any).mockDataProp = 123
+            ;(parent as any).mockIfProp = false
+            ;(parent as any).mockForProp = [1,2,3]
+            ;(parent as any).mockClassProp = true
+            ;(parent as any).mockCallProp = 'abc'
+            // expect((dataEl as any ).customInput).toEqual(123)
+            expect(getIfEl()).toBeDefined()
+        })
         xit('When the source value is updated the value of another local value can be used to update the target', () => { }) // REVIEW, can be confusing
 
     })
 
-    // <!> This is actually the most commmon notation for most uses cases.
-    describe('Context property binds shorthand', () => {
+    // ====== ORIGIN CUSTOM EVENT ======
+
+    describe('Origin - Custom event', () => {
 
         beforeEach(() => setupTemplate(`
             <mock-web-cmp class="parent">
-                <div class="data-bind child data" e-data="mockProperty"></div>
-                <div class="data-bind child data" e-data="mockProperty, {customInput}"></div>
-                <div class="data-bind child if" e-if="mockProperty"></div>
-                <div class="data-bind child for" e-for="mockProperty"></div>
-                <div class="data-bind child class" e-class="mockProperty, {active, enabled}"></div>
-                <div class="data-bind child call" e-call="mockMehtod(mockProperty)"></div>
+                <div class="data-bind child data" e-data="mockEvent, {customInput: event.detail}"></div>
+                <div class="data-bind child if" e-if="mockEvent, event.detail"></div>
+                <div class="data-bind child for" e-for="mockEvent, event.detail"></div>
+                <div class="data-bind child class" e-class="mockEvent, {active: event.detail, enabled: event.detail}"></div>
+                <div class="data-bind child call" e-call="mockEvent, mockMehtod(event.detail)"></div>
             </mock-web-cmp>
         `))
         afterEach(() => document.querySelector('.container').remove())
 
-        xit('Defaults to property bind if no origin token was specified [".", ":", "$"]', () => { }) // TODO Implement
-
-    })
-
-    // ====== CUSTOM EVENT BINDS ======
-
-    describe('Custom event binds', () => {
-
-        beforeEach(() => setupTemplate(`
-            <mock-web-cmp class="parent">
-                <div class="data-bind child data" p-data="mockEvent, {customInput: event.detail}"></div>
-                <div class="data-bind child if" p-if="mockEvent, event.detail"></div>
-                <div class="data-bind child for" p-for="mockEvent, event.detail"></div>
-                <div class="data-bind child class" p-class="mockEvent, {active: event.detail, enabled: event.detail}"></div>
-                <div class="data-bind child call" p-call="mockEvent, mockMehtod(event.detail)"></div>
-            </mock-web-cmp>
-        `))
-        afterEach(() => document.querySelector('.container').remove())
-
-        xit('Matches only the first occurence of the origin token ":"', () => { })
         xit('When the source value is updated the value of another local value can be used to update the target', () => { }) // REVIEW, can be confusing
         xit('Removes event listeners when element is destroyed', () => {})
 
     })
+    
 
-    describe('Custom event binds shorthand', () => {
-
-        beforeEach(() => setupTemplate(`
-            <mock-web-cmp class="parent">
-                <div class="data-bind child data" p-data="mockEvent"></div>
-                <div class="data-bind child data" p-data="mockEvent, {customInput}"></div>
-                <div class="data-bind child if" p-if="mockEvent"></div>
-                <div class="data-bind child for" p-for="mockEvent"></div>
-                <div class="data-bind child class" p-class="mockEvent, {active, enabled}"></div>
-                <div class="data-bind child call" p-call="mockEvent, mockMehtod(event.detail)"></div>
-            </mock-web-cmp>
-        `))
-        afterEach(() => document.querySelector('.container').remove())
-
-        xit('Defaults to event.detail if no event detail property (source) is specified', () => { }) // TODO Implement
-
-    })
-
-    // ====== OBSERVABLES BINDS ======
+    // ====== ORIGIN OBSERVABLES ======
     
     // Implement
     // Also implment shortnotaion tests after implmenting observables
-    describe('Observable binds', () => {
+    describe('Origin - Observable', () => {
 
         beforeEach(() => setupTemplate(`
             <mock-web-cmp class="parent">
@@ -311,28 +290,59 @@ describe('NanoDataBind', () => {
         `))
         afterEach(() => document.querySelector('.container').remove())
 
-        xit('Matches only the first occurence of the origin token "$"', () => { })
         xit('When the source value is updated the value of another local value can be used to update the target', () => { }) // REVIEW, can be confusing
         xit('Removes subscriptions when element is destroyed', () => {})
 
     })
-    
-    // Implement
-    describe('Observable binds shorthand', () => {
 
-        beforeEach(() => setupTemplate(`
-            <mock-web-cmp class="parent">
-                <div class="data-bind child data" o-data="mockObservable"></div>
-                <div class="data-bind child data" o-data="mockObservable, {customInput}"></div>
-                <div class="data-bind child if" o-if="mockObservable"></div>
-                <div class="data-bind child for" o-for="mockObservable"></div>
-                <div class="data-bind child class" o-class="mockObservable, {active, enabled}"></div>
-                <div class="data-bind child call" o-call="mockObservable, mockMehtod(payload)"></div>
-            </mock-web-cmp>
-        `))
+    // ====== SHORT NOTATION ======
+
+    // <!> This is actually the most commmon notation for most uses cases.
+    // TODO Implement shorthadn notation
+    describe('Short notation for all origin - rule combos', () => {
+
         afterEach(() => document.querySelector('.container').remove())
 
-        xit('Defaults to event.detail if no event detail property (source) is specified', () => { }) // TODO Implement
+        xit('Defaults to source property name if no target property is specified', () => {
+            setupTemplate(`
+                <mock-web-cmp class="parent">
+                    <div class="data-bind child data" p-data="mockProperty"></div>
+                    <div class="data-bind child data" p-data="mockProperty, {customInput}"></div>
+                    <div class="data-bind child if" p-if="mockProperty"></div>
+                    <div class="data-bind child for" p-for="mockProperty"></div>
+                    <div class="data-bind child class" p-class="mockProperty, {active, enabled}"></div>
+                    <div class="data-bind child call" p-call="mockMehtod(mockProperty)"></div>
+                </mock-web-cmp>
+            `)
+
+        }) 
+
+        xit('Defaults to source event name if no target property is specified', () => {
+            setupTemplate(`
+                <mock-web-cmp class="parent">
+                    <div class="data-bind child data" e-data="mockEvent"></div>
+                    <div class="data-bind child data" e-data="mockEvent, {customInput}"></div>
+                    <div class="data-bind child if" e-if="mockEvent"></div>
+                    <div class="data-bind child for" e-for="mockEvent"></div>
+                    <div class="data-bind child class" e-class="mockEvent, {active, enabled}"></div>
+                    <div class="data-bind child call" e-call="mockEvent, mockMehtod(event.detail)"></div>
+                </mock-web-cmp>
+            `)
+
+        })
+
+        xit('Defaults to source observable name if no target property is specified', () => { 
+            setupTemplate(`
+                <mock-web-cmp class="parent">
+                    <div class="data-bind child data" o-data="mockObservable"></div>
+                    <div class="data-bind child data" o-data="mockObservable, {customInput}"></div>
+                    <div class="data-bind child if" o-if="mockObservable"></div>
+                    <div class="data-bind child for" o-for="mockObservable"></div>
+                    <div class="data-bind child class" o-class="mockObservable, {active, enabled}"></div>
+                    <div class="data-bind child call" o-call="mockObservable, mockMehtod(payload)"></div>
+                </mock-web-cmp>
+            `)
+        })
 
     })
 
@@ -454,7 +464,7 @@ describe('NanoDataBind', () => {
         xit('Placeholder stores a clone of the target element', () => {})
         xit('Placeholder connects to the same custom, event as the target element', () => {})
         xit('Placeholder connects to the same context property as the target element', () => {})
-        xit('Placeholder listeners are removed automatically', () => {})
+        xit('Placeholder listeners are removed automatically (all of them)', () => {})
         xit('Placeholder keeps a clone of the removed element (attributes and innerHtml)', () => {})
         xit('Prevents any cross communication between instances of the target element (clone the placeholder cloned element)', () => {})
 

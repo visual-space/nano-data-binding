@@ -1,8 +1,14 @@
 # 0.0.9
 * Better syntax - Origin prefixes in the attributes. It was confusing to read the origin tokens [".", ":", "$"] especially for the short notations. Attributes prefixes are far easier to read ["p-if", "e-if", "o-if"]. Side effect of this change, simpler code, easier to maintain.
+* Restore optional debug logs.
+* Split in smaller files.
+* Automatically init data binds. Smart defaults over configuration. Eliminates the need to have unique class or id identifiers. Exceptions can be handled manually.
+    * Observe DOM mutations, bind the new elements.
+    * Search for the closest web component
 * Data binding to context properties.
 * Default to context property if no origin is defined in the syntax.
-* Restore optional debug logs
+* Adding examples
+* Update README to something easier to read
 
 # 0.0.8
 * Return control to the developer over the context from which the method is called for the `n-call` rule 
