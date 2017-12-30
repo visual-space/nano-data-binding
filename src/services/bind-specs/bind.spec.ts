@@ -57,6 +57,8 @@ describe('Manually initialise data binds (edge cases, bypass first web component
         
         expect(child).toEqual(returnedEL as any)
     })
+    
+    xit('nano-no-auto-init attribute prevents automatic initilisation of data binds (Used for testing)', () => {})
 
     xit('Binds to a custom crafted contexts (decorated methods, bind(this), an entire service)', () => {})
 

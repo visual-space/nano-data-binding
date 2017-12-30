@@ -4,16 +4,19 @@ import { setupTemplate, dispatchEvent, id} from '../../mocks/specs.utils'
 
 describe('Data bind e-data=""', () => {
 
-    beforeEach(() => setupTemplate(`
-        <mock-web-cmp class="parent">
-            <div class="data-bind child" e-data="mockEvent, { 
-                mockValue: event.detail, 
-                secondMockValue: event.detail 
-            }">
-            <!--<div class="data-bind short" e-data="mockValue, { mockValue }">-->
-            </div>
-        </mock-web-cmp>
-    `))
+    beforeEach(done => {
+        setupTemplate(`
+            <mock-web-cmp class="parent">
+                <div class="data-bind child" e-data="mockEvent, { 
+                    mockValue: event.detail, 
+                    secondMockValue: event.detail 
+                }">
+                <!--<div class="data-bind short" e-data="mockValue, { mockValue }">-->
+                </div>
+            </mock-web-cmp>
+        `)
+        setTimeout(() => done(), 0) // Wait for dom mutation
+    })
     afterEach(() => document.querySelector('.container').remove())
     
     it('Binds data to the child element target property', () => {

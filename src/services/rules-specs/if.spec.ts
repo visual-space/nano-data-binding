@@ -6,11 +6,14 @@ let getChild = () => document.querySelector('.child')
 
 describe('Data bind e-if=""', () => {
     
-    beforeEach(() => setupTemplate(`
-        <mock-web-cmp class="parent">
-            <div class="data-bind child" e-if="mockEvent, event.detail"></div>
-        </mock-web-cmp>
-    `))
+    beforeEach(done => {
+        setupTemplate(`
+            <mock-web-cmp class="parent">
+                <div class="data-bind child" e-if="mockEvent, event.detail"></div>
+            </mock-web-cmp>
+        `)
+        setTimeout(() => done(), 0) // Wait for dom mutation
+    })
     afterEach(() => document.querySelector('.container').remove())
     
     it('Hides the element on initialisation (default is "false" for events)', () => {

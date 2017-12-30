@@ -2,17 +2,20 @@ import { setupTemplate} from '../../mocks/specs.utils'
 
 describe('Multiple data binds / rules on the same element', () => {
     
-    beforeEach(() => setupTemplate(`
-        <mock-web-cmp class="parent">
-            <div class="data-bind child" 
-                e-data="mockEvent, { mockValue: event.detail }"
-                e-if="mockEvent, event.detail"
-                e-for="mockEvent, event.detail"
-                e-class="mockEvent, { active: event.detail, enabled: event.detail }"
-                e-call="mockEvent, mockMethod(event.detail)">
-            </div>
-        </mock-web-cmp>
-    `))
+    beforeEach(done => { 
+        setupTemplate(`
+            <mock-web-cmp class="parent">
+                <div class="data-bind child" 
+                    e-data="mockEvent, { mockValue: event.detail }"
+                    e-if="mockEvent, event.detail"
+                    e-for="mockEvent, event.detail"
+                    e-class="mockEvent, { active: event.detail, enabled: event.detail }"
+                    e-call="mockEvent, mockMethod(event.detail)">
+                </div>
+            </mock-web-cmp>
+        `)
+        setTimeout(() => done(), 0) // Wait for dom mutation
+    })
     afterEach(() => document.querySelector('.container').remove())
     
     xit('Data bind attributes order does not matter', () => {})

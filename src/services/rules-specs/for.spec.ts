@@ -10,13 +10,16 @@ describe('Data bind e-for=""', () => {
         return Array.from(children).map( ch => (ch as any)._nForDataBInd )
     }
 
-    beforeEach(() => setupTemplate(`
-        <mock-web-cmp class="parent">
-            <div class="data-bind child" e-for="mockEvent, event.detail">
-                <div class="item"></div>
-            </div>
-        </mock-web-cmp>
-    `))
+    beforeEach((done) => {
+        setupTemplate(`
+            <mock-web-cmp class="parent">
+                <div class="data-bind child" e-for="mockEvent, event.detail">
+                    <div class="item"></div>
+                </div>
+            </mock-web-cmp>
+        `)
+        setTimeout(() => done(), 0) // Wait for dom mutation
+    })
     afterEach(() => document.querySelector('.container').remove())
     
     // +d1

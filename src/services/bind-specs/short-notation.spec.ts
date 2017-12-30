@@ -15,7 +15,6 @@ describe('Short notation for all origin - rule combos', () => {
                 <div class="data-bind child call" p-call="mockMehtod(mockProperty)"></div>
             </mock-web-cmp>
         `)
-
     }) 
 
     xit('Defaults to source event name if no target property is specified', () => {
@@ -29,7 +28,6 @@ describe('Short notation for all origin - rule combos', () => {
                 <div class="data-bind child call" e-call="mockEvent, mockMehtod(event.detail)"></div>
             </mock-web-cmp>
         `)
-
     })
 
     xit('Defaults to source observable name if no target property is specified', () => { 

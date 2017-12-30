@@ -4,11 +4,14 @@ import { setupTemplate, dispatchEvent, id} from '../../mocks/specs.utils'
 
 describe('Data bind e-class=""', () => {
     
-    beforeEach(() => setupTemplate(`
-        <mock-web-cmp class="parent">
-            <div class="data-bind child" e-class="mockEvent, {active: event.detail, enabled: event.detail}"></div>
-        </mock-web-cmp>
-    `))
+    beforeEach(done => {
+        setupTemplate(`
+            <mock-web-cmp class="parent">
+                <div class="data-bind child" e-class="mockEvent, {active: event.detail, enabled: event.detail}"></div>
+            </mock-web-cmp>
+        `)
+        setTimeout(() => done(), 0) // Wait for dom mutation
+    })
     afterEach(() => document.querySelector('.container').remove())
     
     it('Does nothing after init (events default to false)', () => {

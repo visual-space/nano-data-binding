@@ -4,15 +4,18 @@ import { MockWebCmp } from '../../mocks/nano-data-bind.mock'
 
 describe('Origin - Context property', () => {
 
-    beforeEach(() => setupTemplate(`
-        <mock-web-cmp class="parent">
-            <div class="data-bind child data" p-data="mockDataProp, {customInput: mockProperty}"></div>
-            <div class="data-bind child if" p-if="mockIfProp, mockProperty"></div>
-            <div class="data-bind child for" p-for="mockForProp, mockProperty"></div>
-            <div class="data-bind child class" p-class="mockClassProp, {active: mockProperty, enabled: mockProperty}"></div>
-            <div class="data-bind child call" p-call="mockCallProp, mockMehtod(mockProperty)"></div>
-        </mock-web-cmp>
-    `))
+    beforeEach(done => {
+        setupTemplate(`
+            <mock-web-cmp class="parent">
+                <div class="data-bind child data" p-data="mockDataProp, {customInput: mockProperty}"></div>
+                <div class="data-bind child if" p-if="mockIfProp, mockProperty"></div>
+                <div class="data-bind child for" p-for="mockForProp, mockProperty"></div>
+                <div class="data-bind child class" p-class="mockClassProp, {active: mockProperty, enabled: mockProperty}"></div>
+                <div class="data-bind child call" p-call="mockCallProp, mockMehtod(mockProperty)"></div>
+            </mock-web-cmp>
+        `)
+        setTimeout(() => done(), 0) // Wait for dom mutation
+    })
     afterEach(() => document.querySelector('.container').remove())
 
     it('Property - Instantiates with the initial value', () => {

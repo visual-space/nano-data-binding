@@ -4,15 +4,13 @@ import { MockWebCmp } from '../../mocks/nano-data-bind.mock'
 
 describe('Data bind e-call=""', () => {
     
-    beforeEach((done) => {
-        console.log('+++BEFORE TEMPLATE')
+    beforeEach(done => {
         setupTemplate(`
             <mock-web-cmp class="parent">
                 <div class="data-bind child" e-call="mockEvent, this.mockMethod(event.detail)"></div>
             </mock-web-cmp>
         `)
-        console.log('+++AFTER TEMPLATE')
-        setTimeout(() => done(), 0)
+        setTimeout(() => done(), 0) // Wait for dom mutation
     })
     afterEach(() => document.querySelector('.container').remove())
     
@@ -25,15 +23,11 @@ describe('Data bind e-call=""', () => {
             this.MockProperty = val
         }
 
-        console.log('+++BEFORE dispatch, expect')
-
         // nanoBind(parent, child)
         dispatchEvent('mockEvent'+id(), 5)
 
         expect((child as any).mockMethod).toBeDefined()
         expect((child as any).MockProperty).toEqual(5)
-
-        console.log('+++AFTER expect')
         
     })
     
