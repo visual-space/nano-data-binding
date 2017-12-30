@@ -15,6 +15,17 @@ export function isAttrDataBind(attribute: Attr): boolean {
     return isListener
 }
 
+/** Retrieves first we component in the parent chain for a given element */
+export function getParentWebCmpContext (child: HTMLElement): HTMLElement {
+    let el: any = child
+    while (el.parentNode) {
+        el = el.parentNode;
+        if (customElements.get(el.tagName.toLowerCase()))
+            return el
+    }
+    return null
+}
+
 export function getDataBindOrigin(attribute: Attr): string {
     let origin: string = attribute.nodeName.substring(0,2)
     // debug('Get data bind rule', attribute.nodeName, origin) // Verbose

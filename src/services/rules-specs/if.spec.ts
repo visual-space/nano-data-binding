@@ -1,6 +1,8 @@
-import { nanoBind } from '../selectors'
+// import { nanoBind } from '../selectors'
 import { setupTemplate, dispatchEvent, id} from '../../mocks/specs.utils'
-import { MockWebCmp } from '../../mocks/nano-data-bind.mock'
+// import { MockWebCmp } from '../../mocks/nano-data-bind.mock'
+
+let getChild = () => document.querySelector('.child')
 
 describe('Data bind e-if=""', () => {
     
@@ -12,43 +14,44 @@ describe('Data bind e-if=""', () => {
     afterEach(() => document.querySelector('.container').remove())
     
     it('Hides the element on initialisation (default is "false" for events)', () => {
-        let parent: MockWebCmp = document.querySelector('.parent'),
-            child: MockWebCmp = document.querySelector('.child'),
-            getChild = () => document.querySelector('.child')
+        // let //parent: MockWebCmp = document.querySelector('.parent'),
+            //child: HTMLElement = document.querySelector('.child'),
+            
 
-        nanoBind(parent, child)
-
+        // nanoBind(parent, child)
         expect(getChild()).toEqual(null)
     })
     
     it('Element remains hidden after the second "false" event', () => {
-        let parent: MockWebCmp = document.querySelector('.parent'),
-            child: MockWebCmp = document.querySelector('.child'),
-            getChild = () => document.querySelector('.child')
+        // let //parent: MockWebCmp = document.querySelector('.parent'),
+        //     //child: HTMLElement = document.querySelector('.child'),
+        //     getChild = () => document.querySelector('.child')
 
-        nanoBind(parent, child)
+        // nanoBind(parent, child)
+        expect(getChild()).toEqual(null)
         dispatchEvent('mockEvent'+id(), false)
 
         expect(getChild()).toEqual(null)
     })
     
     it('Element becomes visible after the first "true" event', () => {
-        let parent: MockWebCmp = document.querySelector('.parent'),
-            child: MockWebCmp = document.querySelector('.child'),
-            getChild = () => document.querySelector('.child')
+        // let //parent: MockWebCmp = document.querySelector('.parent'),
+        //     //child: HTMLElement = document.querySelector('.child'),
+        //     getChild = () => document.querySelector('.child')
 
-        nanoBind(parent, child)
+        // nanoBind(parent, child)
+        expect(getChild()).toEqual(null)
         dispatchEvent('mockEvent'+id(), true)
-
         expect(getChild().tagName).toEqual('DIV')
     })
     
     it('Element remains visible after the second "true" event', () => {
-        let parent: MockWebCmp = document.querySelector('.parent'),
-            child: MockWebCmp = document.querySelector('.child'),
-            getChild = () => document.querySelector('.child')
+        // let //parent: MockWebCmp = document.querySelector('.parent'),
+        //     //child: HTMLElement = document.querySelector('.child'),
+        //     getChild = () => document.querySelector('.child')
 
-        nanoBind(parent, child)
+        // nanoBind(parent, child)
+        expect(getChild()).toEqual(null)
         dispatchEvent('mockEvent'+id(), true)
         expect(getChild().tagName).toEqual('DIV')
         dispatchEvent('mockEvent'+id(), true)
@@ -56,11 +59,12 @@ describe('Data bind e-if=""', () => {
     })
     
     it('Element is hidden when transitioning from "true" to "false" event', () => {
-        let parent: MockWebCmp = document.querySelector('.parent'),
-            child: MockWebCmp = document.querySelector('.child'),
-            getChild = () => document.querySelector('.child')
+        // let //parent: MockWebCmp = document.querySelector('.parent'),
+        //     //child: HTMLElement = document.querySelector('.child'),
+        //     getChild = () => document.querySelector('.child')
 
-        nanoBind(parent, child)
+        // nanoBind(parent, child)
+        expect(getChild()).toEqual(null)
         dispatchEvent('mockEvent'+id(), true)
         expect(getChild().tagName).toEqual('DIV')
         dispatchEvent('mockEvent'+id(), false)

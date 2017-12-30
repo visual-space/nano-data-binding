@@ -1,6 +1,4 @@
 import { setupTemplate } from '../../mocks/specs.utils'
-import { MockWebCmp } from '../../mocks/nano-data-bind.mock'
-MockWebCmp // <!> Trigger registration of component (first spec to be read) 
 
 describe('Common specs for all data binds', () => {
 
@@ -15,6 +13,12 @@ describe('Common specs for all data binds', () => {
     `))
     afterEach(() => document.querySelector('.container').remove())
 
+    it('Automatically adds data binds when element is added in the DOM', () => {
+        expect(1).toBe(2)
+    })
+    it('nano-no-auto-init attribute prevents automatic initilisation of data binds (Used for testing)', () => {
+        expect(1).toBe(2)
+    })
     xit('Matches with or without whitespace', () => { })
     xit('Matches multiline html', () => { })
 

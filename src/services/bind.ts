@@ -13,11 +13,18 @@ debug('Instantiate Bind')
  * This is the core of the entire system
  * 
  * <!> Several operations are performed: 
- *     Copying references to methods so that they can be invoked by inline event handlers such ast `onclick`
- *     Building the `dataBind` descriptor object that is used to transfer information between the various stages of the process
- *     Setting up DOM caches for the rules that require them (IF and FOR)
- *     Whatching for changes in the source values (context properties, events, observables)
+ *     Copying references to methods so that they can be invoked by inline event handlers such ast `onclick`.
+ *     Building the `dataBind` descriptor object that is used to transfer information between the various stages of the process.
+ *     Setting up DOM caches for the rules that require them (IF and FOR).
+ *     Whatching for changes in the source values (context properties, events, observables).
  *     Reacting to any changed values by executing a certain behavior for each rule.
+ * 
+ * <!> The original approach was to copy references from parent context to the child context.
+ *     This approach had a long list a drawbacks.
+ *     - Possiblity of collisions between members of parent and child contexts.
+ *     - Members added to the parent context at runtime are ignored.
+ *     - References to primitives form the parent context were copied and then remaind stale`.
+ *     - Setters and getters could not by copied, it was necessary to use `Object.defineProperty()`.
  */
 
 /**
@@ -42,6 +49,8 @@ export function initDataBinds(parent: HTMLElement, children: HTMLElement[]): voi
             
             // Parse
             Object.assign(dataBind, getDataBindFromAttribute(attr))
+            debug('Data bind', {dataBind})
+            console.log('+++Data bind', {dataBind})
 
             // Cache
             cacheValuesInDom(dataBind)
@@ -87,7 +96,7 @@ export function getDataBindFromAttribute (attribute: Attr): DataBind {
         source: utils.getDataBindSource(attribute),
         code: utils.getDataBindCode(attribute)
     }
-    debug('Get data bind from attribute', {dataBind})
+    // debug('Get data bind from attribute', {dataBind}) // Verbose
     return dataBind
 }
 

@@ -31,7 +31,7 @@ module.exports = function (config) {
                 lib: [ "dom", "es2017" ],
             },
             bundlerOptions: {
-                entrypoints: /\.spec\.ts$/
+                entrypoints: /(\.spec|nano-data-binding)\.ts$/ // Load all specs and the init file
             },
             include: [
                 'src/**/*.ts',

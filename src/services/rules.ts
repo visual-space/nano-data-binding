@@ -5,7 +5,7 @@ import { nanoBind } from './selectors'
 
 // Debug
 let Debug = require('debug'), debug = Debug ? Debug('ndb:Rules') : () => {}
-debug('Instantiate NanoDataBind')
+debug('Instantiate Rules')
 
 /**
  * ====== RULES / BEHAVIORS ======

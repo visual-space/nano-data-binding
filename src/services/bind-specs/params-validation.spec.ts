@@ -5,7 +5,7 @@ import { MockWebCmp } from '../../mocks/nano-data-bind.mock'
 describe('Params validation', () => {
 
     beforeEach(() => setupTemplate(`
-        <mock-web-cmp class="parent">
+        <mock-web-cmp class="parent" nano-no-auto-init>
             <div class="data-bind child"></div>
         </mock-web-cmp>
     `))

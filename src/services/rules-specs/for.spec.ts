@@ -1,6 +1,6 @@
-import { nanoBind } from '../selectors'
+// import { nanoBind } from '../selectors'
 import { setupTemplate, dispatchEvent, id} from '../../mocks/specs.utils'
-import { MockWebCmp } from '../../mocks/nano-data-bind.mock'
+// import { MockWebCmp } from '../../mocks/nano-data-bind.mock'
 import { MockArr } from '../../interfaces/nano-data-binding'
 
 describe('Data bind e-for=""', () => {
@@ -23,12 +23,12 @@ describe('Data bind e-for=""', () => {
     // +d2
     // +d3
     it('Init - Add all elements', () => {
-        let parent: MockWebCmp = document.querySelector('.parent'),
-            child: HTMLHtmlElement = document.querySelector('.child'),
+        let //parent: MockWebCmp = document.querySelector('.parent'),
+            child: HTMLElement = document.querySelector('.child'),
             mockArr: MockArr = [{ a: 1 }, { b: 2 }, { c: 3 }],
             storedArr: MockArr
 
-        nanoBind(parent, child)
+        // nanoBind(parent, child)
         dispatchEvent('mockEvent'+id(), mockArr)
         storedArr = getListDataFromEls(child.children)
 
@@ -43,12 +43,12 @@ describe('Data bind e-for=""', () => {
     // d2 - e2
     // d3 - e3
     it('No change - Nothing happens if the same list is provided again', () => {
-        let parent: MockWebCmp = document.querySelector('.parent'),
-            child: HTMLHtmlElement = document.querySelector('.child'),
+        let //parent: MockWebCmp = document.querySelector('.parent'),
+            child: HTMLElement = document.querySelector('.child'),
             mockArr: MockArr = [{ a: 1 }, { b: 2 }, { c: 3 }],
             storedArr: MockArr
 
-        nanoBind(parent, child)
+        // nanoBind(parent, child)
         dispatchEvent('mockEvent'+id(), mockArr)
         storedArr = getListDataFromEls(child.children)
         dispatchEvent('mockEvent'+id(), mockArr) // Should fail.
@@ -65,12 +65,12 @@ describe('Data bind e-for=""', () => {
     // d3 - e3
     // TODO Make sure to keep this behavior when implementing trackBy tests
     it('Update first item - No DOM changes, only setter getters react to item data updated', () => {
-        let parent: MockWebCmp = document.querySelector('.parent'),
-            child: HTMLHtmlElement = document.querySelector('.child'),
+        let //parent: MockWebCmp = document.querySelector('.parent'),
+            child: HTMLElement = document.querySelector('.child'),
             mockArr: MockArr = [{ a: 1 }, { b: 2 }, { c: 3 }],
             storedArr: MockArr
 
-        nanoBind(parent, child)
+        // nanoBind(parent, child)
         dispatchEvent('mockEvent'+id(), mockArr)
         storedArr = getListDataFromEls(child.children)
 
@@ -91,12 +91,12 @@ describe('Data bind e-for=""', () => {
     // d3 - e3
     it('Remove first - Other DOM nodes won\'t update', () => {
         
-        let parent: MockWebCmp = document.querySelector('.parent'),
-            child: HTMLHtmlElement = document.querySelector('.child'),
+        let //parent: MockWebCmp = document.querySelector('.parent'),
+            child: HTMLElement = document.querySelector('.child'),
             mockArr: MockArr = [{ a: 1 }, { b: 2 }, { c: 3 }],
             storedArr: MockArr
 
-        nanoBind(parent, child)
+        // nanoBind(parent, child)
         dispatchEvent('mockEvent'+id(), mockArr)
         expect(child.children.length).toEqual(3)
 
@@ -117,12 +117,12 @@ describe('Data bind e-for=""', () => {
     // +d
     // +d
     it('Remove and Add all - New array, total update', () => {
-        let parent: MockWebCmp = document.querySelector('.parent'),
-            child: HTMLHtmlElement = document.querySelector('.child'),
+        let //parent: MockWebCmp = document.querySelector('.parent'),
+            child: HTMLElement = document.querySelector('.child'),
             mockArr: MockArr = [{ a: 1 }, { b: 2 }, { c: 3 }],
             storedArr: MockArr
 
-        nanoBind(parent, child)
+        // nanoBind(parent, child)
         dispatchEvent('mockEvent'+id(), mockArr)
         expect(child.children.length).toEqual(3)
 
@@ -150,12 +150,12 @@ describe('Data bind e-for=""', () => {
     // d3 - e3
     it(`Remove and add first - Creates new element, it does not recylce the old element. 
         As long refs/ids of the deleted element are different.`, () => {
-        let parent: MockWebCmp = document.querySelector('.parent'),
-            child: HTMLHtmlElement = document.querySelector('.child'),
+        let //parent: MockWebCmp = document.querySelector('.parent'),
+            child: HTMLElement = document.querySelector('.child'),
             mockArr: MockArr = [{ a: 1 }, { b: 2 }, { c: 3 }],
             storedArr: MockArr
 
-        nanoBind(parent, child)
+        // nanoBind(parent, child)
         dispatchEvent('mockEvent'+id(), mockArr)
         expect(child.children.length).toEqual(3)
 
@@ -179,12 +179,12 @@ describe('Data bind e-for=""', () => {
     // d3 - e2
     // d4 - e3
     it('Add first - Other DOM nodes won\'t update', () => {
-        let parent: MockWebCmp = document.querySelector('.parent'),
-            child: HTMLHtmlElement = document.querySelector('.child'),
+        let //parent: MockWebCmp = document.querySelector('.parent'),
+            child: HTMLElement = document.querySelector('.child'),
             mockArr: MockArr = [{ a: 1 }, { b: 2 }, { c: 3 }],
             storedArr: MockArr
 
-        nanoBind(parent, child)
+        // nanoBind(parent, child)
         dispatchEvent('mockEvent'+id(), mockArr)
         expect(child.children.length).toEqual(3)
 
@@ -207,12 +207,12 @@ describe('Data bind e-for=""', () => {
     // d3 - e2
     // d4 - e3
     it('Add multiple intermixed - Other DOM nodes won\'t update', () => {
-        let parent: MockWebCmp = document.querySelector('.parent'),
-            child: HTMLHtmlElement = document.querySelector('.child'),
+        let //parent: MockWebCmp = document.querySelector('.parent'),
+            child: HTMLElement = document.querySelector('.child'),
             mockArr: MockArr = [{ a: 1 }, { b: 2 }, { c: 3 }],
             storedArr: MockArr
 
-        nanoBind(parent, child)
+        // nanoBind(parent, child)
         dispatchEvent('mockEvent'+id(), mockArr)
         expect(child.children.length).toEqual(3)
 
@@ -237,12 +237,12 @@ describe('Data bind e-for=""', () => {
     // d3 - e3
     // +d
     it('All operations mixed together', () => {
-        let parent: MockWebCmp = document.querySelector('.parent'),
-            child: HTMLHtmlElement = document.querySelector('.child'),
+        let //parent: MockWebCmp = document.querySelector('.parent'),
+            child: HTMLElement = document.querySelector('.child'),
             mockArr: MockArr = [{ a: 1 }, { b: 2 }, { c: 3 }],
             storedArr: MockArr
 
-        nanoBind(parent, child)
+        // nanoBind(parent, child)
         dispatchEvent('mockEvent'+id(), mockArr)
         expect(child.children.length).toEqual(3)
 
@@ -266,12 +266,12 @@ describe('Data bind e-for=""', () => {
     // +d1
     // d4 - e3
     it('Shuffling (changing order)', () => {
-        let parent: MockWebCmp = document.querySelector('.parent'),
-            child: HTMLHtmlElement = document.querySelector('.child'),
+        let //parent: MockWebCmp = document.querySelector('.parent'),
+            child: HTMLElement = document.querySelector('.child'),
             mockArr: MockArr = [{ a: 1 }, { b: 2 }, { c: 3 }],
             storedArr: MockArr
 
-        nanoBind(parent, child)
+        // nanoBind(parent, child)
         dispatchEvent('mockEvent'+id(), mockArr)
         expect(child.children.length).toEqual(3)
 

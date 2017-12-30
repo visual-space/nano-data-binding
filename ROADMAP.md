@@ -12,3 +12,4 @@
 * Benchmarks
 * Improvements in performance. Instead of creating 10K event listeners use one event listener that is executing all the registered operations.
 * Maybe a default property for events would be useful. For complex pages rendering twice is not a good idea.
+* Prevent double data bind initlisation by using a cached boolean on the dom node.

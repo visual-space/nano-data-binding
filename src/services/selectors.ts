@@ -2,8 +2,8 @@ import { StringOrHTMLElement } from '../interfaces/nano-data-binding'
 import { initDataBinds } from './bind'
 
 // Debug
-let Debug = require('debug'), debug = Debug ? Debug('ndb:NanoDataBinding') : () => {}
-debug('Instantiate NanoDataBinding')
+let Debug = require('debug'), debug = Debug ? Debug('ndb:Selectors') : () => {}
+debug('Instantiate Selectors')
 
 /**
  * ====== SELECTORS ======

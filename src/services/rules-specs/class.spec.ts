@@ -1,6 +1,6 @@
-import { nanoBind } from '../selectors'
+// import { nanoBind } from '../selectors'
 import { setupTemplate, dispatchEvent, id} from '../../mocks/specs.utils'
-import { MockWebCmp } from '../../mocks/nano-data-bind.mock'
+// import { MockWebCmp } from '../../mocks/nano-data-bind.mock'
 
 describe('Data bind e-class=""', () => {
     
@@ -12,10 +12,10 @@ describe('Data bind e-class=""', () => {
     afterEach(() => document.querySelector('.container').remove())
     
     it('Does nothing after init (events default to false)', () => {
-        let parent: MockWebCmp = document.querySelector('.parent'),
-            child: MockWebCmp = document.querySelector('.child')
+        let //parent: MockWebCmp = document.querySelector('.parent'),
+            child: HTMLElement = document.querySelector('.child')
 
-        nanoBind(parent, child)
+        // nanoBind(parent, child)
 
         expect(child.classList.contains('data-bind')).toBeTruthy()
         expect(child.classList.contains('child')).toBeTruthy()
@@ -23,10 +23,10 @@ describe('Data bind e-class=""', () => {
     })
 
     it('Adds a class to the element', () => {
-        let parent: MockWebCmp = document.querySelector('.parent'),
-            child: MockWebCmp = document.querySelector('.child')
+        let //parent: MockWebCmp = document.querySelector('.parent'),
+            child: HTMLElement = document.querySelector('.child')
 
-        nanoBind(parent, child)
+        // nanoBind(parent, child)
 
         expect(child.classList.contains('active')).toBeFalsy()
         dispatchEvent('mockEvent'+id(), true)
@@ -34,10 +34,10 @@ describe('Data bind e-class=""', () => {
     })
     
     it('Adds multiple classes to the element', () => {
-        let parent: MockWebCmp = document.querySelector('.parent'),
-            child: MockWebCmp = document.querySelector('.child')
+        let //parent: MockWebCmp = document.querySelector('.parent'),
+            child: HTMLElement = document.querySelector('.child')
 
-        nanoBind(parent, child)
+        // nanoBind(parent, child)
 
         dispatchEvent('mockEvent'+id(), true)
         expect(child.classList.contains('active')).toBeTruthy()
@@ -45,10 +45,10 @@ describe('Data bind e-class=""', () => {
     })
     
     it('Removes a class from the element', () => {
-        let parent: MockWebCmp = document.querySelector('.parent'),
-            child: MockWebCmp = document.querySelector('.child')
+        let //parent: MockWebCmp = document.querySelector('.parent'),
+            child: HTMLElement = document.querySelector('.child')
 
-        nanoBind(parent, child)
+        // nanoBind(parent, child)
 
         expect(child.classList.contains('active')).toBeFalsy()
         dispatchEvent('mockEvent'+id(), true)
