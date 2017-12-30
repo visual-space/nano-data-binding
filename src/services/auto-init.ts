@@ -5,8 +5,11 @@ let Debug = require('debug'), debug = Debug ? Debug('ndb:Destruct') : () => {}
 debug('Instantiate Destruct')
 
 /**
- * ====== DESTRUCT ======
- * Auto remove event listeners, subscriptions
+ * ====== AUTO INIT ======
+ * Automatically init nano data bind syntax.
+ * By default, the first web component encountered in the ancestors hierarchy is selected a the parent context.
+ * `_nano_no-auto-init` flag can be used to disable the autobind behavior for automatic testing purposes.
+ * Automatically remove event listeners, subscriptions.
  */
 
 /**

@@ -6,8 +6,6 @@
  * <!> aaa_ prefix is used to make the methods easy to spot in the console when debigging the tests
  */
 
-export type MockArr = {[key: string]: number}[]
-
 // Debug
 let debug = require('debug')('ndb:MockWebCmp')
 debug('Instantiate MockWebCmp')

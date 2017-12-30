@@ -64,3 +64,5 @@ export interface Changes {
     added: any[],
     removed: any[]
 }
+
+export type MockArr = {[key: string]: number}[]
