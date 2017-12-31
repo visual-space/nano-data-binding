@@ -1,5 +1,7 @@
 import { setupTemplate, dispatchEvent, id} from '../../mocks/specs.utils'
 
+/** <!> All events are suffixed by the `setupTemplate()` method with unique ids in order to prevent corss^-talk between tests */
+
 describe('Data bind e-call=""', () => {
     
     beforeEach(done => {

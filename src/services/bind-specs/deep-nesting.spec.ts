@@ -2,6 +2,8 @@ import { nanoBind } from '../selectors'
 import { setupTemplate, dispatchEvent, id } from '../../mocks/specs.utils'
 import { MockWebCmp } from '../../mocks/nano-data-bind.mock'
 
+/** <!> All events are suffixed by the `setupTemplate()` method with unique ids in order to prevent corss^-talk between tests */
+
 describe('Deep nesting of e-data="" data binds', () => {
 
     // <!> Chaining properties in multiple levels from the same web component is possible

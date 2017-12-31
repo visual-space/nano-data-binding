@@ -1,4 +1,5 @@
 * Shorthand notations, Review if there is a better notation available. n-, p-, e-, o-. Or use the symbol as part of the attribute name. n-rule.="", n-rule:="", n-rule$=""
+	* Check for abnormal notation. A regex should find only one token without any punctuation. Warn if any issues are discovered.
 * Adding documentation
 * Bind only metods that were requested in the data bind. This will reduce the chance of collisions a lot. Use a regex to identify them and look them up in the parent. Avoid prefixing method names or using scopes. Keep it simple.
 * For rule improvements

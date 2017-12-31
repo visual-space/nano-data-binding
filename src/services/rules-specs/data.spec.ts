@@ -1,6 +1,6 @@
-// import { nanoBind } from '../selectors'
 import { setupTemplate, dispatchEvent, id} from '../../mocks/specs.utils'
-// import { MockWebCmp } from '../../mocks/nano-data-bind.mock'
+
+/** <!> All events are suffixed by the `setupTemplate()` method with unique ids in order to prevent corss^-talk between tests */
 
 describe('Data bind e-data=""', () => {
 
@@ -20,19 +20,13 @@ describe('Data bind e-data=""', () => {
     afterEach(() => document.querySelector('.container').remove())
     
     it('Binds data to the child element target property', () => {
-        let //parent: MockWebCmp = document.querySelector('.parent'),
-            child: HTMLElement = document.querySelector('.child')
-
-        // nanoBind(parent, child)
+        let child: HTMLElement = document.querySelector('.child')
         dispatchEvent('mockEvent'+id(), 1)
         expect((child as any).mockValue).toEqual(1)
     })
 
     it('Binds to multiple target properties on the child element (one update, multiple inputs)', () => {
-        let //parent: MockWebCmp = document.querySelector('.parent'),
-            child: HTMLElement = document.querySelector('.child')
-
-        // nanoBind(parent, child)
+        let child: HTMLElement = document.querySelector('.child')
         dispatchEvent('mockEvent'+id(), 1)
         expect((child as any).mockValue).toEqual(1)
         expect((child as any).secondMockValue).toEqual(1)

@@ -40,6 +40,7 @@ export function getDataBindRule(attribute: Attr): string {
 
 export function getDataBindSource(attribute: Attr): string {
     const MATCH_SOURCE = /(^[^.]*,)/gm
+    console.log('attribute.nodeValue', attribute.nodeValue, attribute.nodeValue.match(MATCH_SOURCE))
     let source: string = attribute.nodeValue.match(MATCH_SOURCE)[0].replace(',','')
     // debug('Get data bind source', attribute.nodeName, source) // Verbose
     return source

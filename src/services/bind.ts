@@ -37,6 +37,11 @@ export function initDataBinds(parent: HTMLElement, children: HTMLElement[]): voi
     // bindContextToChildren(parent, children) // DEPRECATED
 
     children.forEach(child => {
+
+        // Prevent double init of the same element
+        if (this._nano_isInitialised === true) return
+        this._nano_isInitialised = true
+
         let attributes: Attr[] = Array.from(child.attributes),
             dataBind: DataBind = <DataBind>{ parent, child },
             listeners: Listeners = {},

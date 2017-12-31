@@ -1,4 +1,3 @@
-// import { nanoBind } from '../selectors'
 import { setupTemplate } from '../../mocks/specs.utils'
 import { MockWebCmp } from '../../mocks/nano-data-bind.mock'
 
@@ -20,14 +19,14 @@ describe('Origin - Context property', () => {
 
     it('Property - Instantiates with the initial value', () => {
         let parent: MockWebCmp = document.querySelector('.parent'),
-            // dataEl: HTMLElement = document.querySelector('.child.data'),
+            // dataEl: HTMLElement = document.querySelector('.child.data'), // Reuse?
             // ifEl: HTMLElement = document.querySelector('.child.if'),
             // forEl: HTMLElement = document.querySelector('.child.for'),
             // classEl: HTMLElement = document.querySelector('.child.class'),
             // callEl: HTMLElement = document.querySelector('.child.call'),
             getIfEl = () => document.querySelector('.child.if')
 
-        // nanoBind(parent, dataEl, ifEl, forEl, classEl, callEl)
+        // <!> Adding the sources after init makes the test even harder to pass
         ;(parent as any).mockDataProp = 123
         ;(parent as any).mockIfProp = false
         ;(parent as any).mockForProp = [1,2,3]

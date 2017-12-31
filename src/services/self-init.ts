@@ -27,7 +27,7 @@ export function setupAutoBindUndind(): void {
     debug('Setup auto bind, unbind')
 
     var mutObs = new MutationObserver(mutations => {
-        debug('Document body mutated', mutations)
+        // debug('Document body mutated', mutations) // Verbose
 
         mutations.forEach(mutation => {
 
@@ -79,7 +79,6 @@ export function setupAutoBindUndind(): void {
  * The first node that is a web component in the hieratchy chain is used as the parent context
  */
 export function initDataBinds(child: HTMLElement): void {
-    // debug('Init data binds') // Ultra verbose
     
     let attributes: Attr[] = Array.from(child.attributes)
     attributes.forEach(attr => {
@@ -91,6 +90,7 @@ export function initDataBinds(child: HTMLElement): void {
                 // Block autobind via attribute
                 if (parent.hasAttribute('nano-no-data-bind')) return
 
+                debug('Init data binds', {parent, child})
                 nanoBind(parent, child)
             }
             else console.warn('Cannot find parent for data bind', child)
@@ -100,8 +100,11 @@ export function initDataBinds(child: HTMLElement): void {
 
 /** Removes listeners that were setup by the data binds */
 export function removeEventListeners(node: HTMLElement): void {
-    let listeners: Listeners = (<any>node)._nano_listeners,
-        tagName: string = node.tagName.toLowerCase()
+    let listeners: Listeners = (<any>node)._nano_listeners
+    
+    // Ignore non data bind elements
+    if (!listeners) return
+    let tagName: string = node.tagName.toLowerCase()
     debug(`Remove event listeners from "<${tagName}>"`, listeners)
 
     // Remove all listeners
@@ -114,8 +117,11 @@ export function removeEventListeners(node: HTMLElement): void {
 
 /** Removes observables that were setup by the data binds */
 export function removeSubscriptions(node: HTMLElement): void {
-    let subscriptions: any = (<any>node)._nano_subscriptions,
-        tagName: string = node.tagName.toLowerCase()
+    let subscriptions: any = (<any>node)._nano_subscriptions
+    
+    // Ignore non data bind elements
+    if (!subscriptions) return
+    let tagName: string = node.tagName.toLowerCase()
     debug(`Remove subscriptions from "<${tagName}>"`, subscriptions)
 
     // Remove all listeners

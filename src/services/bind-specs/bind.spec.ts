@@ -2,14 +2,13 @@ import { nanoBind } from '../selectors'
 import { setupTemplate } from '../../mocks/specs.utils'
 import { MockWebCmp } from '../../mocks/nano-data-bind.mock'
 
-// First test is initilising 
-MockWebCmp // <!> Trigger registration of component (first spec to be read) 
+/** <!> All events are suffixed by the `setupTemplate()` method with unique ids in order to prevent corss^-talk between tests */
 
 describe('Manually initialise data binds (edge cases, bypass first web component parent rule )', () => {
     beforeEach(() => setupTemplate(`
         <mock-web-cmp class="parent" nano-no-auto-init>
-            <div class="data-bind child-1" e-call="this.increment(event.detail)"></div>
-            <div class="data-bind child-2" e-call="this.increment(event.detail)"></div>
+            <div class="data-bind child-1" e-call="mockEvent, this.increment(event.detail)"></div>
+            <div class="data-bind child-2" e-call="mockEvent, this.increment(event.detail)"></div>
         </mock-web-cmp>
     `))
     afterEach(() => document.querySelector('.container').remove())
@@ -21,7 +20,7 @@ describe('Manually initialise data binds (edge cases, bypass first web component
         nanoBind(parent, '.child-1')
 
         expect(child.increment).toBeUndefined()
-        // expect(child.count).toEqual(2)
+        // expect(child.count).toEqual(2)   
     })
 
     it('Binds multiple css selector strings', () => {
