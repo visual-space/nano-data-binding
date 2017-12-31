@@ -1,26 +1,27 @@
 # 0.0.9
 * Automatically init data binds. 
-    * Smart defaults over configuration. Eliminates the need to have unique class or id identifiers. Exceptions can be handled manually.
+    * Smart defaults over configuration. Eliminates the need to have unique class or id identifiers. Exceptions can be solved with manual data binds.
     * Observe DOM mutations, bind the new elements. Triggered by nano data binds.
     * Search for the closest web component
     * `no-auto-bind` flag can be used to disable the autobind behavior for automatic testing purposes.
     * Prevent double data bind initlisation by using a cached boolean on the dom node.
     
-* Instead of copying the references, methods are invoked with binding the children context. 
-    * All methods will be accessible, no more collisions between contexts, 
+* Automatically copy references of invoked methods in the child context
+    * All methods will be accessible
+    * Methods that are already defined on the children will be used from there. 
+    * No more overwrite collisions between paren and child contexts. 
     * No problems if additional methods are added after init at runtime.
-    * References to primitves from parent context will read the latest value.
-    * It binds to setters and getters by invoking them. No need to `Object.defineProperty()`
-    * To get rid of copying references we need to replace all inline event handlers with custom ones. `onclick=""` becomes `(click)=""`
     * Data bind throws error if invoked method is not defined on parent context.
-    * Auto init actually requres invoking from parent context isntaed of copying, due to the tiny delay of mutation observable used for self init (micro task timing model).
 
 * Data binding to context properties.
+
+* Replace all inline event handlers with custom ones. `onclick=""` becomes `(click)=""`.
+    * Automatic data binding will not work for stard inline event hanlders.
+
 * Better syntax - Origin prefixes in the attributes. It was confusing to read the origin tokens [".", ":", "$"] especially for the short notations. Attributes prefixes are far easier to read ["p-if", "e-if", "o-if"]. Side effect of this change, simpler code, easier to maintain.
 * Restore debug logs.
 * Split in smaller files.
 * Default to context property if no origin is defined in the syntax.
-* Improved README, added examples, added samples.
 
 # 0.0.8
 * Return control to the developer over the context from which the method is called for the `n-call` rule 
