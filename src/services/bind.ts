@@ -13,7 +13,7 @@ debug('Instantiate Bind')
  * This is the core of the entire system
  * 
  * <!> Several operations are performed: 
- *     Copying references to methods so that they can be invoked by inline event handlers such ast `onclick`.
+ *     // Copying references to methods so that they can be invoked by inline event handlers such ast `onclick`.  // DEPRECATED
  *     Building the `dataBind` descriptor object that is used to transfer information between the various stages of the process.
  *     Setting up DOM caches for the rules that require them (IF and FOR).
  *     Whatching for changes in the source values (context properties, events, observables).
@@ -34,7 +34,7 @@ debug('Instantiate Bind')
 export function initDataBinds(parent: HTMLElement, children: HTMLElement[]): void { 
     
     // Bind
-    bindContextToChildren(parent, children)
+    // bindContextToChildren(parent, children) // DEPRECATED
 
     children.forEach(child => {
         let attributes: Attr[] = Array.from(child.attributes),
@@ -50,7 +50,6 @@ export function initDataBinds(parent: HTMLElement, children: HTMLElement[]): voi
             // Parse
             Object.assign(dataBind, getDataBindFromAttribute(attr))
             debug('Data bind', {dataBind})
-            console.log('+++Data bind', {dataBind})
 
             // Cache
             cacheValuesInDom(dataBind)
@@ -70,24 +69,25 @@ export function initDataBinds(parent: HTMLElement, children: HTMLElement[]): voi
 
 }
 
-/** 
- * Adds the methods from on context to another context using object assign 
- * TODO Copy only instance methods instead of everything.
- */
-export function bindContextToChildren(parent: HTMLElement, children: HTMLElement[]) {
-    debug('Bind context to children', [parent, children])
+// DEPRECATED
+// /** 
+//  * Adds the methods from on context to another context using object assign 
+//  * TODO Copy only instance methods instead of everything.
+//  */
+// export function bindContextToChildren(parent: HTMLElement, children: HTMLElement[]) {
+//     debug('Bind context to children', [parent, children])
 
-    children.forEach(child => {
+//     children.forEach(child => {
 
-        // Bind parent context 
-        // <!> Only methods defined on the instance, nothing is copied from __proto__
-        Object.assign(child, parent)
+//         // Bind parent context 
+//         // <!> Only methods defined on the instance, nothing is copied from __proto__
+//         Object.assign(child, parent)
         
-        // Cache the parent/ancestor context
-        ;(child as any).ancestor = parent
+//         // Cache the parent/ancestor context
+//         ;(child as any).ancestor = parent
 
-    })
-}
+//     })
+// }
 
 export function getDataBindFromAttribute (attribute: Attr): DataBind {
     let dataBind: DataBind = <DataBind>{

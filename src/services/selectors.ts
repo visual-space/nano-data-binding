@@ -24,7 +24,8 @@ export function nanoBind(parent: HTMLElement, ...selectors: StringOrHTMLElement[
     // Validation
     selAreStrings = selectors.reduce((val, sel) => val && typeof sel === 'string', true)
     selAreElements = selectors.reduce((val, sel) => val && sel instanceof HTMLElement, true)
-    debug('All selectors are strings', selAreStrings, 'All selectors are elements', selAreElements)
+    // debug('All selectors are strings', selAreStrings) // Verbose
+    // debug('All selectors are elements', selAreElements) // Verbose
     
     if (arguments.length < 1)
         throw Error('nanoBind() failed. First param missing. Provide a HTMLElement.')

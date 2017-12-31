@@ -111,6 +111,7 @@ export class MockWebCmp extends _MockWebCmp {
     // Mock method with normal name
     // Reafin the tests is less confusing
     increment = function (val?: number): number {
+        if (!this.count) this.count = 0
         if (val) return this.count = ++val 
         else return ++this.count
     }
