@@ -85,6 +85,7 @@ export function initDataBinds(child: HTMLElement): void {
         if (isAttrDataBind(attr)) {
             let parent = getParentWebCmpContext(child)
             // debug('Parent web component', {parent, child}) // Ultra verbose
+            debug('Parent web component', {parent, child}) // Ultra verbose
             if (parent) {
                 
                 // Block autobind via attribute

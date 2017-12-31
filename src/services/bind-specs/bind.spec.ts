@@ -20,7 +20,7 @@ describe('Manually initialise data binds (edge cases, bypass first web component
         nanoBind(parent, '.child-1')
 
         expect(child.increment).toBeUndefined()
-        // expect(child.count).toEqual(2)   
+        expect(child.count).toEqual(2)
     })
 
     it('Binds multiple css selector strings', () => {

@@ -106,7 +106,7 @@ export function getDataBindFromAttribute (attribute: Attr): DataBind {
 }
 
 export function cacheValuesInDom (dataBind: DataBind) {
-    debug('Cache values in DOM', dataBind)
+    debug('Cache values in DOM', { dataBind })
     let { child } = dataBind,
         placeholderIndex: number, // Used to identify the position of the targeted IF element and then find the placeholder comment
         placeholder: Node, // A placeholder comment will be present if the data bind was already initialised
@@ -133,7 +133,7 @@ export function cacheValuesInDom (dataBind: DataBind) {
 }
 
 export function watchForValueChanges (dataBind: DataBind): Listeners | Subscriptions {
-    debug('Watch for value changes', dataBind)
+    debug('Watch for value changes', {dataBind})
     let listeners: Listeners = {},
         subscriptions: Subscriptions = {}
 
