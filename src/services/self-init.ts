@@ -85,11 +85,13 @@ export function initDataBinds(child: HTMLElement): void {
         if (isAttrDataBind(attr)) {
             let parent = getParentWebCmpContext(child)
             // debug('Parent web component', {parent, child}) // Ultra verbose
-            debug('Parent web component', {parent, child}) // Ultra verbose
             if (parent) {
                 
                 // Block autobind via attribute
-                if (parent.hasAttribute('nano-no-data-bind')) return
+                // console.log('---parent', {parent})
+                console.log('---parent.hasAttribute(no-auto-bind)', parent.hasAttribute('no-auto-bind'))
+                if (parent.hasAttribute('no-auto-bind')) return
+                if ((<any>child)._nano_dataBind) return
 
                 debug('Init data binds', {parent, child})
                 nanoBind(parent, child)

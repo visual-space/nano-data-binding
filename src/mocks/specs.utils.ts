@@ -2,6 +2,9 @@
 // Sometimes tests can be fixed by studying the debug statements
 ;(window as any).debug = require('debug')
 declare var debug: any
+if (debug.enabled !== true) console.log(`
+During testing all logs can be enabled if needed. Just type in console and refresh the page: \n debug.enable(\'ndb:*\') \n debug.disable() \n\n
+`)
 
 /** 
  * Each tests needs an unique event name, otherwise the tests will have interferance from one to the other 

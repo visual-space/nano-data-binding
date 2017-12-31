@@ -1,7 +1,7 @@
 import { setupTemplate } from '../../mocks/specs.utils'
 import { MockWebCmp } from '../../mocks/nano-data-bind.mock'
 
-describe('Origin - Context property', () => {
+describe('Context property', () => {
 
     beforeEach(done => {
         setupTemplate(`
@@ -17,7 +17,7 @@ describe('Origin - Context property', () => {
     })
     afterEach(() => document.querySelector('.container').remove())
 
-    it('Property - Instantiates with the initial value', () => {
+    it('Instantiates with the initial value', () => {
         let parent: MockWebCmp = document.querySelector('.parent'),
             // dataEl: HTMLElement = document.querySelector('.child.data'), // Reuse?
             // ifEl: HTMLElement = document.querySelector('.child.if'),

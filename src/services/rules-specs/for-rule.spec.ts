@@ -3,7 +3,7 @@ import { MockArr } from '../../interfaces/nano-data-binding'
 
 /** <!> All events are suffixed by the `setupTemplate()` method with unique ids in order to prevent corss^-talk between tests */
 
-describe('Data bind e-for=""', () => {
+describe('For rule', () => {
 
     /** Small util used to retrieve data associated with the list elements */
     function getListDataFromEls(children: HTMLCollection) {
@@ -25,7 +25,7 @@ describe('Data bind e-for=""', () => {
     // +d1
     // +d2
     // +d3
-    it('Init - Add all elements', () => {
+    it('Add all elements at init', () => {
         let child: HTMLElement = document.querySelector('.child'),
             mockArr: MockArr = [{ a: 1 }, { b: 2 }, { c: 3 }],
             storedArr: MockArr

@@ -4,9 +4,10 @@ import { MockWebCmp } from '../../mocks/nano-data-bind.mock'
 
 /** <!> All events are suffixed by the `setupTemplate()` method with unique ids in order to prevent corss^-talk between tests */
 
-describe('Manually initialise data binds (edge cases, bypass first web component parent rule )', () => {
+// Manually initialise data binds (edge cases, bypass first web component parent rule )
+describe('Manual data binds', () => {
     beforeEach(() => setupTemplate(`
-        <mock-web-cmp class="parent" nano-no-auto-init>
+        <mock-web-cmp class="parent" no-auto-bind>
             <div class="data-bind child-1" e-call="mockEvent, this.increment(event.detail)"></div>
             <div class="data-bind child-2" e-call="mockEvent, this.increment(event.detail)"></div>
         </mock-web-cmp>
@@ -57,7 +58,7 @@ describe('Manually initialise data binds (edge cases, bypass first web component
         expect(child).toEqual(returnedEL as any)
     })
     
-    xit('nano-no-auto-init attribute prevents automatic initilisation of data binds (Used for testing)', () => {})
+    xit('no-auto-bind attribute prevents automatic initilisation of data binds (Used for testing)', () => {})
 
     xit('Binds to a custom crafted contexts (decorated methods, bind(this), an entire service)', () => {})
 

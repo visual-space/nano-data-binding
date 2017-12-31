@@ -2,7 +2,7 @@ import { setupTemplate } from '../../mocks/specs.utils'
 
 /** <!> All events are suffixed by the `setupTemplate()` method with unique ids in order to prevent corss^-talk between tests */
 
-describe('Short notation for all origin - rule combos', () => {
+describe('Short notation', () => {
 
     afterEach(() => document.querySelector('.container').remove())
 

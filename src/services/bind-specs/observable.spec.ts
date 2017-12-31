@@ -2,7 +2,7 @@ import { setupTemplate } from '../../mocks/specs.utils'
 
 // Implement
 // Also implment shortnotaion tests after implmenting observables
-describe('Origin - Observable', () => {
+describe('Observable', () => {
 
     beforeEach(done => {
         setupTemplate(`

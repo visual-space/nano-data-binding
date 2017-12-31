@@ -39,8 +39,14 @@ export function initDataBinds(parent: HTMLElement, children: HTMLElement[]): voi
     children.forEach(child => {
 
         // Prevent double init of the same element
-        if (this._nano_isInitialised === true) return
-        this._nano_isInitialised = true
+        if (this._nano_dataBind) {
+            if (parent.hasAttribute('no-auto-bind')) {
+                debug('Data bind already initialised', {dataBind: this._nano_dataBind})
+            } else {
+                console.warn('Data bind already initialised', {dataBind: this._nano_dataBind})
+            }
+            return
+        }
 
         let attributes: Attr[] = Array.from(child.attributes),
             dataBind: DataBind = <DataBind>{ parent, child },
@@ -55,6 +61,7 @@ export function initDataBinds(parent: HTMLElement, children: HTMLElement[]): voi
             // Parse
             Object.assign(dataBind, getDataBindFromAttribute(attr))
             debug('Data bind', {dataBind})
+            this._nano_dataBind = dataBind
 
             // Cache
             cacheValuesInDom(dataBind)

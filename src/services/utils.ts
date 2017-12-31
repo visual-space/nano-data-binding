@@ -55,6 +55,7 @@ export function getDataBindCode(attribute: Attr): string {
 /** 
  * Evaluates a string in a given context. 
  * Useful to trigger behaviors associated with data bind rules.
+ * <!> Used by all data binds, careful when changing anything here. Make sure you have the tests running.
  */
 export function evalInContext(dataBind: DataBind): any {
     let { modifier, code } = dataBind

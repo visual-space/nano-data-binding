@@ -2,9 +2,10 @@ import { nanoBind } from '../selectors'
 import { setupTemplate } from '../../mocks/specs.utils'
 import { MockWebCmp } from '../../mocks/nano-data-bind.mock'
 
-describe('Read properties & invoke methods from parent context while binding the child context', () => {
+// Read properties & invoke methods from parent context while binding the child context
+describe('Call parent methods', () => {
     beforeEach(() => setupTemplate(`
-        <mock-web-cmp class="parent" nano-no-auto-init>
+        <mock-web-cmp class="parent" no-auto-bind>
             <div class="data-bind child child-1"></div>
             <div class="data-bind child child-2"></div>
         </mock-web-cmp>

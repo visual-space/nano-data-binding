@@ -4,7 +4,7 @@ import { setupTemplate, dispatchEvent, id} from '../../mocks/specs.utils'
 
 let getChild = () => document.querySelector('.child')
 
-describe('Data bind e-if=""', () => {
+describe('If Rule', () => {
     
     beforeEach(done => {
         setupTemplate(`

@@ -3,7 +3,7 @@
     * Smart defaults over configuration. Eliminates the need to have unique class or id identifiers. Exceptions can be handled manually.
     * Observe DOM mutations, bind the new elements. Triggered by nano data binds.
     * Search for the closest web component
-    * `nano-no-auto-init` flag can be used to disable the autobind behavior for automatic testing purposes.
+    * `no-auto-bind` flag can be used to disable the autobind behavior for automatic testing purposes.
     * Prevent double data bind initlisation by using a cached boolean on the dom node.
     
 * Instead of copying the references, methods are invoked with binding the children context. 
