@@ -1,77 +1,65 @@
-import { nanoBind } from '../selectors'
+import { nanoBind, nanoBindAll } from '../selectors'
 import { setupTemplate, dispatchEvent, id } from '../../mocks/specs.utils'
 import { MockWebCmp } from '../../mocks/nano-data-bind.mock'
 
 /** <!> All events are suffixed by the `setupTemplate()` method with unique ids in order to prevent cross-talk between tests */
 
-// Read properties & invoke methods from parent context while binding the child context
+// Read properties & invoke methods from parent context while binding the child context.
+// Only methods are copied from the parent. Parent proerties are ignored.
 describe('Call parent methods', () => {
-    beforeEach(() => setupTemplate(`
-        <mock-web-cmp class="parent" no-auto-bind>
-            <div class="data-bind child" e-call="mockEvent, this.increment(event.detail)"></div>
-        </mock-web-cmp>
-    `))
     afterEach(() => document.querySelector('.container').remove())
 
-    it('No method should be copied in the child', () => {
-        let parent: MockWebCmp = document.querySelector('.parent'),
-            child: MockWebCmp = document.querySelector('.child')
+    it('Copies from the parent context the invoked methods that are not already in the child context', () => {
+        setupTemplate(`
+            <mock-web-cmp class="parent" no-auto-bind>
+                <div class="child-1" e-call="mockEvent, this.Parent_Instance_increment(event.detail)"></div>
+                <div class="child-2" e-call="mockEvent, this.Child_Instance_increment(event.detail)"></div>
+                <div class="child-3" e-call="mockEvent, this.Parent_Proto_increment(event.detail)"></div>
+                <div class="child-4" e-call="mockEvent, this.Child_Proto_increment(event.detail)"></div>
+            </mock-web-cmp>
+        `)
 
-        expect(parent.aaa_Parent_Instance_Public_Medhod).toBeDefined() // Instance
-        expect(parent.aaa_Child_Instance_Public_Medhod).toBeDefined()
-        expect(parent.aaa_Parent_Proto_Public_Medhod).toBeDefined() // Prototype
-        expect(parent.aaa_Child_Proto_Public_Medhod).toBeDefined()
-        nanoBind(parent, '.child')
+        let parent: MockWebCmp = document.querySelector('.parent'),
+            child1: HTMLElement = document.querySelector('.child-1'),
+            child2: HTMLElement = document.querySelector('.child-2'),
+            child3: HTMLElement = document.querySelector('.child-3'),
+            child4: HTMLElement = document.querySelector('.child-4')
+
+        // Typescirpt private methods and properties are accessible in javascript
+        expect(parent.Public_Property).toBeDefined() // Instance
+        expect((<any>parent).Private_Property).toBeDefined() // Instance
+
+        expect(parent.Parent_Instance_increment).toBeDefined() // Instance
+        expect(parent.Child_Instance_increment).toBeDefined()
+        expect(parent.Parent_Proto_increment).toBeDefined() // Prototype
+        expect(parent.Child_Proto_increment).toBeDefined()
+        expect((<any>child1).Parent_Instance_increment).toBeUndefined() // Instance
+        expect((<any>child2).Child_Instance_increment).toBeUndefined()
+        expect((<any>child3).Parent_Proto_increment).toBeUndefined() // Prototype
+        expect((<any>child4).Child_Proto_increment).toBeUndefined()
+        nanoBindAll(parent, 'mock-web-cmp > div')
         dispatchEvent('mockEvent'+id(), 1)
-        expect(child.aaa_Parent_Instance_Public_Medhod).toBeUndefined() // Instance
-        expect(child.aaa_Child_Instance_Public_Medhod).toBeUndefined()
-        expect(child.aaa_Parent_Proto_Public_Medhod).toBeUndefined() // Prototype
-        expect(child.aaa_Child_Proto_Public_Medhod).toBeUndefined()
+        expect((<any>child1).Parent_Instance_increment).toBeDefined() // Instance
+        expect((<any>child2).Child_Instance_increment).toBeDefined()
+        expect((<any>child3).Parent_Proto_increment).toBeDefined() // Prototype
+        expect((<any>child4).Child_Proto_increment).toBeDefined()
     })
 
     it('Execute methods from the parent in the context of the child', () => {
+        setupTemplate(`
+            <mock-web-cmp class="parent" no-auto-bind>
+                <div class="child" e-call="mockEvent, this.increment(event.detail)"></div>
+            </mock-web-cmp>
+        `)
+
         let parent: MockWebCmp = document.querySelector('.parent'),
-            child: MockWebCmp = document.querySelector('.child')
+            child: HTMLElement = document.querySelector('.child')
 
-        expect(child.count).toBeUndefined()        
+        expect((<any>child).count).toBeUndefined()        
         nanoBind(parent, '.child')
+        expect((<any>child).count).toBeUndefined() // This proves that properties are not copied no matter what      
         dispatchEvent('mockEvent'+id(), 1)
-        expect(child.count).toEqual(1)
-    })
-
-    it('Reads setters and getters', () => {
-        let parent: MockWebCmp = document.querySelector('.parent'),
-            child: MockWebCmp = document.querySelector('.child')
-        
-        parent.aaa_SetGet = 2
-        expect(parent.aaa_SetGet).toEqual(2) 
-        nanoBind(parent, '.child')
-        dispatchEvent('mockEvent'+id(), 1)
-        expect(child.aaa_SetGet).toBeUndefined() // Defined properties can be enumerable and also have setters getters
-
-    })
-
-    it('Reads object properties defined with set and get', () => {
-        let parent: MockWebCmp = document.querySelector('.parent'),
-            child: MockWebCmp = document.querySelector('.child')
-        
-        parent.aaa_SetGet_DefinedProperty = 2
-        expect(parent.aaa_SetGet_DefinedProperty).toEqual(2) 
-        nanoBind(parent, '.child')
-        dispatchEvent('mockEvent'+id(), 1)
-        expect(child.aaa_SetGet_DefinedProperty).toEqual(2) // Defined properties can be enumerable and also have setters getters
-    })
-
-    // <!> ES6 classes don't have private modifier. There is no public private distinction.
-    //     Typescript just emulates this statically.
-    it('Reads to nonenumerable members', () => {
-        let parent: MockWebCmp = document.querySelector('.parent'),
-            child: MockWebCmp = document.querySelector('.child')
-        
-        expect((parent as any).aaa_NonEnumerable_Property).toBeDefined()
-        nanoBind(parent, '.child')
-        dispatchEvent('mockEvent'+id(), 1)
-        expect((child as any).aaa_NonEnumerable_Property).toBeUndefined() 
+        expect((<any>child).count).toEqual(1)
     })
 
     xit('Value change on parent are available imediatly on the child', () => {})

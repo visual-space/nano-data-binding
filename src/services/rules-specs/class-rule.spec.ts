@@ -7,7 +7,7 @@ describe('Class rule', () => {
     beforeEach(done => {
         setupTemplate(`
             <mock-web-cmp class="parent">
-                <div class="data-bind child" e-class="mockEvent, {active: event.detail, enabled: event.detail}"></div>
+                <div class="mock-class child" e-class="mockEvent, {active: event.detail, enabled: event.detail}"></div>
             </mock-web-cmp>
         `)
         setTimeout(() => done(), 0) // Wait for dom mutation
@@ -16,7 +16,7 @@ describe('Class rule', () => {
     
     it('Does nothing after init (events default to false)', () => {
         let child: HTMLElement = document.querySelector('.child')
-        expect(child.classList.contains('data-bind')).toBeTruthy()
+        expect(child.classList.contains('mock-class')).toBeTruthy()
         expect(child.classList.contains('child')).toBeTruthy()
         expect(child.classList.contains('active')).toBeFalsy()
     })

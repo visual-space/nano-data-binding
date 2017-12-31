@@ -13,7 +13,7 @@ describe('For rule', () => {
     beforeEach((done) => {
         setupTemplate(`
             <mock-web-cmp class="parent">
-                <div class="data-bind child" e-for="mockEvent, event.detail">
+                <div class="child" e-for="mockEvent, event.detail">
                     <div class="item"></div>
                 </div>
             </mock-web-cmp>

@@ -7,7 +7,7 @@ describe('Multiple rules', () => {
     beforeEach(done => { 
         setupTemplate(`
             <mock-web-cmp class="parent">
-                <div class="data-bind child" 
+                <div class="child" 
                     e-data="mockEvent, { mockValue: event.detail }"
                     e-if="mockEvent, event.detail"
                     e-for="mockEvent, event.detail"

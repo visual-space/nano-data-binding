@@ -8,11 +8,11 @@ describe('Common specs', () => {
     beforeEach(done => {
         setupTemplate(`
             <mock-web-cmp class="parent">
-                <div class="data-bind child data" e-data="mockEvent, {customInput: event.detail}"></div>
-                <div class="data-bind child if" e-if="mockEvent, event.detail"></div>
-                <div class="data-bind child for" e-for="mockEvent, event.detail"></div>
-                <div class="data-bind child class" e-class="mockEvent, {active: event.detail, enabled: event.detail}"></div>
-                <div class="data-bind child call" e-call="mockEvent, mockMehtod(event.detail)"></div>
+                <div class="child data" e-data="mockEvent, {customInput: event.detail}"></div>
+                <div class="child if" e-if="mockEvent, event.detail"></div>
+                <div class="child for" e-for="mockEvent, event.detail"></div>
+                <div class="child class" e-class="mockEvent, {active: event.detail, enabled: event.detail}"></div>
+                <div class="child call" e-call="mockEvent, mockMehtod(event.detail)"></div>
             </mock-web-cmp>
         `)
         setTimeout(() => done(), 0) // Wait for dom mutation

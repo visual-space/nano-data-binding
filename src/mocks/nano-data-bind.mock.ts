@@ -1,11 +1,3 @@
-/**
- * ====== NANO DATA BIND MOCK ======
- * Mock webcompoents used in the testing of nano data bindings
- * <!> Using es6 notaion straight in the .js tests throws an error (unknown syntax)
- *     Best approach is to emualte the ES6 classes using the entire build system exactly how the real web components are defined
- * <!> aaa_ prefix is used to make the methods easy to spot in the console when debigging the tests
- */
-
 // Debug
 let debug = require('debug')('ndb:MockWebCmp')
 debug('Instantiate MockWebCmp')
@@ -18,105 +10,69 @@ abstract class _MockWebCmp extends HTMLElement {
     }
 
     // In instance (property)
-    aaa_Parent_Instance_Public_Medhod = (val: number): number => {
-        return this.increment.call(this, val)
+    Parent_Instance_increment = (val: number): number => {
+        if (!this.count) this.count = 0
+        this.count += val
+        // debug('Parent class instance increment', this.count)
+        return this.count
     }
 
     // In prototype (function)
-    aaa_Parent_Proto_Public_Medhod(val: number): number {
-        return this.increment.call(this, val)
+    Parent_Proto_increment(val: number): number {
+        if (!this.count) this.count = 0
+        this.count += val
+        // debug('Parent class instance increment', this.count)
+        return this.count
     }
 
     abstract increment: () => number
+    abstract count: number
 
 }
 
 /** 
  * Mocks web components used in the theme
- * No render function was implemented. It keeps the original innerHTML.
+ * Instead of the usual `render()` method a simple `increment()` was implemented
  */
 export class MockWebCmp extends _MockWebCmp {
-
-    // <!> Setter getters are not copied by Object assign
-    private aaa_SetGet_Value: number
-    set aaa_SetGet(val: number) {
-        this.aaa_SetGet_Value = val
-        debug('aaa_SetGet', val)
-    }
-    get aaa_SetGet(): number {
-        return this.aaa_SetGet_Value
-    }
 
     // Typical properties on a ES6 class
     // <!> Typescript will simply generate public properties on these objects.
     //     These properties are only private for typescript static checking.
-    //     They will collide with properties/methods from other contexts if copied in batch.
-    //     Using just typescript is an accident waiting to happen soon.
-    public aaa_Public_Property: number = 1
-    private aaa_Private_Property: number = 2
-
-    // Properties defined in the constructor
-    // <!> We still need to provide a type for static checking.
-    public aaa_SetGet_DefinedProperty: number = 3 // Private in the sense that it is not copied by Object.assign()
-    private aaa_NonEnumerable_Property: number // = 4 <!> Initial value is overwritten from constructor
-
-    // Typical property in a class
+    //     The same applies for methods, so expect to see that data binds have access to private methods.
+    public Public_Property: number = 1
+    private Private_Property: number = 2
     public count: number = 0
 
     constructor() {
         super()
         debug('Construct MockWebCmp')
-
-        // Truly private values
-        let value: number
-
-        // <!> A defined property will be copied by objects assign
-        //     Using this as a host for getters setters will fix the problem of pushing inputs down in the nseting layers
-        Object.defineProperties( this, {
-
-            // Component inputs used for data binding
-            aaa_SetGet_DefinedProperty: {
-                get() {
-                    return value
-                },
-                set(val: number) {
-                    value = val
-                    debug('aaa_SetGet_DefinedProperty', val)
-                }
-            },
-
-            // Prevents data binding
-            // <!> The chance of colliding with private props from childrne components / HTMLELements it's preety high
-            //     It's best to be caustios and prevent any of these collisions from happening
-            //     Typescript private is only working for static checking
-            aaa_NonEnumerable_Property: { writable: true, enumerable: false }
-            
-        })
-
-        // Double check that this poperty is writable
-        // Also make sure that intelissense is not ignring this property
-        this.aaa_NonEnumerable_Property = 2
-        
-        debug('Initial values', this.aaa_Private_Property, this.aaa_NonEnumerable_Property)
+        debug('Initial values', this.Private_Property) // Prevent static checking no unused error
     }
 
     // In instance (property)
-    aaa_Child_Instance_Public_Medhod = (val: number): number => {
-        return this.increment.call(this, val)
+    Child_Instance_increment = (val: number): number => {
+        if (!this.count) this.count = 0
+        this.count += val
+        // debug('Child class instance increment', this.count)
+        return this.count
     }
 
     // In prototype (function)
-    aaa_Child_Proto_Public_Medhod(val: number): number {
-        return this.increment.call(this, val)
+    Child_Proto_increment(val: number): number {
+        if (!this.count) this.count = 0
+        this.count += val
+        // debug('Child class prototype increment', this.count) // verbose
+        return this.count
     }
 
     // Mock method with normal name
     // <!> All tests share this method
     increment = function (val?: number): number {
         if (!this.count) this.count = 0
-        this.count = ++val
+        this.count += val
         // debug('Increment', this.count) // verbose
-        console.log('+++Increment', this.count)
+        console.log('Increment', this.count)
         return this.count
     }
 

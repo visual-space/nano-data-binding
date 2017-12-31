@@ -7,11 +7,11 @@ describe('Observable', () => {
     beforeEach(done => {
         setupTemplate(`
             <mock-web-cmp class="parent">
-                <div class="data-bind child data" o-data="mockObservable, {customInput: payload}"></div>
-                <div class="data-bind child if" o-if="mockObservable, payload"></div>
-                <div class="data-bind child for" o-for="mockObservable, payload"></div>
-                <div class="data-bind child class" o-class="mockObservable, {active: payload, enabled: payload}"></div>
-                <div class="data-bind child call" o-call="mockObservable, payload"></div>
+                <div class="child data" o-data="mockObservable, {customInput: payload}"></div>
+                <div class="child if" o-if="mockObservable, payload"></div>
+                <div class="child for" o-for="mockObservable, payload"></div>
+                <div class="child class" o-class="mockObservable, {active: payload, enabled: payload}"></div>
+                <div class="child call" o-call="mockObservable, payload"></div>
             </mock-web-cmp>
         `)
         setTimeout(() => done(), 0) // Wait for dom mutation

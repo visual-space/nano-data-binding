@@ -22,7 +22,7 @@ No need to import anything. `nanoBind()` and `nanoBindAll()` are available as gl
 Now you can use in the html templates the following data bindings: `n-data`, `n-if`, `n-for`, `n-class`, `n-call`.
 
     <mock-web-cmp class="parent">
-        <div class="data-bind child" 
+        <div class="child" 
             n-data="customEvent : { bar: event.detail }"
             n-if="customEvent : event.detail"
             n-for="customEvent : event.detail"
@@ -38,7 +38,7 @@ In order to activate the data binds you just need to type the following in your 
 ## What to expect
 * **Not a framework** - This is not a framework! This is a simple script that adds basic data binding syntax to web components. The objective of this entire script is to keep the codebase as close as possible to vanila JS while avoiding some boilerplate code.
 * **Eliminates boilerplate code** - Interpolation in multiline string templates is static, no actual data binds are created. In order to update a static template a lot of boilerplate code is needed. Using a few basic data binding tags can shrink a significant amount of code.
-* **No crazy magic** - `nano-data-binding` does not implement any change detection or a virtual dom. Basically, you control precisely what property or event connects to what web component or dom element. This is just a fancy wrapper that automatically calls `Object.assign()` between the parent and the children and than waits for new values of the bound properties to arrive.
+* **No crazy magic** - `nano-data-binding` does not implement any change detection or a virtual dom. Basically, you control precisely what property or event connects to what web component or dom element. This is just a fancy wrapper that automatically calls methods defined on the parent or on the children when bound values change.
 * **Unidirectional flow** - One fundamental expectation is that a state store is implemented (redux, nano-state-store). Having an unidirectional state management strategy, ensures that no extra operations are executed when state changes. Everything just reacts to the store. Basically there is no output data bind, only inputs. This is an intentional design choice meant to encourage proper implementation of state store architecture. 
 * **Defined as globals** - All these utils will be used in all files, having them as globals spares a lot of imports. Each of these methods has a global typescript definition matched.
 * **Manual init** - These data binds could be done automatically for every component, however this is not really needed, and it could actually be harmful. Having total control over the binding process gives opportunity for some creative binds. In practice it's best to create simple bindings between the parent web component and it's direct childrens. A develoepr would expect to see this kind of relation, anything else is confusing unless properly coded and documented.
@@ -52,25 +52,7 @@ The overall plan is to keep te script simple.
 * Syntax for automatically binding to observables not just events.
 * Finishing writting also the non-essential tests.
 * Improving performance and checking for memory leaks.
-* Adding performacne benchmarks
-
-## Controlling which methods and properties are copied to the targeted elements
-Functions are part of the `__proto__` lookup object. They will be ignored by `Object.assign()` in `nanoBind()` and in `nanoBindAll()`. `Object.assign()` only copies own enumerable properties from an object instance. So baiscally, keeping methods in the prototype emulates the private modifier in the case of the data binding. The object still shows the methods but `Object.assign()` ignores them.
-
-Altough it might seem this is a bug, it is useful for copying only the desired methods from a class. However these methods are part of the instance, that means they take extra space in memory. In order to prevent this issue it is best to define methods as functions in prtotype and only reference then in the instance sa that they can be transfered via reference by `Object.assign()`
-
-Keeping methods on the prototype chain is not the same thing as private but what we need is to prevent property collision on data binding so non-enumerable is enough. Less technical knowledge is needed to understand this solution than weakmaps or symbols. It also has more clarity of intent.
-
-When assigning from a node to another no other methods and properties are assigned besides the instance onse. All details about the node are preserved. Try this to see what happens `console.log(Object.assign({}, someElement))`.
-
-You can also defined all methods in the protype and just make a local reference in the web component's context. Or by creating a custom made context object to be feed into the fir parameter of `nanoBind()`.
-
-## Getters, Setters
-The data binding behavior depends on getters and setters in order to react to value changes. Copying setters and getters via `Object.assign()` is not possible. Instead we need to defined a porperty with getters and setters in the constructor.
-
-    Object.defineProperty(this, "aaa_mockObjectProperty", { get() { ... }, set(v) { ... } })
-
-Using this approach, a data bind value can be passed down bellow trough all the levels of nesting. In case you want to prevent a property to bind to the children you can use `enumerable: false` in the property definition. Beware when using a `get, set` pair together with a private property to cache the value. ES6 classes don't have private, public modifiers so everything is copied. That means, a private property leaks in the children.
+* Adding performance benchmarks
 
 ## No real private in typescript
 Not having true privates in javascript ES6 classes is a terrible drawback. Currently, it's not possible trough some simple notatioan to gain truly private properties and methods. Onyl scoping odes the trick.

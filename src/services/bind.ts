@@ -32,14 +32,11 @@ debug('Instantiate Bind')
  * <!> All event listeners are automatically cleaned up when the component is destroyed
  */
 export function initDataBinds(parent: HTMLElement, children: HTMLElement[]): void { 
-    
-    // Bind
-    // bindContextToChildren(parent, children) // DEPRECATED
 
     children.forEach(child => {
 
         // Prevent double init of the same element
-        if (this._nano_dataBind) {
+        if ((<any>child)._nano_dataBind) {
             if (parent.hasAttribute('no-auto-bind')) {
                 debug('Data bind already initialised', {dataBind: this._nano_dataBind})
             } else {
@@ -61,7 +58,7 @@ export function initDataBinds(parent: HTMLElement, children: HTMLElement[]): voi
             // Parse
             Object.assign(dataBind, getDataBindFromAttribute(attr))
             debug('Data bind', {dataBind})
-            this._nano_dataBind = dataBind
+            ;(<any>child)._nano_dataBind = dataBind
 
             // Cache
             cacheValuesInDom(dataBind)
@@ -80,26 +77,6 @@ export function initDataBinds(parent: HTMLElement, children: HTMLElement[]): voi
     })
 
 }
-
-// DEPRECATED
-// /** 
-//  * Adds the methods from on context to another context using object assign 
-//  * TODO Copy only instance methods instead of everything.
-//  */
-// export function bindContextToChildren(parent: HTMLElement, children: HTMLElement[]) {
-//     debug('Bind context to children', [parent, children])
-
-//     children.forEach(child => {
-
-//         // Bind parent context 
-//         // <!> Only methods defined on the instance, nothing is copied from __proto__
-//         Object.assign(child, parent)
-        
-//         // Cache the parent/ancestor context
-//         ;(child as any).ancestor = parent
-
-//     })
-// }
 
 export function getDataBindFromAttribute (attribute: Attr): DataBind {
     let dataBind: DataBind = <DataBind>{

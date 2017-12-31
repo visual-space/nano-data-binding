@@ -7,11 +7,11 @@ describe('Data rule', () => {
     beforeEach(done => {
         setupTemplate(`
             <mock-web-cmp class="parent">
-                <div class="data-bind child" e-data="mockEvent, { 
+                <div class="child" e-data="mockEvent, { 
                     mockValue: event.detail, 
                     secondMockValue: event.detail 
                 }">
-                <!--<div class="data-bind short" e-data="mockValue, { mockValue }">-->
+                <!--<div class="short" e-data="mockValue, { mockValue }">-->
                 </div>
             </mock-web-cmp>
         `)

@@ -15,7 +15,7 @@ export function isAttrDataBind(attribute: Attr): boolean {
     return isListener
 }
 
-/** Retrieves first we component in the parent chain for a given element */
+/** Retrieves first web component in the parent chain for a given element */
 export function getParentWebCmpContext (child: HTMLElement): HTMLElement {
     let el: any = child
     while (el.parentNode) {
@@ -82,14 +82,20 @@ export function evalInContext(dataBind: DataBind): any {
  * If it finds any, it copies those methods from the parent to child 
  * <!> Throws error when collisions between parent and child methods happen.
  * <!> These methods need full access to the child element context.
- *     Anything less will create a lot of edge cases.
+ *     Anything less will create a lot of edge cases and collisions.
  *     Thus, it is necessary to copy their references to the child context and execute the evaluated code inside the child context.
+ * <!> Private methods are still accessible for the data binds. 
+ *     Typescript just pretends to have private modifiers.
+ *     The js generated code actually keeps the references to the private methods.
  * TODO Delete the copied methods? Not sure yet what is better. MOst likely it's best not to leave any leftovers. Is this costly for performance?
  */
 export function copyMethodRefsToChild(dataBind: DataBind): void {
-    const MATCH_METHOD_CALLS = /(this.\S+)\(/gm
+    const MATCH_METHOD_CALLS = /(this.\S+\()/gm
     let { parent, child } = dataBind,
         methods = dataBind.code.match(MATCH_METHOD_CALLS)
+
+    // No context methods are invoked
+    if (!methods) return
     
     // Remove call, apply, bind
     methods = methods.map( method => 
@@ -102,8 +108,8 @@ export function copyMethodRefsToChild(dataBind: DataBind): void {
     // Filter out methods defined in child context
     methods = methods.filter( method => (<any>child)[method] === undefined)
     let chains = methods.map(method => method.replace('this.','').split('.'))
+    dataBind.copiedMethods = methods // For debug purposes
     // debug('Methods not defined in child context', {methods, chain}) // Verbose
-    console.log('Methods not defined in child context', {methods, chains}) // Verbose
 
     // Validate that all methods exist in parent context
     chains.forEach((chain, i) => {

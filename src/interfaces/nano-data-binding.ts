@@ -47,6 +47,9 @@ export interface DataBind {
 
     // The m-for rule can use a trackBy method in case the references are lost (similar to angular)
     trackBy: () => any
+
+    // The methods that were copied from parent to child - For debugging
+    copiedMethods: string[] 
 }
 
 /** bind() accepts either string or HTMLElement */

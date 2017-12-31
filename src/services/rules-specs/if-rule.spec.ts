@@ -9,7 +9,7 @@ describe('If Rule', () => {
     beforeEach(done => {
         setupTemplate(`
             <mock-web-cmp class="parent">
-                <div class="data-bind child" e-if="mockEvent, event.detail"></div>
+                <div class="child" e-if="mockEvent, event.detail"></div>
             </mock-web-cmp>
         `)
         setTimeout(() => done(), 0) // Wait for dom mutation

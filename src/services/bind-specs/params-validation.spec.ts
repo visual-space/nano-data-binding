@@ -6,7 +6,7 @@ describe('Params validation', () => {
 
     beforeEach(() => setupTemplate(`
         <mock-web-cmp class="parent" no-auto-bind>
-            <div class="data-bind child"></div>
+            <div class="child"></div>
         </mock-web-cmp>
     `))
     afterEach(() => document.querySelector('.container').remove())
@@ -42,7 +42,7 @@ describe('Params validation', () => {
     
     it('Error - nanoBind() failed. Not all selectors have the same type.', () => {
         let parent: MockWebCmp = document.querySelector('.parent'),
-            child: MockWebCmp = document.querySelector('.child'),
+            child: HTMLElement = document.querySelector('.child'),
             err = 'nanoBind() failed. Not all selectors have the same type.'
 
         expect( () => nanoBind(parent, 'sel', 1 as any) ).toThrow(new Error(err))
