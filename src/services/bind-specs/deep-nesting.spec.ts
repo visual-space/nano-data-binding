@@ -2,7 +2,7 @@ import { nanoBind } from '../selectors'
 import { setupTemplate, dispatchEvent, id } from '../../mocks/specs.utils'
 import { MockWebCmp } from '../../mocks/nano-data-bind.mock'
 
-/** <!> All events are suffixed by the `setupTemplate()` method with unique ids in order to prevent corss^-talk between tests */
+/** <!> All events are suffixed by the `setupTemplate()` method with unique ids in order to prevent cross-talk between tests */
 
 // Deep nesting of e-data="" data binds
 describe('Deep nesting', () => {

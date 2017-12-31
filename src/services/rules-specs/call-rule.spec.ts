@@ -1,6 +1,6 @@
 import { setupTemplate, dispatchEvent, id} from '../../mocks/specs.utils'
 
-/** <!> All events are suffixed by the `setupTemplate()` method with unique ids in order to prevent corss^-talk between tests */
+/** <!> All events are suffixed by the `setupTemplate()` method with unique ids in order to prevent cross-talk between tests */
 
 describe('Call rule', () => {
     

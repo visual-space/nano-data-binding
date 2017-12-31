@@ -1,7 +1,7 @@
 import { setupTemplate, dispatchEvent, id} from '../../mocks/specs.utils'
 import { MockArr } from '../../interfaces/nano-data-binding'
 
-/** <!> All events are suffixed by the `setupTemplate()` method with unique ids in order to prevent corss^-talk between tests */
+/** <!> All events are suffixed by the `setupTemplate()` method with unique ids in order to prevent cross-talk between tests */
 
 describe('For rule', () => {
 

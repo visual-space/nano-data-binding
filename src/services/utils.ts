@@ -61,6 +61,8 @@ export function evalInContext(dataBind: DataBind): any {
     let { modifier, code } = dataBind
     debug('Evaluate in context', { dataBind })
 
+    // Evaluate data bind
+    copyMethodRefsToChild(dataBind)
     eval(modifier + code)
 
     // Some expression might assign a value to `this._evalOutput`
@@ -74,8 +76,53 @@ export function evalInContext(dataBind: DataBind): any {
     return this._evalOutput
 }
 
+/** 
+ * Scans the evaluated code for methods invoked from the child context (not globals)
+ * If they are not defined in the child context it searches for them in parent context
+ * If it finds any, it copies those methods from the parent to child 
+ * <!> Throws error when collisions between parent and child methods happen.
+ * <!> These methods need full access to the child element context.
+ *     Anything less will create a lot of edge cases.
+ *     Thus, it is necessary to copy their references to the child context and execute the evaluated code inside the child context.
+ * TODO Delete the copied methods? Not sure yet what is better. MOst likely it's best not to leave any leftovers. Is this costly for performance?
+ */
+export function copyMethodRefsToChild(dataBind: DataBind): void {
+    const MATCH_METHOD_CALLS = /(this.\S+)\(/gm
+    let { parent, child } = dataBind,
+        methods = dataBind.code.match(MATCH_METHOD_CALLS)
+    
+    // Remove call, apply, bind
+    methods = methods.map( method => 
+        method.replace(/\.bind\($/,'')
+        .replace(/\.apply\($/,'')
+        .replace(/\.call\($/,'')
+        .replace('(','') // Simpler than capturegroups
+    )
+
+    // Filter out methods defined in child context
+    methods = methods.filter( method => (<any>child)[method] === undefined)
+    let chains = methods.map(method => method.replace('this.','').split('.'))
+    // debug('Methods not defined in child context', {methods, chain}) // Verbose
+    console.log('Methods not defined in child context', {methods, chains}) // Verbose
+
+    // Validate that all methods exist in parent context
+    chains.forEach((chain, i) => {
+        chain.reduce( (chained, token) => {
+            chained += token
+            if (!(<any>parent)[chained]) {
+                console.warn(`Method "${methods[i]}" is not defined in parent context. ${printDataBindInfo(dataBind)}`)
+            }
+            return chained
+        }, '')
+    })
+
+    // Copy the method or method namespace
+    chains.forEach( chain => (<any>child)[chain[0]] = (<any>parent)[chain[0]])
+
+}
+
 /** Render extra details about the data bind in debug log messages */
-export function mapLogDataBindInfo(dataBind: DataBind): string {
+export function printDataBindInfo(dataBind: DataBind): string {
     let { parent, child, origin, source, rule, code } = dataBind,
         parentTagName = `<${parent.tagName.toLowerCase()}>`,
         childTagName = `<${child.tagName.toLowerCase()}>`

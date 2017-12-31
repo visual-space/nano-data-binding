@@ -88,9 +88,9 @@ export function initDataBinds(child: HTMLElement): void {
             if (parent) {
                 
                 // Block autobind via attribute
-                // console.log('---parent', {parent})
-                console.log('---parent.hasAttribute(no-auto-bind)', parent.hasAttribute('no-auto-bind'))
                 if (parent.hasAttribute('no-auto-bind')) return
+
+                // Prevend double initialisation
                 if ((<any>child)._nano_dataBind) return
 
                 debug('Init data binds', {parent, child})

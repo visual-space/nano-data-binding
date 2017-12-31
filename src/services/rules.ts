@@ -163,7 +163,7 @@ export function updateItemsInForList (dataBind: DataBind) {
         elems: HTMLElement[] = Array.from(child.children),
         oldItems: any[] = elems.map((el: any) => el._nForDataBInd)
     if (newItems.constructor !== Array) {
-        console.warn(`Cannot render list. Only arrays are accepted. ${utils.mapLogDataBindInfo(dataBind)}`)
+        console.warn(`Cannot render list. Only arrays are accepted. ${utils.printDataBindInfo(dataBind)}`)
         return
     }
 
@@ -221,7 +221,7 @@ export function addCssClassesToElem(dataBind: DataBind): void {
     let classes: string[] = Object.keys(classesObj)
     classes.forEach(cssClass => {
         if (typeof classesObj[cssClass] !== 'boolean') 
-            console.warn(`Cannot match class, value is not boolean. ${utils.mapLogDataBindInfo(dataBind)}`)
+            console.warn(`Cannot match class, value is not boolean. ${utils.printDataBindInfo(dataBind)}`)
         classesObj[cssClass] === true ? child.classList.add(cssClass) : child.classList.remove(cssClass)
     })
 }

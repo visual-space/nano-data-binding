@@ -11,7 +11,7 @@ let debug = require('debug')('ndb:MockWebCmp')
 debug('Instantiate MockWebCmp')
 
 /** Mocks core web components (abstract classes used by templates) */
-class _MockWebCmp extends HTMLElement {
+abstract class _MockWebCmp extends HTMLElement {
 
     constructor() {
         super()
@@ -19,13 +19,15 @@ class _MockWebCmp extends HTMLElement {
 
     // In instance (property)
     aaa_Parent_Instance_Public_Medhod = (val: number): number => {
-        return ++val
+        return this.increment.call(this, val)
     }
 
     // In prototype (function)
     aaa_Parent_Proto_Public_Medhod(val: number): number {
-        return ++val
+        return this.increment.call(this, val)
     }
+
+    abstract increment: () => number
 
 }
 
@@ -100,20 +102,22 @@ export class MockWebCmp extends _MockWebCmp {
 
     // In instance (property)
     aaa_Child_Instance_Public_Medhod = (val: number): number => {
-        return ++val
+        return this.increment.call(this, val)
     }
 
     // In prototype (function)
     aaa_Child_Proto_Public_Medhod(val: number): number {
-        return ++val
+        return this.increment.call(this, val)
     }
 
     // Mock method with normal name
-    // Reafin the tests is less confusing
+    // <!> All tests share this method
     increment = function (val?: number): number {
         if (!this.count) this.count = 0
-        if (val) return this.count = ++val 
-        else return ++this.count
+        this.count = ++val
+        // debug('Increment', this.count) // verbose
+        console.log('+++Increment', this.count)
+        return this.count
     }
 
 }

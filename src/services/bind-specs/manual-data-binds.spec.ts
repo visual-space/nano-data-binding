@@ -2,7 +2,7 @@ import { nanoBind } from '../selectors'
 import { setupTemplate } from '../../mocks/specs.utils'
 import { MockWebCmp } from '../../mocks/nano-data-bind.mock'
 
-/** <!> All events are suffixed by the `setupTemplate()` method with unique ids in order to prevent corss^-talk between tests */
+/** <!> All events are suffixed by the `setupTemplate()` method with unique ids in order to prevent cross-talk between tests */
 
 // Manually initialise data binds (edge cases, bypass first web component parent rule )
 describe('Manual data binds', () => {
