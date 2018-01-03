@@ -17,6 +17,7 @@ debug('Instantiate Bind')
  *     Building the `dataBind` descriptor object that is used to transfer information between the various stages of the process.
  *     Setting up DOM caches for the rules that require them (IF and FOR).
  *     Whatching for changes in the source values (context properties, events, observables).
+ *     If a method is not defined in the child context than it is looked-up in the parent context and if found the reference is copied.
  *     Reacting to any changed values by executing a certain behavior for each rule.
  * 
  * <!> The original approach was to copy references from parent context to the child context.
@@ -116,29 +117,75 @@ export function cacheValuesInDom (dataBind: DataBind) {
     }
 }
 
+// TODO Break in smaller parts
 export function watchForValueChanges (dataBind: DataBind): Listeners | Subscriptions {
     debug('Watch for value changes', {dataBind})
-    let listeners: Listeners = {},
+    let { origin, parent, source } = dataBind,
+        listeners: Listeners = {},
         subscriptions: Subscriptions = {}
 
-    if (dataBind.origin === ORIGIN.Property) {
+    if (origin === ORIGIN.Property) {
 
-        // To implement
+        let value: any,
+            proto: any,
+            _desc: PropertyDescriptor,
+            desc: PropertyDescriptor,
+            _set: any, // Originals
+            set: any, // Wrappers
+            _get: any,
+            get: any
 
-    } else if (dataBind.origin === ORIGIN.Event) {
+        proto = Object.getPrototypeOf(parent)
+        _desc = Object.getOwnPropertyDescriptor(parent, source)
+
+        // Original or new set
+        _set = proto.__lookupSetter__(source)
+        if (!_set) {
+            if (_desc) _set = _desc.set
+            else _set = function (val: any) { value = val }
+        }
+        
+        // Original or new get
+        _get = proto.__lookupGetter__(source)
+        if (!_get) {
+            if (_desc) _get = _desc.get
+            else _get = function () { return value }
+        }
+
+        // Cache original property value
+        if ((<any>parent)[source] !== undefined) {
+            value = (<any>parent)[source]
+            
+            // <!> Evaluate data bind with first value
+            evaluateDataBind(dataBind)
+        }
+
+        // Wrappers
+        set = (val: any) => {
+            _set.call(parent, val)
+            console.log('+++set (wrapper)', val)
+            evaluateDataBind(dataBind)
+        }
+        get = () => { return _get.call(parent) }
+
+        // Bind
+        desc = { set , get }
+        Object.defineProperty(parent, source, desc)
+
+    } else if (origin === ORIGIN.Event) {
 
         // Prepare the event handlers
         let eventHandler: Listener = () => evaluateDataBind(dataBind)
 
         // Cache the handlers so they ca be removed later
-        listeners[dataBind.source] = eventHandler
+        listeners[source] = eventHandler
 
         // Add the custom event listener
-        document.addEventListener(dataBind.source, eventHandler)
-        debug('Added custom event listener', dataBind.source)
+        document.addEventListener(source, eventHandler)
+        debug('Added custom event listener', source)
         return listeners
 
-    } else if (dataBind.origin === ORIGIN.Observable) {
+    } else if (origin === ORIGIN.Observable) {
 
         // To implement
         return subscriptions
@@ -153,7 +200,7 @@ export function watchForValueChanges (dataBind: DataBind): Listeners | Subscript
  */
 export function evaluateDataBind(dataBind: DataBind): void {
     dataBind.event = event as CustomEvent
-    debug('Evaluate data bind', { dataBind })
+    debug('+++Evaluate data bind', { dataBind })
     let { rule } = dataBind
 
     // Evaluate the attribute value depending on the rule (attribute name)

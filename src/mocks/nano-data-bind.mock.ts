@@ -44,10 +44,36 @@ export class MockWebCmp extends _MockWebCmp {
     private Private_Property: number = 2
     public count: number = 0
 
+    // Used to test data bind to context property (set, get will be wrapped)
+    private _setGet: number
+    set setGet(val: number) {
+        this._setGet = val
+        debug('Set setGet', val)
+    }
+    get setGet(): number {
+        return this._setGet
+    }
+
     constructor() {
         super()
         debug('Construct MockWebCmp')
         debug('Initial values', this.Private_Property) // Prevent static checking no unused error
+
+        // Truly private values
+        let value: number
+        
+        // Used to test data bind to context property (set, get will be wrapped)
+        Object.defineProperties( this, {
+            SetGet_DefinedProperty: {
+                get() { return value },
+                set(val: number) { 
+                    value = val
+                    debug('Set SetGet_DefinedProperty', val) 
+                }
+            },
+            NonEnumerable_Property: { writable: true, enumerable: false }
+        })
+
     }
 
     // In instance (property)

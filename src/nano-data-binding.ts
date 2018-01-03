@@ -4,6 +4,12 @@ import { setupAutoBindUndind } from './services/self-init'
 // Debug
 let Debug = require('debug'), debug = Debug ? Debug('ndb:NanoDataBinding') : () => {}
 debug('Instantiate NanoDataBinding')
+       
+// TODO Search for better alternative. 
+// Object.getOwnPropertyDescriptor works only for `Object.definePropert()`. `set` and `get` methods`defined on classes are ignored.
+if (!(Object.prototype as any).__lookupGetter__) { 
+    throw new Error('Cannot reliably detect all getter/setter methods. Object.prototype.__lookupGetter__ is undefined')
+}
 
 /**
  * ====== Nano Data Bindings ======

@@ -32,18 +32,24 @@ let parser = new DOMParser()
  *     Nonetheless this data binding will work as many levels are needed
  */
 export function bindDataToElem(dataBind: DataBind): void {
-    let { child } = dataBind
+    let { parent, child, source, code } = dataBind
 
+    // DEPRECATED Previous attempt, will be removed eventually
     // Capture returned value from executed code
-    dataBind.modifier = 'this._evalOutput = '
+    // dataBind.modifier = 'this._evalOutput = '
     
-    let inputs: { [key: string]: any } = utils.evalInContext.call(child, dataBind)
+    // let inputs: { [key: string]: any } = utils.evalInContext.call(child, dataBind)
 
-    let inputId: string
-    for (inputId in inputs) {
-        (child as any)[inputId] = inputs[inputId]
-    }
-    debug('Write data bind values to element', { inputs, dataBind })
+    // let inputId: string
+    // for (inputId in inputs) {
+    //     ;(child as any)[inputId] = (<any>parent)[inputId]
+    // }
+
+    code = code.trim()
+    
+    ;(child as any)[code] = (<any>parent)[source]
+
+    debug('Write data bind values to element', { dataBind }) // inputs
 }
 
 /** 
@@ -234,6 +240,6 @@ export function callChildContextMethod(dataBind: DataBind): void {
     // dataBind.modifier = 'this.' // DEPRECATED - User should have control over the context used to invoke the bound method
     dataBind.modifier = ''
 
-    utils.evalInContext.call(child, dataBind)
+    utils.evalInContext.call( child, dataBind )
     debug('Call child context method', { dataBind })
 }

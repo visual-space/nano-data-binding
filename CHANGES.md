@@ -9,19 +9,14 @@
 * Automatically copy references of invoked methods in the child context
     * All methods will be accessible
     * Methods that are already defined on the children will be used from there. 
-    * No more overwrite collisions between paren and child contexts. 
+    * No more overwrite collisions between parent and children contexts. 
     * No problems if additional methods are added after init at runtime.
-    * Data bind throws error if invoked method is not defined on parent context.
 
 * Data binding to context properties.
-
-* Replace all inline event handlers with custom ones. `onclick=""` becomes `(click)=""`.
-    * Automatic data binding will not work for stard inline event hanlders.
 
 * Better syntax - Origin prefixes in the attributes. It was confusing to read the origin tokens [".", ":", "$"] especially for the short notations. Attributes prefixes are far easier to read ["p-if", "e-if", "o-if"]. Side effect of this change, simpler code, easier to maintain.
 * Restore debug logs.
 * Split in smaller files.
-* Default to context property if no origin is defined in the syntax.
 
 # 0.0.8
 * Return control to the developer over the context from which the method is called for the `n-call` rule 
