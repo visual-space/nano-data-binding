@@ -163,7 +163,6 @@ export function watchForValueChanges (dataBind: DataBind): Listeners | Subscript
         // Wrappers
         set = (val: any) => {
             _set.call(parent, val)
-            console.log('+++set (wrapper)', val)
             evaluateDataBind(dataBind)
         }
         get = () => { return _get.call(parent) }
@@ -200,7 +199,7 @@ export function watchForValueChanges (dataBind: DataBind): Listeners | Subscript
  */
 export function evaluateDataBind(dataBind: DataBind): void {
     dataBind.event = event as CustomEvent
-    debug('+++Evaluate data bind', { dataBind })
+    debug('Evaluate data bind', { dataBind })
     let { rule } = dataBind
 
     // Evaluate the attribute value depending on the rule (attribute name)

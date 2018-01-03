@@ -13,7 +13,6 @@
     * No problems if additional methods are added after init at runtime.
 
 * Data binding to context properties.
-
 * Better syntax - Origin prefixes in the attributes. It was confusing to read the origin tokens [".", ":", "$"] especially for the short notations. Attributes prefixes are far easier to read ["p-if", "e-if", "o-if"]. Side effect of this change, simpler code, easier to maintain.
 * Restore debug logs.
 * Split in smaller files.

@@ -32,15 +32,7 @@ describe('Context property', () => {
             // callEl: HTMLElement = document.querySelector('.child.call'),
             // getIfEl = () => document.querySelector('.child.if')
 
-        // console.log('parent.mockDataProp = 123')
         ;(<any>parent).mockDataProp = 123
-                        // parent = new Proxy(parent, {
-                        //     set: (target: any, prop: string, value: any) => {
-                        //         target[prop] = value
-                        //         console.log('+++Set Property', prop)
-                        //         return true
-                        //     }
-                        // })
 
         // <!> Adding the sources after init makes the test even harder to pass
         // ;(parent as any).mockDataProp = 123

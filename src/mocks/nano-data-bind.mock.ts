@@ -98,7 +98,6 @@ export class MockWebCmp extends _MockWebCmp {
         if (!this.count) this.count = 0
         this.count += val
         // debug('Increment', this.count) // verbose
-        console.log('Increment', this.count)
         return this.count
     }
 
