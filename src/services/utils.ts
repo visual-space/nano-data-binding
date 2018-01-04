@@ -58,7 +58,7 @@ export function getDataBindCode(attribute: Attr): string {
  * <!> Used by all data binds, careful when changing anything here. Make sure you have the tests running.
  */
 export function evalInContext(dataBind: DataBind): any {
-    let { modifier, code } = dataBind
+    let { modifier, code, parent } = dataBind
     debug('Evaluate in context', { dataBind })
 
     // Evaluate data bind
@@ -67,7 +67,7 @@ export function evalInContext(dataBind: DataBind): any {
 
     // Some expression might assign a value to `this._evalOutput`
     // These prefixes are added in `evaluateAttrString` depending on the data bind type
-    debug('Eval output', this._evalOutput)
+    debug('Eval output', this._evalOutput, { parent })
 
     // Returns undefined when the children context is not available (code is evaluated in global context)
     // This is a silent fail because it is a common one that it is actually expected.

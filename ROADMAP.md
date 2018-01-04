@@ -3,6 +3,7 @@
     * Automatic data binding will not work for stard inline event hanlders.
 
 * Default to context property if no origin is defined in the syntax.
+* DATA rule syntax is a bit different. The target property is read from the string straicht away instead of using `evaluateinContext()` method.
 
 # Other
 * Multiple data binds inputs. CUrrently only one is possible with current notation

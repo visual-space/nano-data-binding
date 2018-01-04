@@ -49,7 +49,10 @@ export function initDataBinds(parent: HTMLElement, children: HTMLElement[]): voi
         let attributes: Attr[] = Array.from(child.attributes),
             dataBind: DataBind = <DataBind>{ parent, child },
             listeners: Listeners = {},
-            subscriptions: Subscriptions = {}
+            subscriptions: Subscriptions = {},
+            hostEl: Node, // child or in the case of the IF rule the placehodler comment
+            // TODO, find a better way, this approach is not simple and easy. The other rules may execute first.
+            hasPlaceholder: boolean // If placehodler is already defined, than skip the data bind process
 
         attributes.forEach(attr => {
 
@@ -59,10 +62,13 @@ export function initDataBinds(parent: HTMLElement, children: HTMLElement[]): voi
             // Parse
             Object.assign(dataBind, getDataBindFromAttribute(attr))
             debug('Data bind', {dataBind})
-            ;(<any>child)._nano_dataBind = dataBind
 
             // Cache
-            cacheValuesInDom(dataBind)
+            hasPlaceholder = cacheInitialState(dataBind)
+            if (hasPlaceholder === true) return // Prevent double init of IF rule
+            hostEl = dataBind.rule === RULE.If ? dataBind.placeholder : dataBind.child
+            // debug('Host element', {hostEl}) // Verbose
+            ;(hostEl as any)._nano_dataBind = dataBind
 
             // Watch
             let refs = watchForValueChanges(dataBind)
@@ -71,9 +77,10 @@ export function initDataBinds(parent: HTMLElement, children: HTMLElement[]): voi
 
         })
 
+        if (hasPlaceholder === true) return // Prevent double init of IF rule
         // <!> Provide an easy method for removing all custom listeners when the child element is destroyed
-        ;(child as any)._nano_listeners = listeners
-        ;(child as any)._nano_subscriptions = subscriptions
+        ;(hostEl as any)._nano_listeners = listeners
+        ;(hostEl as any)._nano_subscriptions = subscriptions
 
     })
 
@@ -90,8 +97,12 @@ export function getDataBindFromAttribute (attribute: Attr): DataBind {
     return dataBind
 }
 
-export function cacheValuesInDom (dataBind: DataBind) {
-    debug('Cache values in DOM', { dataBind })
+/**
+ * IF rule sets up a placeholder comment
+ * FOR rule cached the initial template
+ */
+export function cacheInitialState (dataBind: DataBind): boolean {
+    debug('Cache initial state', { dataBind })
     let { child } = dataBind,
         placeholderIndex: number, // Used to identify the position of the targeted IF element and then find the placeholder comment
         placeholder: Node, // A placeholder comment will be present if the data bind was already initialised
@@ -103,7 +114,7 @@ export function cacheValuesInDom (dataBind: DataBind) {
         placeholderIndex = Array.prototype.indexOf.call(child.parentElement.childNodes, child) - 1
         placeholder = child.parentElement.childNodes[placeholderIndex]
         isComment = placeholder.nodeType === 8
-        debug('Recovered IF data bind placeholder', { isComment, placeholderIndex, placeholder, dataBind })
+        debug('Recover IF data bind placeholder', { isComment, placeholderIndex, placeholder })
             
         // Create placeholder only once
         if (isComment !== true) rules.setupIfDataBindPlaceholder(dataBind)
@@ -115,6 +126,8 @@ export function cacheValuesInDom (dataBind: DataBind) {
         child.innerHTML = ''
 
     }
+
+    return isComment
 }
 
 // TODO Break in smaller parts
@@ -209,11 +222,8 @@ export function evaluateDataBind(dataBind: DataBind): void {
             rules.bindDataToElem(dataBind)
             break
 
-        // <!> RULE.If rule is not executed from the child element
-        //     It is executed from the placeholder (the comment node)
-        //     In this way we don't have to worry about all the edge cases that happen when the child is added or removed
-        //     The placeholder is alwasy there and it doesn't need any special treatment
         case RULE.If:
+            rules.toggleIfDataBindElement(dataBind)
             break
 
         case RULE.For:

@@ -1,6 +1,5 @@
-import { DataBind, Listener, Changes } from '../interfaces/nano-data-binding'
+import { DataBind, Changes } from '../interfaces/nano-data-binding'
 import * as utils from './utils'
-import { ORIGIN } from '../constants/nano-data-binding.const'
 import { nanoBind } from './selectors'
 
 // Debug
@@ -59,13 +58,13 @@ export function bindDataToElem(dataBind: DataBind): void {
  * This simplifies a lot of the work needed to show/hide the element. However it breaks the pattern of the other rules.
  */
 export function setupIfDataBindPlaceholder(dataBind: DataBind): void {
-    let { child, origin, source } = dataBind,
+    let { child } = dataBind, //, origin, source
         placeholder: Comment
 
         // Setup placeholder comment 
         placeholder = document.createComment('')
         dataBind.placeholder = placeholder
-        debug('Setup if data bind placeholder', { dataBind })
+        debug('Setup IF rule placeholder', { dataBind })
     
         // Hidden element clone
         ;(placeholder as any)._nano_originalElement = child.cloneNode()
@@ -81,25 +80,6 @@ export function setupIfDataBindPlaceholder(dataBind: DataBind): void {
 
         // Release the original element from memory
         delete dataBind.child
-
-        // Data bind the placeholder
-        if (origin === ORIGIN.Event) {
-
-            // Add event
-            let handler: Listener = () => toggleIfDataBindElement(dataBind)
-            document.addEventListener(source, handler)
-            ;(placeholder as any)._nano_listeners = { source: handler }
-
-        } else if (origin === ORIGIN.Property) {
-
-            // Not implemented
-
-        } else if (origin === ORIGIN.Observable) {
-
-            // Not implemented
-
-        }
-
 }
 
 /** Toggle the  an element using a comment node as a placeholder */

@@ -13,35 +13,38 @@ describe('Context property', () => {
         setupTemplate(`
             <mock-web-cmp class="parent">
                 <div class="child data" p-data="mockDataProp, customInput"></div>
-                <div class="child if" p-i-f="mockIfProp, mockIfProp"></div>
-                <div class="child for" p-f-or="mockForProp, mockForProp"></div>
-                <div class="child class" p-c-lass="mockClassProp, {active: mockClassProp, enabled: mockClassProp}"></div>
-                <div class="child call" p-c-all="mockCallProp, mockMehtod(mockCallProp)"></div>
+                <div class="child if" p-if="mockIfProp, parent.mockIfProp"></div>
+                <div class="child for" p-for="mockForProp, parent.mockForProp"></div>
+                <div class="child class" p-class="mockClassProp, {active: parent.mockClassProp}"></div>
+                <div class="child call" p-call="mockCallProp, this.increment(parent.mockCallProp)"></div>
             </mock-web-cmp>
         `)
         setTimeout(() => done(), 0) // Wait for dom mutation
     })
     afterEach(() => document.querySelector('.container').remove())
 
+    // Because all the rules have been tested already for events we merge all of them in one test for context properties
     it('Instantiates with the initial value', () => {
         let parent: MockWebCmp = document.querySelector('.parent'),
-            dataEl: HTMLElement = document.querySelector('.child.data')//,
-            // ifEl: HTMLElement = document.querySelector('.child.if'),
-            // forEl: HTMLElement = document.querySelector('.child.for'),
-            // classEl: HTMLElement = document.querySelector('.child.class'),
-            // callEl: HTMLElement = document.querySelector('.child.call'),
-            // getIfEl = () => document.querySelector('.child.if')
+            dataEl: HTMLElement = document.querySelector('.child.data'),
+            getIfEl = () => document.querySelector('.child.if'),
+            forEl: HTMLElement = document.querySelector('.child.for'),
+            classEl: HTMLElement = document.querySelector('.child.class'),
+            callEl: HTMLElement = document.querySelector('.child.call')
 
+        // <!> Defining the source values after init makes the test even harder to pass
         ;(<any>parent).mockDataProp = 123
+        ;(<any>parent).mockIfProp = true
+        ;(parent as any).mockForProp = [1,2,3]
+        ;(parent as any).mockClassProp = true
+        ;(parent as any).mockCallProp = 1
 
-        // <!> Adding the sources after init makes the test even harder to pass
-        // ;(parent as any).mockDataProp = 123
-        // ;(parent as any).mockIfProp = false
-        // ;(parent as any).mockForProp = [1,2,3]
-        // ;(parent as any).mockClassProp = true
-        // ;(parent as any).mockCallProp = 'abc'
         expect((dataEl as any ).customInput).toEqual(123)
-        // expect(getIfEl()).toBeDefined()
+        expect(getIfEl().tagName).toBeDefined()
+        expect(forEl.children.length).toEqual(3)
+        expect(classEl.classList.contains('active')).toBeTruthy()
+        expect((callEl as any).increment).toBeDefined()
+        expect((callEl as any).count).toEqual(1)
     })
     xit('When the source value is updated the value of another local value can be used to update the target', () => { }) // REVIEW, can be confusing
 
