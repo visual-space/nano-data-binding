@@ -147,7 +147,7 @@ export function updateItemsInForList (dataBind: DataBind) {
 
     let newItems: any[] = utils.evalInContext.call(child, dataBind),
         elems: HTMLElement[] = Array.from(child.children),
-        oldItems: any[] = elems.map((el: any) => el._nForDataBInd)
+        oldItems: any[] = elems.map((el: any) => el._nano_forItemData)
     if (newItems.constructor !== Array) {
         console.warn(`Cannot render list. Only arrays are accepted. ${utils.printDataBindInfo(dataBind)}`)
         return
@@ -160,7 +160,7 @@ export function updateItemsInForList (dataBind: DataBind) {
 
     // Validation
     elems.forEach(el => {
-        if (!(el as any)._nForDataBInd) {
+        if (!(el as any)._nano_forItemData) {
             console.warn('Metadata is missing. Ensure that no other library manipulates the items generated via n-for data bind.')
         }
     })
@@ -184,10 +184,10 @@ export function updateItemsInForList (dataBind: DataBind) {
     // <!> TODO Can be optimised to add all modifications at once using one parse
     changes.added.forEach( add => {
         let i: number = newItems.indexOf(add),
-            elem = parser.parseFromString(dataBind.template, "text/xml").children[0]
+            elem = parser.parseFromString(dataBind.template, "text/html").children[0]
 
         // Cache data, Insert, Bind
-        ;(elem as any)._nForDataBInd = add
+        ;(elem as any)._nano_forItemData = add
         ;(elem as any).forItemData = add // TODO Add custom inputs
         child.insertBefore(elem, child.children[i])
 

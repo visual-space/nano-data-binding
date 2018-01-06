@@ -7,7 +7,7 @@ describe('For rule', () => {
 
     /** Small util used to retrieve data associated with the list elements */
     function getListDataFromEls(children: HTMLCollection) {
-        return Array.from(children).map( ch => (ch as any)._nForDataBInd )
+        return Array.from(children).map( ch => (ch as any)._nano_forItemData )
     }
 
     beforeEach((done) => {

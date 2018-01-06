@@ -35,6 +35,11 @@ In order to activate the data binds you just need to type the following in your 
 
     nanoBind(this, '.child')
 
+## Available data binds
+
+**FOR**
+* FOR rule is currently limited to repeating on web component at a time. After introducing template interpolation it will be possible to iterate templates.
+
 ## What to expect
 * **Not a framework** - This is not a framework! This is a simple script that adds basic data binding syntax to web components. The objective of this entire script is to keep the codebase as close as possible to vanila JS while avoiding some boilerplate code.
 * **Eliminates boilerplate code** - Interpolation in multiline string templates is static, no actual data binds are created. In order to update a static template a lot of boilerplate code is needed. Using a few basic data binding tags can shrink a significant amount of code.

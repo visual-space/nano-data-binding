@@ -13,7 +13,6 @@
 
 # Folders to not ignore
 !/docs/
-!/lib/
 !/samples/
 !/src/
 !/webpack/
