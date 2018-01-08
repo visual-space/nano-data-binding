@@ -41,7 +41,7 @@ Now you can write the following data bindings in any of the web components.
         n-for="data"
         n-class="{ active: data }"
         n-call="doSomething(data)"
-        (click)="doSomethingElse()">
+        onclick="doSomethingElse()">
     </div>
 </mock-web-cmp>
 ```
@@ -51,8 +51,22 @@ The `data` property will be read from the parent web component context. The firs
 ## Data sources
 Current syntax can connect to three types of data sources:
 * **Context properties** - This is the basic and the most used source of data. These are properties defined in the web component context.
+
+```html
+<div n-if="divIsVisibile"> Context property </div>
+```
+
 * **Custom events** - [Nano State Store](https://github.com/visual-space/nano-state-store) was implemented in the [Visual Space](https://github.com/visual-space/visual-space) CMS. It uses custom events to comunicate with the existing code base. Connecting data binds to events is very useful for cutting down on boilerplate code.
+
+```html
+<div n-if="divIsVisibile | event"> Custom event </div>
+```
+
 * **Observables** - Libraries such as Angular, Rxjs And Redux make use of the observable pattern with great success. Connecting to observables is again useful to trim down on boilerplate.
+
+```html
+<div n-if="divIsVisibile | subscribe"> Observable </div>
+```
 
 ## Available data binds
 
