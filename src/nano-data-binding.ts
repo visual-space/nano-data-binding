@@ -1,5 +1,5 @@
 import { nanoBind, nanoBindAll } from './services/selectors'
-import { setupAutoBindUndind } from './services/self-init'
+import { setupAutoBindUnbind } from './services/self-init'
 
 // Debug
 let Debug = require('debug'), debug = Debug ? Debug('ndb:NanoDataBinding') : () => {}
@@ -22,7 +22,7 @@ if (!(Object.prototype as any).__lookupGetter__) {
 
 // <!> Self init
 // A mutation observer watches for added and removed nodes and binds/unbinds them
-setupAutoBindUndind()
+setupAutoBindUnbind()
 
 // Expose bind methods globally
 if ((window as any).nanoBind) console.warn('Some other lib is using the same globals as nano-data-bind')

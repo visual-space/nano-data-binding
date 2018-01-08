@@ -38,6 +38,10 @@ module.exports = {
       new UglifyJsPlugin()
     ],
 
+    externals: {
+        debug: 'debug'
+    },
+
     stats: {
         colors: true,
         modules: true,

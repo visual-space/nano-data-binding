@@ -3,11 +3,11 @@ import * as utils from './utils'
 import { nanoBind } from './selectors'
 
 // Debug
-let Debug = require('debug'), debug = Debug ? Debug('ndb:Rules') : () => {}
-debug('Instantiate Rules')
+let Debug = require('debug'), debug = Debug ? Debug('ndb:Parser') : () => {}
+debug('Instantiate Parser')
 
 /**
- * ====== RULES / BEHAVIORS ======
+ * ====== PARSER RULES / BEHAVIORS ======
  * Each data bind rule has an expected behavior. 
  * Most of these behaviors are inspired by the Angualr framework.
  * These data binds have been tailored for taking advantage of the web components API.
@@ -21,7 +21,11 @@ debug('Instantiate Rules')
  *                ALl the previous rules could be implemented using this one.     
  */
 
-// Parse tempalte provided by n-for data bind
+/**
+ * Parse templates provided by the FOR rule
+ * Templates might contain custom attributes, text or multiple elements. 
+ * That's why caching only the tag name ofthe iterated element is not wnough.
+ */
 let parser = new DOMParser()
 
 /**
@@ -73,6 +77,7 @@ export function setupIfDataBindPlaceholder(dataBind: DataBind): void {
         // Insert placeholder
         child.parentNode.insertBefore(placeholder, child)
 
+        // TODO this will be done in pre processing
         // Remove the orginal element that hosted the n-if data bind attribute
         // <!> In case you need to show the element before the first event is dispatched
         //     dispatch the same custom event with with the detail value set on true
@@ -184,7 +189,7 @@ export function updateItemsInForList (dataBind: DataBind) {
     // <!> TODO Can be optimised to add all modifications at once using one parse
     changes.added.forEach( add => {
         let i: number = newItems.indexOf(add),
-            elem = parser.parseFromString(dataBind.template, "text/html").children[0]
+            elem = parser.parseFromString(dataBind.template, "text/xml").children[0]
 
         // Cache data, Insert, Bind
         ;(elem as any)._nano_forItemData = add

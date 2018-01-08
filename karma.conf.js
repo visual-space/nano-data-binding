@@ -1,8 +1,7 @@
 let webpackConfig = require('./webpack/webpack-config'),
     path = require('path')
 
-// Karma configuration
-// Generated on Sat Dec 16 2017 20:48:19 GMT+0100 (W. Europe Standard Time)
+// Both the code and the tests are configured to run on typescript
 module.exports = function (config) {
     config.set({
         basePath: '',

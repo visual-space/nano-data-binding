@@ -1,7 +1,7 @@
 import { DataBind, Listener, Listeners, Subscriptions } from '../interfaces/nano-data-binding'
 import { ORIGIN, RULE } from '../constants/nano-data-binding.const'
 import * as utils from './utils'
-import * as rules from './rules'
+import * as parser from './parser'
 
 // Debug
 let Debug = require('debug'), debug = Debug ? Debug('ndb:Bind') : () => {}
@@ -117,7 +117,7 @@ export function cacheInitialState (dataBind: DataBind): boolean {
         debug('Recover IF data bind placeholder', { isComment, placeholderIndex, placeholder })
             
         // Create placeholder only once
-        if (isComment !== true) rules.setupIfDataBindPlaceholder(dataBind)
+        if (isComment !== true) parser.setupIfDataBindPlaceholder(dataBind)
 
     } else if (dataBind.rule === RULE.For) {
         
@@ -219,27 +219,27 @@ export function evaluateDataBind(dataBind: DataBind): void {
     switch (dataBind.rule) {
 
         case RULE.Data:
-            rules.bindDataToElem(dataBind)
+            parser.bindDataToElem(dataBind)
             break
 
         case RULE.If:
-            rules.toggleIfDataBindElement(dataBind)
+            parser.toggleIfDataBindElement(dataBind)
             break
 
         case RULE.For:
-            rules.updateItemsInForList(dataBind)
+            parser.updateItemsInForList(dataBind)
             break
 
         case RULE.Class:
-            rules.addCssClassesToElem(dataBind)
+            parser.addCssClassesToElem(dataBind)
             break
 
-        case RULE.Class:
-            rules.addCssClassesToElem(dataBind)
-            break
+        // case RULE.Class:
+        //     parser.addCssClassesToElem(dataBind)
+        //     break
 
         case RULE.Call:
-            rules.callChildContextMethod(dataBind)
+            parser.callChildContextMethod(dataBind)
             break
 
         default:

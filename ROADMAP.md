@@ -1,21 +1,18 @@
-# 0.0.10
-* FOR rule - Remove the FOR rule template before the rule is initialised. Previous behavior: Template was first rendered as a normal web component and then the data bind is intercepted and executed.
-* FOr rule - Constructor is not called as expected when the component is addded in the template.
-
 # 0.1.0
-* Add inline interpolation of web component context variables
-* Improve the detection of the parent by overloading the innerHTML setter. No matter what nesting level is provided the binds will be enabled with the right parent.
-* Replace all inline event handlers with custom ones. `onclick=""` becomes `(click)=""`.
-    * Automatic data binding will not work for standard inline event handlers.
-* Default to context property if no origin is defined in the syntax.
-* DATA rule syntax is a bit different. The target property is read from the string straicht away instead of using `evaluateinContext()` method.
-* Separate debug lib from the build package.
+* Replace all inline event handlers with custom ones. `onclick=""` becomes `(click)=""`. Automatic data binding will not work for standard inline event handlers.
+* Add inline interpolation of web component context variables. This can be done using DOM API wrappers. Make sure that the for rule and the if rule can safely pass data to the generated template. The chagnge deteciton is easy, the hard part is the update of template wihout rerendering.
+* Multiple data bind inputs. Currently only one is possible with current notation. This can be achieved by using attirbute normalisation rules. Even the DOM API wrappers can be useful somehow for this task.
 
 # Other
+* The same problem of initial constructor execution that was found in the FOR rule is also happening for the IF rule. The same fix needs to be applied also for the IF rule. 
+* Remove the manual initialisation of data binds all together. Manual data binds can bypass the rule of finding the right parent and then the templates get a whole lot harder to read.
+* Security - Interpolation automatically escapes any HTML. This helps to protect us from malicious attacks such as XSS by sanitizing any data that may contain script tags. 
+* Default to context property if no origin is defined in the syntax.
+* DATA rule syntax is a bit different. The target property is read from the string straicht away instead of using `evaluateinContext()` method.
+* Improve the detection of the parent by overloading the innerHTML setter. No matter what nesting level is provided the binds will be enabled with the right parent.(Using the innerHTML wrapper could fail if elements are added at runtime). Another possible solution is to mark a webcomponet with an attribute to be ignored in the parent lookup method. A web component could add a child to another one, resolving the proper parent in this case is impossible with current DOM api, unless the bind contains specific info on who is the child, but this is going to create complex code. 
 * Improve naming of the parent element in the databinds. Maybe `cmp.` instead of `parent.` or even `$.` In this way we could actually completely get rif of copying the metdhods to the current child context. Altough it is a bit more ocmplicated as a syntax.
 * Investigate if the FOR rule has trouble rendering when hosted on a web component, it might be related to the way the way the host component is identified. Find a solution that allows targeting the right host event for nested web components.
 * Improve the FOR rule to accept custom data inputs for looped web components.
-* Multiple data binds inputs. CUrrently only one is possible with current notation
 * Build for ES5, test in IE 11
 * Improve README, add examples, add samples.
 * Add documentation
@@ -25,7 +22,7 @@
 	* A `trackBy()` method that takes care of the performance in case the references are lost
 	* What if data has duplicate identifiers?
 	* What if arrays have gaps? This is allowed in js.
-* Automatically remove debug logs from the build
+* Automatically remove debug logs from the build. Dev build keeps the logs. Prod build removes them.
 * Finish writting all the tests
 * Data bind to observables and auto unsubscribe
 * Testing for memory leaks, Most likely there are a lot of them right now

@@ -16,15 +16,46 @@ debug('Instantiate AutoInit')
  *     IN case you really need to start a data bind imediatly then initialise it manually using `nanoBind()`
  */
 
-/**
- * Automatically bind elements with nano data binds.
- * <!> Automatically remove event listeners and cancel subscriprions-
- *     child.disconectedCallback is not available so we need to use mutation observer
- *     Also mixin classes don't have access to super.disconnectedCallback().
- * <!> TODO This part of the scirpt could be probably improved a lot performance-wise
- */
-export function setupAutoBindUndind(): void {
+ /**
+  * <!> Sets up DOM API wrapper methods that intercept templates for pre-processing before attaching to DOM.
+  *     The preprocessing step is needed in order to prevent executing constructors of templates before they are actually requested via data binding.
+  * <!> Sets up mutation observalbe that triggers the data binds.
+  *     So far, the best option to keep minimal 
+  */
+export function setupAutoBindUnbind(): void {
     debug('Setup auto bind, unbind')
+
+    // Prepare templates
+    templatePreprocessing()
+    
+    // Bind
+    autoBindUnbind()
+}
+
+// TEST
+// Removes FOR rule template so that the iterated item^s constructor is not called by default for no reason
+// Removes IF rule template so that the iterated item^s constructor is not called by default for no reason
+/**
+ * Removes for loop template so that the iterated item^s constructor is not called by default for no reason
+ * TODO Removes IF rule template so that the iterated item^s constructor is not called by default for no reason
+ * TODO Parse template interpolation syntax
+ */
+function templatePreprocessing(): void {
+    debug('Template preprocessing')
+
+
+}
+
+/**
+ * A mutation observer is scanning for added and removed elements
+ * <!> Automatically bind elements with nano data binds.
+ * <!> Automatically remove event listeners and cancel subscriprions-
+ *     `child.disconectedCallback` is not available so we need to use mutation observer
+ *     Also mixin classes don't have access to `super.disconnectedCallback()`. REVIEW this one.
+ * TODO This part of the scirpt could be probably improved a lot performance-wise
+ */
+export function autoBindUnbind(): void {
+    debug('Auto bind unbind')
 
     var mutObs = new MutationObserver(mutations => {
         // debug('Document body mutated', mutations) // Verbose
@@ -78,7 +109,7 @@ export function setupAutoBindUndind(): void {
  * Scans for nano data bind syntax and initilises it 
  * The first node that is a web component in the hieratchy chain is used as the parent context
  */
-export function initDataBinds(child: HTMLElement): void {
+function initDataBinds(child: HTMLElement): void {
     
     let attributes: Attr[] = Array.from(child.attributes)
     attributes.forEach(attr => {
@@ -87,7 +118,7 @@ export function initDataBinds(child: HTMLElement): void {
             // debug('Parent web component', {parent, child}) // Ultra verbose
             if (parent) {
                 
-                // Block autobind via attribute
+                // Block autobind via attribute (for testing purposes)
                 if (parent.hasAttribute('no-auto-bind')) return
 
                 debug('Init data binds', {parent, child})
@@ -99,7 +130,7 @@ export function initDataBinds(child: HTMLElement): void {
 }
 
 /** Removes listeners that were setup by the data binds */
-export function removeEventListeners(node: HTMLElement): void {
+function removeEventListeners(node: HTMLElement): void {
     let listeners: Listeners = (<any>node)._nano_listeners
     
     // Ignore non data bind elements
@@ -116,7 +147,7 @@ export function removeEventListeners(node: HTMLElement): void {
 }
 
 /** Removes observables that were setup by the data binds */
-export function removeSubscriptions(node: HTMLElement): void {
+function removeSubscriptions(node: HTMLElement): void {
     let subscriptions: any = (<any>node)._nano_subscriptions
     
     // Ignore non data bind elements

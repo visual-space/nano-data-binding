@@ -1,81 +1,144 @@
 # Nano data binding
 
-**Add basic data binding to native web components apps without importing any of the big frameworks.**
+**Minimalistic data binding for web components**
 
-`nano-data-binding` is a small set of data binding attributes that replace the typical code you would write to get the same effect in vanilaJS without any frameworks around. The main objective is to keep the script easy to read in under 30 mins by most devs. Nothing fancy, easy to understand e2e.
+Use a small set of data binding attributes with similar to those available in the modern flagship frameworks. The entire library has a small foot-print and avoids interfering with the Web Components API.
 
 Follow on twitter: [@visual-space](https://twitter.com/visual_space), [@adriancmoisa](https://twitter.com/adriancmoisa)
 
-**This is first demo vesion, several improvements are still under way. Samples, tutorials and better documentation coming soon. Until then, the best place to learn more about this script is by running `npm run test` and reading the tests descriptions.**
+## Objectives
+* **Reduce boilerlpate** - In theory it is possible to write entire web apps using only ES6 syntax. In practice, you will end up writting a lot of boilerplate code. The more code you write the harder it is to maintain the app. 
+* **Easy to learn** - Modern frameworks have taught us a lot, but at the same time they have been a source of endless frustratiion due to complex code patterns and domain specific language. NDB library strives to be easy to read in under 30 mins by most developers. Nothing fancy, easy to understand, all of it.
+* **Functional reactive** - The data bindings are unidirectional and are built to complement a state store library. This pattern has been highly successful for developing large stable apps.
+* **Minimal footprint** - No base class for web components to inherit from. Avoids additional scopes and life cycle events. Web components already do a fantastic job in this regard. Avoids double data binding, change detection via dirty checking and virtual dom. Basically the script can be easily removed just by deleting the import. The refactoring work will be minimal.
+* **You bring the router** - And the state store. To maintain a ligthweight, focused and easy to understand library a lot of features have been rejected. Not everybody will be happy with this approach and luckily there are plenty of strong alternative options to choose from ([Angular](https://github.com/angular/angular), [React](https://github.com/facebook/react), [Vue](https://github.com/vuejs/vue), [Polymer](https://github.com/Polymer/polymer), [Stencil](https://github.com/ionic-team/stencil), [Skatejs](https://github.com/skatejs/skatejs)). For the routing you can use [Universal Router](https://github.com/kriasoft/universal-router) and for the state store [Redux](https://github.com/reactjs/react-redux) will do an excelent job.
 
-## Installation and usage
+## Work in progress
+**This library is still in early stages of development. It is currently developed for the [Visual Space](https://twitter.com/visual_space) CMS and the [Visual School](https://twitter.com/FunVisualSchool) learning platform. Samples, seed project, tutorials and better documentation are coming soon. Until then, the best place to learn more about this library is by running `npm test` command and reading the tests descriptions. Also read the ROADMAP.md file to review the missing features planned for development.**
 
-Download latest package from npm: 
+## Installation
 
-    npm i nano-data-binding --save
+Download the npm package:
 
-Require once in the `main.ts` file. One import is enough to register the global methods and the typescript definition.
+```
+npm install nano-data-binding --save
+```
 
-    import ndb as 'nano-data-binding' 
+Import the package in the main file of your app.
 
-No need to import anything. `nanoBind()` and `nanoBindAll()` are available as globals.
-Now you can use in the html templates the following data bindings: `n-data`, `n-if`, `n-for`, `n-class`, `n-call`.
+```javascript
+import ndb from 'nano-data-binding';
+```
 
-    <mock-web-cmp class="parent">
-        <div class="child" 
-            n-data="customEvent : { bar: event.detail }"
-            n-if="customEvent : event.detail"
-            n-for="customEvent : event.detail"
-            n-class="customEvent : { active: event.detail }"
-            n-call="customEvent : fooBar(event.detail)">
-        </div>
-    </mock-web-cmp>
+Now you can write the following data bindings in any of the web components.
 
-In order to activate the data binds you just need to type the following in your web component.
+```html
+<mock-web-cmp class="parent">
+    Text interpolation via {{curlyBraces}} notation.
+    <div class="child" 
+        (webCmpInput)="data"
+        n-if="data"
+        n-for="data"
+        n-class="{ active: data }"
+        n-call="doSomething(data)"
+        (click)="doSomethingElse()">
+    </div>
+</mock-web-cmp>
+```
 
-    nanoBind(this, '.child')
+The `data` property will be read from the parent web component context. The first web component that is identified in the parent node chain will provide the parent context.
+
+## Data sources
+Current syntax can connect to three types of data sources:
+* **Context properties** - This is the basic and the most used source of data. These are properties defined in the web component context.
+* **Custom events** - [Nano State Store](https://github.com/visual-space/nano-state-store) was implemented in the [Visual Space](https://github.com/visual-space/visual-space) CMS. It uses custom events to comunicate with the existing code base. Connecting data binds to events is very useful for cutting down on boilerplate code.
+* **Observables** - Libraries such as Angular, Rxjs And Redux make use of the observable pattern with great success. Connecting to observables is again useful to trim down on boilerplate.
 
 ## Available data binds
 
-**FOR**
-* FOR rule is currently limited to repeating on web component at a time. After introducing template interpolation it will be possible to iterate templates.
+* **INTERPOLATION** - Double curly brace notation can be used to instantiate data binds that update fragments of code with the latest value from the data model.
 
-## What to expect
-* **Not a framework** - This is not a framework! This is a simple script that adds basic data binding syntax to web components. The objective of this entire script is to keep the codebase as close as possible to vanila JS while avoiding some boilerplate code.
-* **Eliminates boilerplate code** - Interpolation in multiline string templates is static, no actual data binds are created. In order to update a static template a lot of boilerplate code is needed. Using a few basic data binding tags can shrink a significant amount of code.
-* **No crazy magic** - `nano-data-binding` does not implement any change detection or a virtual dom. Basically, you control precisely what property or event connects to what web component or dom element. This is just a fancy wrapper that automatically calls methods defined on the parent or on the children when bound values change.
-* **Unidirectional flow** - One fundamental expectation is that a state store is implemented (redux, nano-state-store). Having an unidirectional state management strategy, ensures that no extra operations are executed when state changes. Everything just reacts to the store. Basically there is no output data bind, only inputs. This is an intentional design choice meant to encourage proper implementation of state store architecture. 
-* **Defined as globals** - All these utils will be used in all files, having them as globals spares a lot of imports. Each of these methods has a global typescript definition matched.
-* **Manual init** - These data binds could be done automatically for every component, however this is not really needed, and it could actually be harmful. Having total control over the binding process gives opportunity for some creative binds. In practice it's best to create simple bindings between the parent web component and it's direct childrens. A develoepr would expect to see this kind of relation, anything else is confusing unless properly coded and documented.
-* **No overengineering** - Before contributing any functionality please reconsider if it will keep the code simple. The main goal of this file is to be easy to read and understand in 30 minutes for most developers, all in under 600 lines of code. Anything more will result in a new framework that is as complex and mysterious as previous frameworks. Any PR that those not conform to these constraints will be rejected.
-* **Simple code** - It is best if you spend 30 mins to read the source code to clearly understand what happens after a data bind is initialised. Extra effort was spent documenting the code so it can be easily digested.
+```html
+<some-web-cmp>
+    This text is static {{ andThisTextChanges }}. 
+</some-web-cmp>
+```
 
-## Planned features
-The overall plan is to keep te script simple.
-* This is experimental work in progress. So far, only binding to custom events was implemented. This is because the host project uses an experimental events based state store. Soon binding to context properties will be available.
-* Adding `trackkBy()`option for the `n-for` rule.
-* Syntax for automatically binding to observables not just events.
-* Finishing writting also the non-essential tests.
-* Improving performance and checking for memory leaks.
-* Adding performance benchmarks
+* **INLINE EVENT HANDLERS** - Access to the parent scope is granted for the existing inline event handlers such as `onclick`. A regex will scan for invoked methods, if these methods are not already available in the child element context than they will be searched in the parent web component context. If found, theyr references will be copied in the context of the child. Copying method refs to the child is needed when execute arbitrary code fragements that are provided for the inline handler.
 
-## No real private in typescript
-Not having true privates in javascript ES6 classes is a terrible drawback. Currently, it's not possible trough some simple notatioan to gain truly private properties and methods. Onyl scoping odes the trick.
+```html
+<some-web-cmp>
+    <div onclick="doSomethig(data)"></another-web-cmp>
+</some-web-cmp>
+```
 
-Either we declare them in constructor which has a performance penality of not using inheritance (each intsance gets a copy). Either we use scoped WeakMaps. This solution works to achieve true private while keeping performance intact. However the syntax is a bit elaborated, which definitely does not satisfy a lot of people (beginners in particular, very easy to forget about these details).
+* **DATA** - Transfer strings, numbers, booleans, objects and arrays from the parent context to the child element context using declarative syntax. Native web components are limited to transfering only strings via element attributes.
 
-Using defineProperty with `enumerable: false` flag will prevent it from being copied. But again, it will be part of the instance. Considering that only properties (not methods) will need this treatment the memory consumtion is minimal and unavvoidable after all. Unique instances of vars for each class instance are required by default. Otherwise we ould have a singleton.
+```html
+<some-web-cmp>
+    <another-web-cmp (webCmpInput)="inputData"></another-web-cmp>
+</some-web-cmp>
+```
 
-There is another way of doing a bit of "magic" and ignoring all properties that use underscore notation. This of course is not free of problems. Mainly the problem of breaking the language rules for some custom solution. Declaring variables outside of the class is going to leak in global ocntext in normal js or it is going to be stuck to the singletone of the imported file. Neither is good.
+* **IF** - Toggle an existing dom element. The element will be completely removed from the DOM and in the case of web components it will also trigger the lify cycle events. This is achieved by using a code comment as a placeholder while the original element is removed.
 
-## Selective binds 
-Not everytime you might want to bind to the `this` context a of the parent. A smaller selection of methods and values can be created. However, this in itself can become a source of confusion if other context are used instead of the parent. This is a powerful technique but it can backfire hard if not used with discipline and awareness. Unless you don't fully understand what are you doing just bind to the `this` content of the parent.
+```html
+<some-web-cmp>
+    <div n-if="divIsVisibile">
+        This will be visible depending on the boolean value
+    </div>
+</some-web-cmp>
+```
 
-## Unidirectional
-All data binds are unidirectional. This script is build around the idea of a state store, thus we want to have no back and forth comunication between components. For this reason no data bind for listening to events was provided
- 
-## Deep nesting of data binds
-Chaining properties in multiple levels from the same web component is possible. However this practice is strongly discouraged. Developers already have a strong expectation taht a component will receive inputs just from the parent. Receiving inputs (data binds) from other levels than the parent can be hard to read, confusing, and hard to maintain.
+* **FOR** - Gemerate a repetitive template using an array as an input. A state store architecture requires always creating new objects instead of mutations to represent state changes. Therefore object references cannot be used to uniquely identify objects. In such a screnario, the template cannot be updated efficiently without doing wasteful DOM operations. A `trackBy()` method can be used to address this issue. Under these circumstances, a virtual DOM indeed can bailout developers, but not without the price of adding additional complexity.
 
-## Avoid caching references 
-Caching references of `n-if` elements will prevent them from being released and destroyed. The script does not intend to provide additional API that can safely get references without interfering with `n-if`. The developers need to be aware of this limitation in order to keep this script lightweight. Querying at runtime for the required `n-if` element is enough to prevent this obstruction of the element removal.
+```html
+<list-cmp>
+    <to-do-cmp n-for="toDos">This will be repeated as many todos there are</div>
+</list-cmp>
+```
+
+* **CLASS** - Add CSS classes to control the visual appearance of elements in corelation with the curent state of the UI. 
+
+```html
+<some-web-cmp>
+    <div n-if="{highlight: divIsHighlighted}">
+        This div will become higlighted when the source value is true.
+    </div>
+</some-web-cmp>
+```
+
+* **CALL** - If none of the above options is not good enough feel free to implement your own method that will satisfy your custom specifications. 
+
+```html
+<some-web-cmp>
+    <div n-call="doSomething(data)">
+        Invoke a method within the context of this div when the source value changes.
+    </div>
+</some-web-cmp>
+```
+
+## How it works (quick overview)
+* **src/self-init.ts** - Importing the script triggers two initialisation actioms:
+    * Several DOM API methods are wrapped so that new elements are intercepted for a small pre-processing step. This step prevents the browser from parsing the template straight away as it is. In the preprocessing step, some parts of the template are cached for later reuse when the data binds are active (IF and FOR rules). 
+    * A mutation observable is activated to detect added and removed elements in order to bind and unbind them. Parsing and initialising the data binding syntax is triggered from here.
+* **src/selectors.ts** - For testing purposes we need to enabled data binds manually in certain scenarios. This is where the selectors help us by providing validation.
+* **src/bind.ts** - When a data bind is initialised the syntax is parsed and validated.
+    * A descriptor object containing information about the data bind is generated. This descriptor contains the following esential informations:
+        * **Origin**: context property, custom events, observable - This will determine the mechanism of change detection.
+        * **Source** - The name of the variable, event or observable.
+        * **Rule** - What behavior will be executed if the data bind is triggered: interpolation, data, if, for, class, call
+        * **Code** - This code usually is additional syntax used by the data bind (class)
+        * **Template** - The template that will be used by the IF and FOR rules.
+    * Getter Setter methods are used to watch for context properties value changes. In the case of events. event listeners are created and cached for later automatic removal. Same for the observables.
+* **src/parse.ts** - When one of the source values has changed, the associated data bind behavior is executed.
+* **src/utils.ts** - An essential part of the entire process is evaluating the data bind code in the context of the child element.
+
+In developement mode you can easily review the entire process by logging debug statements in the browser console. To enable all the debug statements type in the console `debug.enable(ndb:*)`. Of course, beforehand you need to install the [Debug](https://github.com/visionmedia/debug) library using the the follwing command `npm i debug -D`.
+
+## Flexibility
+* **Runtime changes** - There is no compilation process. Data binds can be added at runtime just by inserting new elements with databind attributes. The mutation observable will take care of initialising the data binds for you. Responsible coding is adivsed, this pattern could be difficult to maintain if abused.
+* **Mix Javascript and HTML** - React library demonstrated that mixing Javascript with HTML can be a successful pattern if used with reponsability. Web components together with string literals permit the same approach. The data binds can complement this approach resulting in a hybrid codebase.
+
+## Read the source, Luke...
+You will do yourself a great service by spending 30 mins to read the source code. Clearly understanding what happens after a data bind is initialised can make the difference when it comes to improving performance. Extra effort was spent documenting the code so it can be easily digested. And feel free to contribute if you see room for improving the code while keeping the soruce code readable.
