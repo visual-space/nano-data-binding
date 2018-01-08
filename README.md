@@ -50,27 +50,36 @@ The `data` property will be read from the parent web component context. The firs
 
 ## Data sources
 Current syntax can connect to three types of data sources:
-* **Context properties** - This is the basic and the most used source of data. These are properties defined in the web component context.
+
+**Context properties** 
+
+This is the basic and the most used source of data. These are properties defined in the web component context.
 
 ```html
 <div n-if="divIsVisibile"> Context property </div>
 ```
 
-* **Custom events** - [Nano State Store](https://github.com/visual-space/nano-state-store) was implemented in the [Visual Space](https://github.com/visual-space/visual-space) CMS. It uses custom events to comunicate with the existing code base. Connecting data binds to events is very useful for cutting down on boilerplate code.
+**Custom events** 
+
+[Nano State Store](https://github.com/visual-space/nano-state-store) was implemented in the [Visual Space](https://github.com/visual-space/visual-space) CMS. It uses custom events to comunicate with the existing code base. Connecting data binds to events is very useful for cutting down on boilerplate code.
 
 ```html
 <div n-if="divIsVisibile | event"> Custom event </div>
 ```
 
-* **Observables** - Libraries such as Angular, Rxjs And Redux make use of the observable pattern with great success. Connecting to observables is again useful to trim down on boilerplate.
+**Observables** 
+
+Libraries such as Angular, Rxjs And Redux make use of the observable pattern with great success. Connecting to observables is again useful to trim down on boilerplate.
 
 ```html
-<div n-if="divIsVisibile | subscribe"> Observable </div>
+<div n-if="$divIsVisibile | subscribe"> Observable </div>
 ```
 
 ## Available data binds
 
-**Interpolation**
+Several syntax options for attributes are available.
+
+**Interpolation** 
 
 Double curly brace notation can be used to instantiate data binds that update fragments of code with the latest value from the data model.
 
@@ -90,7 +99,7 @@ Access to the parent scope is granted for the existing inline event handlers suc
 </some-web-cmp>
 ```
 
-**Data bind**
+**Data bind** 
 
 Transfer strings, numbers, booleans, objects and arrays from the parent context to the child element context using declarative syntax. Native web components are limited to transfering only strings via element attributes.
 
