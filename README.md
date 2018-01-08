@@ -14,7 +14,7 @@ Follow on twitter: [@visual-space](https://twitter.com/visual_space), [@adriancm
 * **You bring the router** - And the state store. To maintain a ligthweight, focused and easy to understand library a lot of features have been rejected. Not everybody will be happy with this approach and luckily there are plenty of strong alternative options to choose from ([Angular](https://github.com/angular/angular), [React](https://github.com/facebook/react), [Vue](https://github.com/vuejs/vue), [Polymer](https://github.com/Polymer/polymer), [Stencil](https://github.com/ionic-team/stencil), [Skatejs](https://github.com/skatejs/skatejs)). For the routing you can use [Universal Router](https://github.com/kriasoft/universal-router) and for the state store [Redux](https://github.com/reactjs/react-redux) will do an excelent job.
 
 ## Work in progress
-**This library is still in early stages of development. It is currently developed for the [Visual Space](https://twitter.com/visual_space) CMS and the [Visual School](https://twitter.com/FunVisualSchool) learning platform. Samples, seed project, tutorials and better documentation are coming soon. Until then, the best place to learn more about this library is by running `npm test` command and reading the tests descriptions. Also read the ROADMAP.md file to review the missing features planned for development.**
+**This library is still in early stages of development. It is currently developed for the [Visual Space](https://twitter.com/visual_space) CMS and the [Visual School](https://twitter.com/FunVisualSchool) learning platform. Samples, seed project, tutorials and better documentation are coming soon. Until then, the best place to learn more about this library is by running `npm test` command and reading the tests descriptions. Also read the [ROADMAP.md](https://github.com/visual-space/nano-data-binding/blob/master/ROADMAP.md) file to review the missing features planned for development.**
 
 ## Installation
 
@@ -56,7 +56,9 @@ Current syntax can connect to three types of data sources:
 
 ## Available data binds
 
-* **INTERPOLATION** - Double curly brace notation can be used to instantiate data binds that update fragments of code with the latest value from the data model.
+**Interpolation**
+
+Double curly brace notation can be used to instantiate data binds that update fragments of code with the latest value from the data model.
 
 ```html
 <some-web-cmp>
@@ -64,7 +66,9 @@ Current syntax can connect to three types of data sources:
 </some-web-cmp>
 ```
 
-* **INLINE EVENT HANDLERS** - Access to the parent scope is granted for the existing inline event handlers such as `onclick`. A regex will scan for invoked methods, if these methods are not already available in the child element context than they will be searched in the parent web component context. If found, theyr references will be copied in the context of the child. Copying method refs to the child is needed when execute arbitrary code fragements that are provided for the inline handler.
+**Inline event handlers** 
+
+Access to the parent scope is granted for the existing inline event handlers such as `onclick`. A regex will scan for invoked methods, if these methods are not already available in the child element context than they will be searched in the parent web component context. If found, theyr references will be copied in the context of the child. Copying method refs to the child is needed when execute arbitrary code fragements that are provided for the inline handler.
 
 ```html
 <some-web-cmp>
@@ -72,7 +76,9 @@ Current syntax can connect to three types of data sources:
 </some-web-cmp>
 ```
 
-* **DATA** - Transfer strings, numbers, booleans, objects and arrays from the parent context to the child element context using declarative syntax. Native web components are limited to transfering only strings via element attributes.
+**Data bind**
+
+Transfer strings, numbers, booleans, objects and arrays from the parent context to the child element context using declarative syntax. Native web components are limited to transfering only strings via element attributes.
 
 ```html
 <some-web-cmp>
@@ -80,7 +86,9 @@ Current syntax can connect to three types of data sources:
 </some-web-cmp>
 ```
 
-* **IF** - Toggle an existing dom element. The element will be completely removed from the DOM and in the case of web components it will also trigger the lify cycle events. This is achieved by using a code comment as a placeholder while the original element is removed.
+**If bind** 
+
+Toggle an existing dom element. The element will be completely removed from the DOM and in the case of web components it will also trigger the lify cycle events. This is achieved by using a code comment as a placeholder while the original element is removed.
 
 ```html
 <some-web-cmp>
@@ -90,7 +98,9 @@ Current syntax can connect to three types of data sources:
 </some-web-cmp>
 ```
 
-* **FOR** - Gemerate a repetitive template using an array as an input. A state store architecture requires always creating new objects instead of mutations to represent state changes. Therefore object references cannot be used to uniquely identify objects. In such a screnario, the template cannot be updated efficiently without doing wasteful DOM operations. A `trackBy()` method can be used to address this issue. Under these circumstances, a virtual DOM indeed can bailout developers, but not without the price of adding additional complexity.
+**For bind** 
+
+Gemerate a repetitive template using an array as an input. A state store architecture requires always creating new objects instead of mutations to represent state changes. Therefore object references cannot be used to uniquely identify objects. In such a screnario, the template cannot be updated efficiently without doing wasteful DOM operations. A `trackBy()` method can be used to address this issue. Under these circumstances, a virtual DOM indeed can bailout developers, but not without the price of adding additional complexity.
 
 ```html
 <list-cmp>
@@ -98,7 +108,9 @@ Current syntax can connect to three types of data sources:
 </list-cmp>
 ```
 
-* **CLASS** - Add CSS classes to control the visual appearance of elements in corelation with the curent state of the UI. 
+**Class bind** 
+
+Add CSS classes to control the visual appearance of elements in corelation with the curent state of the UI. 
 
 ```html
 <some-web-cmp>
@@ -108,7 +120,9 @@ Current syntax can connect to three types of data sources:
 </some-web-cmp>
 ```
 
-* **CALL** - If none of the above options is not good enough feel free to implement your own method that will satisfy your custom specifications. 
+**Call bind** 
+
+If none of the above options is not good enough feel free to implement your own method that will satisfy your custom specifications. 
 
 ```html
 <some-web-cmp>
@@ -134,11 +148,10 @@ Current syntax can connect to three types of data sources:
 * **src/parse.ts** - When one of the source values has changed, the associated data bind behavior is executed.
 * **src/utils.ts** - An essential part of the entire process is evaluating the data bind code in the context of the child element.
 
-In developement mode you can easily review the entire process by logging debug statements in the browser console. To enable all the debug statements type in the console `debug.enable(ndb:*)`. Of course, beforehand you need to install the [Debug](https://github.com/visionmedia/debug) library using the the follwing command `npm i debug -D`.
-
-## Flexibility
+## Tips and tricks
 * **Runtime changes** - There is no compilation process. Data binds can be added at runtime just by inserting new elements with databind attributes. The mutation observable will take care of initialising the data binds for you. Responsible coding is adivsed, this pattern could be difficult to maintain if abused.
 * **Mix Javascript and HTML** - React library demonstrated that mixing Javascript with HTML can be a successful pattern if used with reponsability. Web components together with string literals permit the same approach. The data binds can complement this approach resulting in a hybrid codebase.
+* **Debugging** - In developement mode you can easily review the entire process by logging debug statements in the browser console. To enable all the debug statements type in the console `debug.enable(ndb:*)`. Of course, beforehand you need to install the [Debug](https://github.com/visionmedia/debug) library using the the follwing command `npm i debug -D`.
 
 ## Read the source, Luke...
-You will do yourself a great service by spending 30 mins to read the source code. Clearly understanding what happens after a data bind is initialised can make the difference when it comes to improving performance. Extra effort was spent documenting the code so it can be easily digested. And feel free to contribute if you see room for improving the code while keeping the soruce code readable.
+You will do yourself a great service by spending 30 mins to read the source code. Clearly understanding what happens after a data bind is initialised can make all the difference when it comes to improving performance. Extra effort was spent documenting the code so it can be easily reviwed. Feel free to contribute if you see possible improvements. Keeping the same well document and minimalistic approach will be much appreciated!
