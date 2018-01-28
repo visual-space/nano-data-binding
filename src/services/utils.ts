@@ -1,5 +1,6 @@
 // Interfaces
 import { DataBind } from '../interfaces/nano-data-binding'
+import { HAS_DATA_BIND, MATCH_RULE, MATCH_CODE, MATCH_SOURCE } from '../constants/nano-data-binding.const'
 
 // Debug
 let Debug = require('debug'), debug = Debug ? Debug('ndb:Utils') : () => {}
@@ -9,8 +10,7 @@ debug('Instantiate Utils')
 
 /** Detect attributes with nano data bind syntax */
 export function isAttrDataBind(attribute: Attr): boolean {
-    const MATCH_DATA_BIND = /(^[peo]-(data|if|for|class|call)$)/g
-    let isListener: boolean = attribute.nodeName.search(MATCH_DATA_BIND) === 0
+    let isListener: boolean = attribute.nodeName.search(MATCH_RULE) === 0
     // debug('Is attribute data bind', attribute.nodeName, isListener) // Verbose
     return isListener
 }
@@ -39,14 +39,12 @@ export function getDataBindRule(attribute: Attr): string {
 }
 
 export function getDataBindSource(attribute: Attr): string {
-    const MATCH_SOURCE = /(^[^.]*,)/gm
     let source: string = attribute.nodeValue.match(MATCH_SOURCE)[0].replace(',','')
     // debug('Get data bind source', attribute.nodeName, source) // Verbose
     return source
 }
 
 export function getDataBindCode(attribute: Attr): string {
-    const MATCH_CODE = /(,[\s\S]*)/gm
     let rule: string = attribute.nodeValue.match(MATCH_CODE)[0].replace(',','')
     // debug('Get data bind code', attribute.nodeName, rule) // Verbose
     return rule
@@ -134,4 +132,11 @@ export function printDataBindInfo(dataBind: DataBind): string {
         childTagName = `<${child.tagName.toLowerCase()}>`
 
     return `Parent "${parentTagName}", Child "${childTagName}", Origin "${origin}", Source "${source}, Rule "${rule}, Code "${code}"`
+}
+
+/** Extract the rule if a tag has data binds */
+export function getRule (tag: string) {
+    let match = tag.match(HAS_DATA_BIND)
+    if (match) return match[0].slice(2)
+    return match as null
 }

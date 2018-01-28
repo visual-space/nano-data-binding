@@ -1,6 +1,11 @@
-import { Listeners } from '../interfaces/nano-data-binding'
-import { nanoBind } from './selectors';
-import { isAttrDataBind, getParentWebCmpContext } from '../services/utils'
+import { Listeners, HtmlTagMatch } from '../interfaces/nano-data-binding'
+
+// Services
+import { nanoBind } from './selectors'
+import { isAttrDataBind, getParentWebCmpContext, getRule } from './utils'
+
+// Constants
+import { HAS_DATA_BIND, SINGLETONE_TAG, CLOSE_TAG, HTML_TAG, TAG_NAME } from '../constants/nano-data-binding.const'
 
 // Debug
 let Debug = require('debug'), debug = Debug ? Debug('ndb:AutoInit') : () => {}
@@ -26,24 +31,209 @@ export function setupAutoBindUnbind(): void {
     debug('Setup auto bind, unbind')
 
     // Prepare templates
-    templatePreprocessing()
+    // templatePreprocessing() // Restore
     
     // Bind
     autoBindUnbind()
 }
 
+let mockTemplate = `
+    <!-- Ignore comments -->
+
+    <!-- Ignore tags starting with new line or white space -->
+    < /br></ br>< meta><	meta>
+    <
+    a
+    > 
+
+    <mock-web-cmp class="parent">
+
+        <!-- Ignore less than and greater than when between quotes -->
+        <div class="t'e'a's' >d<f>s t" (input)='t"e"a"s" >d<f>s t'> </div>
+        <div class='t"e"a"s" >d<f>s t' (input)="t'e'a's' >d<f>s t"> </div>
+
+        <!-- Include multiline div with mixed quotes -->
+        <div
+            id="test" 
+            class="child" 
+            e-for="mockEvent1, event.detail"> 
+
+            <!-- Include css classes -->
+            <div class="item"> </div>
+            <base class="test" />
+            
+            <div class=> </div> 
+
+            <!-- Ignore text and greater less than synmbols -->
+            some> text > with> brackets
+            more>confusing<>text
+            test
+            <_input><!><+"*ç%&/()=?¦@#°§¬|¢´~>
+
+            <!-- Various spacing and closings of tags -->
+            <br> <br/> <br /> <br / > <br	/	> <br	/	>
+
+            <span>
+
+                <!-- Ignore singletones tags when counting pairs -->
+                <area> <base> <br> <col> <embed> <hr> <img> <input> 
+                <keygen> <link> <meta> <param> <source> <track> <wbr>
+
+                <asp:Label ID="CustomerNameLabel" runat="server" 
+                        Text='<%#Eval("CustomerName") %>' >
+                <web-cmp> <!-- Ignore unclosed tag when counting pairs (chrome autocloses) -->
+
+                <!-- Ignore stamdalome tag names -->
+                div, p, a, table, button, web-component class="dummy"
+                area, base, br, col, embed, hr, img, input, 
+                keygen, link, meta, param, source, track, wbr
+
+            </span>
+                                        
+        </div>
+    </mock-web-cmp0>
+    </mock-web-cmp1>
+    </mock-web-cmp2>
+    </mock-web-cmp3>
+`
+
+cacheDynamicTemplates(mockTemplate)
+
+// /** Wrap DOM API mezhods used to add DOM elements in the document */
+// function templatePreprocessing(): void {
+//     debug('Template preprocessing')
+
+//     var setInnerHTML = Object.getOwnPropertyDescriptor(Element.prototype, 'innerHTML').set
+
+//     Object.defineProperty(Element.prototype, 'innerHTML', {
+//         set: function (value: string) {
+//             setInnerHTML.call(this, cacheDynamicTemplates(value))    
+//         }
+//     })
+
+// }
+
+// let count = 0
+
 // TEST
-// Removes FOR rule template so that the iterated item^s constructor is not called by default for no reason
-// Removes IF rule template so that the iterated item^s constructor is not called by default for no reason
+// Removes FOR rule template so that the iterated item's constructor is not called by default for no reason
+// Removes IF rule template so that the iterated item's constructor is not called by default for no reason
 /**
- * Removes for loop template so that the iterated item^s constructor is not called by default for no reason
+ * <!> Removes data bind templates from html
+ *     Prevents parsing of the dynamic templates before they are required at runtime by changes in the data binds 
  * TODO Removes IF rule template so that the iterated item^s constructor is not called by default for no reason
  * TODO Parse template interpolation syntax
  */
-function templatePreprocessing(): void {
-    debug('Template preprocessing')
+function cacheDynamicTemplates(template: string) {
+    // debug('Cache dynamic templates') // verbose
+    let tags: HtmlTagMatch[] = <HtmlTagMatch[]>[],
+        bindsWithTemplates: HtmlTagMatch[],
+        match, tag, _tagName, tagName
 
+    // Match all tags
+    while (match = HTML_TAG.exec(template)) {
+        tag = match[0]
 
+        // Tag name
+        let $TAG_NAME = new RegExp(TAG_NAME, `gm`)
+        while (_tagName = $TAG_NAME.exec(tag)) {
+            tagName = _tagName[1]
+            // console.log(_tagName)
+        }
+    
+        // console.log(tag)
+        // console.log(tagName)
+        // console.log('')
+        // console.log(tag, (new RegExp(SINGLETONE_TAG, `gm`).test(tag)))
+
+        // Metadata
+        tags.push({
+            tag,
+            index: HTML_TAG.lastIndex,
+            isDataBind: HAS_DATA_BIND.test(tag),
+            isOpenTag: !(new RegExp(CLOSE_TAG, `gm`).test(tag)),
+            isSingletone: new RegExp(SINGLETONE_TAG, `gm`).test(tag),
+            tagName: tagName,
+            rule: getRule(tag)
+        })
+
+    }
+    console.log(tags)
+    
+    // debug('Matched tags', tags); // Verbose
+    // console.log('+++Matched tags', tags);
+    
+    bindsWithTemplates = tags.filter( ({rule}) => rule === 'for' || rule === 'if' )
+    // console.log('+++Binds with dynamic templates', bindsWithTemplates);
+
+    bindsWithTemplates.forEach( bind => extractTemplate(bind, tags, template) )
+
+    // // console.log('Template', template)
+    // // console.log('hasDynamicTemplates', hasDynamicTemplates)
+    // console.log('count', count++)
+    return template
+}
+
+/**
+ * Match pairs of tags, ignore unclosed tags and singletone tags
+ * When the closing tag of the current data bound tag is found return the template 
+ */
+function extractTemplate(bind: HtmlTagMatch, tags: HtmlTagMatch[], template: string) {
+    let i = tags.indexOf(bind),
+        queue: HtmlTagMatch[] = tags.slice(i), // Tags starting from the current data bind
+        stack: HtmlTagMatch[] = [], // Starting tag adds, Closing tag removes
+        tag: HtmlTagMatch,
+        prev: HtmlTagMatch,
+        closing: HtmlTagMatch,
+        dynamicTemplate: string
+
+    while(true) {
+        
+        // Extract first tag and add or remove from queue if tag is starting or closing tag
+        tag = queue.shift()
+
+        // Stack open tags
+        if ( tag.isOpenTag && tag.isSingletone === false ) stack.push(tag)
+        
+        // Unstack closed pairs
+        if ( tag.isOpenTag === false ) {
+            
+            // Unstack unclosed tags (browsers autoclose them)
+            // <a><b><c></b></a> - c is ignored
+            prev = stack[stack.length-1]
+            while (prev && tag.tagName !== prev.tagName) {
+                stack.pop()
+                prev = stack[stack.length-1]
+                console.log('      Removed unclosed tag', prev.tagName)
+            }
+
+            // Unstack closed pairs
+            stack.pop()
+            prev && console.log('      Removed closed pair', prev.tagName, `/` + tag.tagName)
+            
+        }
+
+        // Debug
+        console.log((tag && tag.isOpenTag && tag.isOpenTag === true ? '' : '/') + tag.tagName, '---', printStackedXpath(stack), queue.length)
+        function printStackedXpath(stack: HtmlTagMatch[]) {
+            let log = ''
+            stack.forEach(tag => log += tag.tagName + ' ')
+            return log
+        }
+
+        // Clsoing tag matched
+        if (stack.length === 0) {
+            closing = tag
+            
+            dynamicTemplate = template.substring(bind.index, closing.index - closing.tag.length)
+            console.log('OPENING', bind)
+            console.log('CLOSING', closing)
+            console.log('Dynamic template', dynamicTemplate)
+
+            break
+        }
+        
+    }
 }
 
 /**
@@ -54,7 +244,7 @@ function templatePreprocessing(): void {
  *     Also mixin classes don't have access to `super.disconnectedCallback()`. REVIEW this one.
  * TODO This part of the scirpt could be probably improved a lot performance-wise
  */
-export function autoBindUnbind(): void {
+function autoBindUnbind(): void {
     debug('Auto bind unbind')
 
     var mutObs = new MutationObserver(mutations => {

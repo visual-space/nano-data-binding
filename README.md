@@ -7,8 +7,8 @@ Use a small set of data binding attributes with similar to those available in th
 Follow on twitter: [@visual-space](https://twitter.com/visual_space), [@adriancmoisa](https://twitter.com/adriancmoisa)
 
 ## Objectives
-* **Reduce boilerlpate** - In theory it is possible to write entire web apps using only ES6 syntax. In practice, you will end up writting a lot of boilerplate code. The more code you write the harder it is to maintain the app. 
-* **Easy to learn** - Modern frameworks have taught us a lot, but at the same time they have been a source of endless frustratiion due to complex code patterns and domain specific language. NDB library strives to be easy to read in under 30 mins by most developers. Nothing fancy, easy to understand, all of it.
+* **Reduce boilerplate** - In theory it is possible to write entire web apps using only ES6 syntax. In practice, you will end up writing a lot of boilerplate code. The more code you write the harder it is to maintain the app. 
+* **Easy to learn** - Modern frameworks have taught us a lot, but at the same time they have been a source of endless frustration due to complex code patterns and domain specific language. NDB library strives to be easy to read in under 30 mins by most developers. Nothing fancy, easy to understand, all of it.
 * **Functional reactive** - The data bindings are unidirectional and are built to complement a state store library. This pattern has been highly successful for developing large stable apps.
 * **Minimal footprint** - No base class for web components to inherit from. Avoids additional scopes and life cycle events. Web components already do a fantastic job in this regard. Avoids double data binding, change detection via dirty checking and virtual dom. Basically the script can be easily removed just by deleting the import. The refactoring work will be minimal.
 * **You bring the router** - And the state store. To maintain a ligthweight, focused and easy to understand library a lot of features have been rejected. Not everybody will be happy with this approach and luckily there are plenty of strong alternative options to choose from ([Angular](https://github.com/angular/angular), [React](https://github.com/facebook/react), [Vue](https://github.com/vuejs/vue), [Polymer](https://github.com/Polymer/polymer), [Stencil](https://github.com/ionic-team/stencil), [Skatejs](https://github.com/skatejs/skatejs)). For the routing you can use [Universal Router](https://github.com/kriasoft/universal-router) and for the state store [Redux](https://github.com/reactjs/react-redux) will do an excelent job.
@@ -61,7 +61,7 @@ This is the basic and the most used source of data. These are properties defined
 
 **Custom events** 
 
-[Nano State Store](https://github.com/visual-space/nano-state-store) was implemented in the [Visual Space](https://github.com/visual-space/visual-space) CMS. It uses custom events to comunicate with the existing code base. Connecting data binds to events is very useful for cutting down on boilerplate code.
+Connecting data binds to events is very useful for cutting down on boilerplate code. The [Visual Space](https://github.com/visual-space/visual-space) CMS uses [Nano State Store](https://github.com/visual-space/nano-state-store) which implements custom events instead of observables. 
 
 ```html
 <div n-if="divIsVisibile | event"> Custom event </div>
