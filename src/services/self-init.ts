@@ -1,4 +1,5 @@
-import { Listeners, HtmlTagMatch } from '../interfaces/nano-data-binding'
+// Interfaces
+import { Listeners, HtmlTagMatch, TemplateRef } from '../interfaces/nano-data-binding'
 
 // Services
 import { nanoBind } from './selectors'
@@ -10,6 +11,9 @@ import { HAS_DATA_BIND, SINGLETONE_TAG, CLOSE_TAG, HTML_TAG, TAG_NAME } from '..
 // Debug
 let Debug = require('debug'), debug = Debug ? Debug('ndb:AutoInit') : () => {}
 debug('Instantiate AutoInit')
+
+// Cache
+let templates: string[] = []
 
 /**
  * ====== SELF INIT ======
@@ -37,67 +41,7 @@ export function setupAutoBindUnbind(): void {
     autoBindUnbind()
 }
 
-let mockTemplate = `
-    <!-- Ignore comments -->
-
-    <!-- Ignore tags starting with new line or white space -->
-    < /br></ br>< meta><	meta>
-    <
-    a
-    > 
-
-    <mock-web-cmp class="parent">
-
-        <!-- Ignore less than and greater than when between quotes -->
-        <div class="t'e'a's' >d<f>s t" (input)='t"e"a"s" >d<f>s t'> </div>
-        <div class='t"e"a"s" >d<f>s t' (input)="t'e'a's' >d<f>s t"> </div>
-
-        <!-- Include multiline div with mixed quotes -->
-        <div
-            id="test" 
-            class="child" 
-            e-for="mockEvent1, event.detail"> 
-
-            <!-- Include css classes -->
-            <div class="item"> </div>
-            <base class="test" />
-            
-            <div class=> </div> 
-
-            <!-- Ignore text and greater less than synmbols -->
-            some> text > with> brackets
-            more>confusing<>text
-            test
-            <_input><!><+"*ç%&/()=?¦@#°§¬|¢´~>
-
-            <!-- Various spacing and closings of tags -->
-            <br> <br/> <br /> <br / > <br	/	> <br	/	>
-
-            <span>
-
-                <!-- Ignore singletones tags when counting pairs -->
-                <area> <base> <br> <col> <embed> <hr> <img> <input> 
-                <keygen> <link> <meta> <param> <source> <track> <wbr>
-
-                <asp:Label ID="CustomerNameLabel" runat="server" 
-                        Text='<%#Eval("CustomerName") %>' >
-                <web-cmp> <!-- Ignore unclosed tag when counting pairs (chrome autocloses) -->
-
-                <!-- Ignore stamdalome tag names -->
-                div, p, a, table, button, web-component class="dummy"
-                area, base, br, col, embed, hr, img, input, 
-                keygen, link, meta, param, source, track, wbr
-
-            </span>
-                                        
-        </div>
-    </mock-web-cmp0>
-    </mock-web-cmp1>
-    </mock-web-cmp2>
-    </mock-web-cmp3>
-`
-
-cacheDynamicTemplates(mockTemplate)
+// cacheDynamicTemplates(mockTemplate)
 
 // /** Wrap DOM API mezhods used to add DOM elements in the document */
 // function templatePreprocessing(): void {
@@ -115,19 +59,16 @@ cacheDynamicTemplates(mockTemplate)
 
 // let count = 0
 
-// TEST
-// Removes FOR rule template so that the iterated item's constructor is not called by default for no reason
-// Removes IF rule template so that the iterated item's constructor is not called by default for no reason
 /**
  * <!> Removes data bind templates from html
  *     Prevents parsing of the dynamic templates before they are required at runtime by changes in the data binds 
- * TODO Removes IF rule template so that the iterated item^s constructor is not called by default for no reason
- * TODO Parse template interpolation syntax
+ * <!> This method is exported only for testing purposes
  */
-function cacheDynamicTemplates(template: string) {
-    // debug('Cache dynamic templates') // verbose
+export function cacheDynamicTemplates(template: string) {
+    // debug('Cache dynamic templates') // Verbose
     let tags: HtmlTagMatch[] = <HtmlTagMatch[]>[],
         bindsWithTemplates: HtmlTagMatch[],
+        templateRef: TemplateRef = { template }, // Easy access via reference
         match, tag, _tagName, tagName
 
     // Match all tags
@@ -138,13 +79,7 @@ function cacheDynamicTemplates(template: string) {
         let $TAG_NAME = new RegExp(TAG_NAME, `gm`)
         while (_tagName = $TAG_NAME.exec(tag)) {
             tagName = _tagName[1]
-            // console.log(_tagName)
         }
-    
-        // console.log(tag)
-        // console.log(tagName)
-        // console.log('')
-        // console.log(tag, (new RegExp(SINGLETONE_TAG, `gm`).test(tag)))
 
         // Metadata
         tags.push({
@@ -158,34 +93,34 @@ function cacheDynamicTemplates(template: string) {
         })
 
     }
-    console.log(tags)
-    
-    // debug('Matched tags', tags); // Verbose
-    // console.log('+++Matched tags', tags);
-    
+        
+    // Data binds
     bindsWithTemplates = tags.filter( ({rule}) => rule === 'for' || rule === 'if' )
-    // console.log('+++Binds with dynamic templates', bindsWithTemplates);
+    // debug('Matched tags', tags) // Verbose
+    // debug('Binds with dynamic templates', bindsWithTemplates) // Verbose
 
-    bindsWithTemplates.forEach( bind => extractTemplate(bind, tags, template) )
+    // Extract dynamic templates
+    bindsWithTemplates.forEach( bind => extractTemplate(bind, tags, templateRef) )
 
-    // // console.log('Template', template)
-    // // console.log('hasDynamicTemplates', hasDynamicTemplates)
-    // console.log('count', count++)
-    return template
+    return templateRef.template
 }
 
 /**
  * Match pairs of tags, ignore unclosed tags and singletone tags
  * When the closing tag of the current data bound tag is found return the template 
  */
-function extractTemplate(bind: HtmlTagMatch, tags: HtmlTagMatch[], template: string) {
+function extractTemplate(bind: HtmlTagMatch, tags: HtmlTagMatch[], templateRef: TemplateRef) {
     let i = tags.indexOf(bind),
         queue: HtmlTagMatch[] = tags.slice(i), // Tags starting from the current data bind
         stack: HtmlTagMatch[] = [], // Starting tag adds, Closing tag removes
         tag: HtmlTagMatch,
         prev: HtmlTagMatch,
         closing: HtmlTagMatch,
-        dynamicTemplate: string
+        dynamicTemplate: string,
+        { template } = templateRef,
+        oi: number, // Opening index
+        ci: number, // Closing index
+        ti: number // Template index
 
     while(true) {
         
@@ -204,31 +139,41 @@ function extractTemplate(bind: HtmlTagMatch, tags: HtmlTagMatch[], template: str
             while (prev && tag.tagName !== prev.tagName) {
                 stack.pop()
                 prev = stack[stack.length-1]
-                console.log('      Removed unclosed tag', prev.tagName)
+                // debug('- Removed unclosed tag', prev.tagName) // Verbose
             }
 
             // Unstack closed pairs
             stack.pop()
-            prev && console.log('      Removed closed pair', prev.tagName, `/` + tag.tagName)
+            // prev && debug('- Removed closed pair', prev.tagName, `/` + tag.tagName) // Verbose
             
         }
 
         // Debug
-        console.log((tag && tag.isOpenTag && tag.isOpenTag === true ? '' : '/') + tag.tagName, '---', printStackedXpath(stack), queue.length)
-        function printStackedXpath(stack: HtmlTagMatch[]) {
-            let log = ''
-            stack.forEach(tag => log += tag.tagName + ' ')
-            return log
-        }
+        // debug((tag && tag.isOpenTag && tag.isOpenTag === true ? '' : '/') + tag.tagName, '-', printStackedXpath(stack), queue.length) // Verbose
+        // function printStackedXpath(stack: HtmlTagMatch[]) {
+        //     let log = ''
+        //     stack.forEach(tag => log += tag.tagName + ' ')
+        //     return log
+        // }
 
         // Clsoing tag matched
         if (stack.length === 0) {
             closing = tag
             
+            // Template
             dynamicTemplate = template.substring(bind.index, closing.index - closing.tag.length)
-            console.log('OPENING', bind)
-            console.log('CLOSING', closing)
-            console.log('Dynamic template', dynamicTemplate)
+            // debug('Dynamic template \n', dynamicTemplate) // Verbose
+
+            // Cache & Remove
+            templates.push(dynamicTemplate)
+            oi = bind.index - 1
+            ci = closing.index - closing.tag.length
+            ti = templates.length - 1
+            templateRef.template = `${template.substring(0, oi)} tpl="${ti}"> ${template.substring(ci)}`
+            
+            // debug('Cleaned up template \n', templateRef.template) // Verbose
+            // debug('Opening tag', bind) // Verbose
+            // debug('Closing tag', closing) // Verbose
 
             break
         }

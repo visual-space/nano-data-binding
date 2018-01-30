@@ -82,4 +82,15 @@ export interface HtmlTagMatch {
     isOpenTag: boolean
     isDataBind: boolean
     rule: string
+    
+    // Optional. If a data bind has a cached template it will be cached here
+    template?: string 
+}
+
+/**
+ * Used to pass the reference to a template. 
+ * Using this object is far easier to iterate and modify the same template for multiple data binds 
+ */
+export interface TemplateRef {
+    template: string
 }

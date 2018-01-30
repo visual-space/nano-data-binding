@@ -276,5 +276,6 @@ describe('For rule', () => {
     xit('Binds data to the iterated children components / html elements', () => {})
     xit('Binding twice will reuse the preexisting cached template (in case of developer mistake)', () => {})
     xit('Short notation', () => {})
+    xit('Removes FOR rule\'s template so that the iterated item\'s constructor is not called by default for no reason', () => {})
 
 })

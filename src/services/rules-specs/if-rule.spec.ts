@@ -62,5 +62,6 @@ describe('If Rule', () => {
     xit('Placeholder listeners are removed automatically (all of them)', () => {})
     xit('Placeholder keeps a clone of the removed element (attributes and innerHtml)', () => {})
     xit('Prevents any cross communication between instances of the target element (clone the placeholder cloned element)', () => {})
+    xit('Removes IF rule\'s template so that the iterated item\'s constructor is not called by default for no reason', () => {})
 
 })
