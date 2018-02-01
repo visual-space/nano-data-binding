@@ -39,7 +39,7 @@ module.exports = {
     ],
 
     externals: {
-        debug: 'debug'
+        // debug: 'debug' // REVIEW, this seems not to work right now
     },
 
     stats: {

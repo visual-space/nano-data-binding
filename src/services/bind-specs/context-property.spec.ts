@@ -14,7 +14,7 @@ describe('Context property', () => {
             <mock-web-cmp class="parent">
                 <div class="child data" p-data="mockDataProp, customInput"></div>
                 <div class="child if" p-if="mockIfProp, parent.mockIfProp"></div>
-                <div class="child for" p-for="mockForProp, parent.mockForProp"></div>
+                <div class="child for" p-for="mockForProp, parent.mockForProp"><div>Test</div></div>
                 <div class="child class" p-class="mockClassProp, {active: parent.mockClassProp}"></div>
                 <div class="child call" p-call="mockCallProp, this.increment(parent.mockCallProp)"></div>
             </mock-web-cmp>

@@ -3,6 +3,7 @@ import { Listeners, HtmlTagMatch, TemplateRef } from '../interfaces/nano-data-bi
 
 // Services
 import { nanoBind } from './selectors'
+import { templates } from './cache'
 import { isAttrDataBind, getParentWebCmpContext, getRule } from './utils'
 
 // Constants
@@ -11,9 +12,6 @@ import { HAS_DATA_BIND, SINGLETONE_TAG, CLOSE_TAG, HTML_TAG, TAG_NAME } from '..
 // Debug
 let Debug = require('debug'), debug = Debug ? Debug('ndb:AutoInit') : () => {}
 debug('Instantiate AutoInit')
-
-// Cache
-let templates: string[] = []
 
 /**
  * ====== SELF INIT ======
@@ -90,7 +88,7 @@ export function cacheDynamicTemplates(template: string) {
 
     }
         
-    // Data binds
+    // For and If Data binds (need preprocessing)
     bindsWithTemplates = tags.filter( ({rule}) => rule === 'for' || rule === 'if' )
     // debug('Matched tags', tags) // Verbose
     // debug('Binds with dynamic templates', bindsWithTemplates) // Verbose
@@ -99,7 +97,6 @@ export function cacheDynamicTemplates(template: string) {
     bindsWithTemplates.reverse()
 
     // Extract dynamic templates
-    // bindsWithTemplates.forEach( (bind, i) => extractTemplate(i, bind, tags, templateRef) )
     bindsWithTemplates.forEach( bind => extractTemplate(bind, tags, templateRef) )
 
     return templateRef.template
@@ -109,7 +106,7 @@ export function cacheDynamicTemplates(template: string) {
  * Match pairs of tags, ignore unclosed tags and singletone tags
  * When the closing tag of the current data bound tag is found return the template 
  */
-function extractTemplate(/*index: number,*/ bind: HtmlTagMatch, tags: HtmlTagMatch[], templateRef: TemplateRef) {
+function extractTemplate(bind: HtmlTagMatch, tags: HtmlTagMatch[], templateRef: TemplateRef) {
     let i = tags.indexOf(bind),
         queue: HtmlTagMatch[] = tags.slice(i), // Tags starting from the current data bind
         stack: HtmlTagMatch[] = [], // Starting tag adds, Closing tag removes
@@ -120,8 +117,7 @@ function extractTemplate(/*index: number,*/ bind: HtmlTagMatch, tags: HtmlTagMat
         { template } = templateRef,
         oi: number, // Opening index
         ci: number, // Closing index
-        ti: number//, // Template index
-        // indexOffset: number
+        ti: number // Template index
 
     while(true) {
         
@@ -151,11 +147,6 @@ function extractTemplate(/*index: number,*/ bind: HtmlTagMatch, tags: HtmlTagMat
 
         // Debug
         // debug((tag && tag.isOpenTag && tag.isOpenTag === true ? '' : '/') + tag.tagName, '-', printStackedXpath(stack), queue.length) // Verbose
-        // function printStackedXpath(stack: HtmlTagMatch[]) {
-        //     let log = ''
-        //     stack.forEach(tag => log += tag.tagName + ' ')
-        //     return log
-        // }
 
         // Closing tag matched
         if (stack.length === 0) {
@@ -164,10 +155,6 @@ function extractTemplate(/*index: number,*/ bind: HtmlTagMatch, tags: HtmlTagMat
             // Template
             dynamicTemplate = template.substring(bind.index, closing.index - closing.tag.length)
             // debug('Dynamic template \n', dynamicTemplate) // Verbose
-
-                                // <!> Modifying the template string in previous iteration has shifted the indexes that were cached for tags.
-                                // We need to account for this.
-                                // indexOffset = (7 + ti.toString().length) * index
 
             // Cache & Remove
             templates.push(dynamicTemplate)
@@ -185,6 +172,13 @@ function extractTemplate(/*index: number,*/ bind: HtmlTagMatch, tags: HtmlTagMat
         
     }
 }
+
+// Debug // DEPRECATE (maybe)
+// function printStackedXpath(stack: HtmlTagMatch[]) {
+//     let log = ''
+//     stack.forEach(tag => log += tag.tagName + ' ')
+//     return log
+// }
 
 /**
  * A mutation observer is scanning for added and removed elements

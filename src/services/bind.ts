@@ -3,6 +3,9 @@ import { ORIGIN, RULE } from '../constants/nano-data-binding.const'
 import * as utils from './utils'
 import * as parser from './parser'
 
+// Services
+import { templates } from './cache'
+
 // Debug
 let Debug = require('debug'), debug = Debug ? Debug('ndb:Bind') : () => {}
 debug('Instantiate Bind')
@@ -122,8 +125,11 @@ export function cacheInitialState (dataBind: DataBind): boolean {
     } else if (dataBind.rule === RULE.For) {
         
         // Cache original html for reuse when the list is updated
-        dataBind.template = child.innerHTML
-        child.innerHTML = ''
+        let tplId = +Array.from(child.attributes).find( attr => attr.nodeName === `tpl` ).nodeValue
+        console.log(`+++Cached template (retrieved after preprocessing)`, tplId, templates[tplId])
+        dataBind.template = templates[tplId]
+        // dataBind.template = child.innerHTML // DEPRECATE Retrieved from the cached templates (after preprocessing)
+        // child.innerHTML = '' // DEPRECATE Already done in preprocessing
 
     }
 

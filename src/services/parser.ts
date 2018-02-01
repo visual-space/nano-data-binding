@@ -26,7 +26,7 @@ debug('Instantiate Parser')
  * Templates might contain custom attributes, text or multiple elements. 
  * That's why caching only the tag name ofthe iterated element is not wnough.
  */
-let parser = new DOMParser()
+// let parser = new DOMParser() // DEPRECATED does not fulfill the expected role of generating dom elements
 
 /**
  * Binds the values defined in the descriptor object to the child element
@@ -142,6 +142,7 @@ export function toggleIfDataBindElement(dataBind: DataBind): void {
  *     In order to encourage a simpler cleaner architecture, items are expected to be defined as webcomponents
  *     The performance cost is minimal to non-existent, and having two web components defined in the same file is permited
  * <!> Compares the old list with the new list, extracts the changes and then it syncs the dom with the new list
+ * TODO Upgrade to allow multiple tags rendered by the same loop. In this case we need to scan for data binds and attach the data there.
  */
 export function updateItemsInForList (dataBind: DataBind) {
     let { child } = dataBind,
@@ -188,15 +189,35 @@ export function updateItemsInForList (dataBind: DataBind) {
     // Add new elements
     // <!> TODO Can be optimised to add all modifications at once using one parse
     changes.added.forEach( add => {
-        let i: number = newItems.indexOf(add),
-            elem = parser.parseFromString(dataBind.template, "text/xml").children[0]
+        let i: number = newItems.indexOf(add)
+
+        // Parked until replaced with something better
+        // elem = parser.parseFromString(dataBind.template, "text/html").children[0] // DEPRECATED, does not fulfill the expected role of generating dom elements
+
+        // <!> Currently this code assumes onla one element at a time is introduced
+        // REVIEW Is this a memory leak?
+        let tmpEl = document.createElement(`div`)
+        tmpEl.innerHTML = dataBind.template
+        
+        let elem = tmpEl.children[0]
 
         // Cache data, Insert, Bind
         ;(elem as any)._nano_forItemData = add
         ;(elem as any).forItemData = add // TODO Add custom inputs
+
         child.insertBefore(elem, child.children[i])
 
-        debug('Added new element', {elem, add})
+        // Fals when there are no chidlren
+        // When inserting HTML into a page by using insertAdjacentHTML be careful not to use user input that hasn't been escaped.
+        // <!> Currently this code assumes onla one element at a time is introduced
+        // child.children[i].insertAdjacentHTML('beforebegin', dataBind.template)
+
+        // let elem = child.children[i]
+
+        // ;(elem as any)._nano_forItemData = add
+        // ;(elem as any).forItemData = add // TODO Add custom inputs
+
+        // debug('Added new element', {elem, add})
     })
 }
 
