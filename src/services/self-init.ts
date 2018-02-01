@@ -35,29 +35,25 @@ export function setupAutoBindUnbind(): void {
     debug('Setup auto bind, unbind')
 
     // Prepare templates
-    // templatePreprocessing() // Restore
+    templatePreprocessing()
     
     // Bind
     autoBindUnbind()
 }
 
-// cacheDynamicTemplates(mockTemplate)
+/** Wrap DOM API mezhods used to add DOM elements in the document */
+function templatePreprocessing(): void {
+    debug('Template preprocessing')
 
-// /** Wrap DOM API mezhods used to add DOM elements in the document */
-// function templatePreprocessing(): void {
-//     debug('Template preprocessing')
+    var setInnerHTML = Object.getOwnPropertyDescriptor(Element.prototype, 'innerHTML').set
 
-//     var setInnerHTML = Object.getOwnPropertyDescriptor(Element.prototype, 'innerHTML').set
+    Object.defineProperty(Element.prototype, 'innerHTML', {
+        set: function (value: string) {
+            setInnerHTML.call(this, cacheDynamicTemplates(value))    
+        }
+    })
 
-//     Object.defineProperty(Element.prototype, 'innerHTML', {
-//         set: function (value: string) {
-//             setInnerHTML.call(this, cacheDynamicTemplates(value))    
-//         }
-//     })
-
-// }
-
-// let count = 0
+}
 
 /**
  * <!> Removes data bind templates from html
@@ -98,8 +94,12 @@ export function cacheDynamicTemplates(template: string) {
     bindsWithTemplates = tags.filter( ({rule}) => rule === 'for' || rule === 'if' )
     // debug('Matched tags', tags) // Verbose
     // debug('Binds with dynamic templates', bindsWithTemplates) // Verbose
+    
+    // Reversing prevents mismatched tag indexes when caching the template
+    bindsWithTemplates.reverse()
 
     // Extract dynamic templates
+    // bindsWithTemplates.forEach( (bind, i) => extractTemplate(i, bind, tags, templateRef) )
     bindsWithTemplates.forEach( bind => extractTemplate(bind, tags, templateRef) )
 
     return templateRef.template
@@ -109,7 +109,7 @@ export function cacheDynamicTemplates(template: string) {
  * Match pairs of tags, ignore unclosed tags and singletone tags
  * When the closing tag of the current data bound tag is found return the template 
  */
-function extractTemplate(bind: HtmlTagMatch, tags: HtmlTagMatch[], templateRef: TemplateRef) {
+function extractTemplate(/*index: number,*/ bind: HtmlTagMatch, tags: HtmlTagMatch[], templateRef: TemplateRef) {
     let i = tags.indexOf(bind),
         queue: HtmlTagMatch[] = tags.slice(i), // Tags starting from the current data bind
         stack: HtmlTagMatch[] = [], // Starting tag adds, Closing tag removes
@@ -120,7 +120,8 @@ function extractTemplate(bind: HtmlTagMatch, tags: HtmlTagMatch[], templateRef: 
         { template } = templateRef,
         oi: number, // Opening index
         ci: number, // Closing index
-        ti: number // Template index
+        ti: number//, // Template index
+        // indexOffset: number
 
     while(true) {
         
@@ -156,7 +157,7 @@ function extractTemplate(bind: HtmlTagMatch, tags: HtmlTagMatch[], templateRef: 
         //     return log
         // }
 
-        // Clsoing tag matched
+        // Closing tag matched
         if (stack.length === 0) {
             closing = tag
             
@@ -164,12 +165,16 @@ function extractTemplate(bind: HtmlTagMatch, tags: HtmlTagMatch[], templateRef: 
             dynamicTemplate = template.substring(bind.index, closing.index - closing.tag.length)
             // debug('Dynamic template \n', dynamicTemplate) // Verbose
 
+                                // <!> Modifying the template string in previous iteration has shifted the indexes that were cached for tags.
+                                // We need to account for this.
+                                // indexOffset = (7 + ti.toString().length) * index
+
             // Cache & Remove
             templates.push(dynamicTemplate)
-            oi = bind.index - 1
-            ci = closing.index - closing.tag.length
-            ti = templates.length - 1
-            templateRef.template = `${template.substring(0, oi)} tpl="${ti}"> ${template.substring(ci)}`
+            oi = bind.index - 1 //+ indexOffset
+            ci = closing.index - closing.tag.length //+ indexOffset
+            ti = templates.length - 1 //+ indexOffset
+            templateRef.template = `${template.substring(0, oi)} tpl="${ti}">${template.substring(ci)}`
             
             // debug('Cleaned up template \n', templateRef.template) // Verbose
             // debug('Opening tag', bind) // Verbose

@@ -27,7 +27,9 @@ export function setupTemplate(template: string) {
     template = template.replace(/(mockEvent)/g, `mockEvent${++_id}`)
     
     // Simple nested web component with basic content
+    // debug('ORIGINAL template', template) // Verbose
     container.innerHTML = template
+    // debug('INTERCEPTED template', container.innerHTML) // Verbose
         
     // Connect
     document.body.appendChild(container)

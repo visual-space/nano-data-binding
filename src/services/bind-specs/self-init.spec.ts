@@ -58,6 +58,7 @@ let mockTemplate = `
     </mock-web-cmp>
 `
 
+// TODO, find better approach or completely remove tpl attribute
 let expectedTemplate = `
     <!-- Ignore comments -->
 
@@ -77,7 +78,7 @@ let expectedTemplate = `
         <div
             id="test" 
             class="child" 
-            e-for="mockEvent1, event.detail" tpl="0"> </div>
+            e-for="mockEvent1, event.detail" tpl="2"></div>
     </mock-web-cmp>
 `
 
@@ -87,5 +88,10 @@ describe('Self init', () => {
     it('Automatically adds data binds when element is added in the DOM', () => {
         expect(cacheDynamicTemplates(mockTemplate)).toEqual(expectedTemplate)
     })
+
+    xit('Multiple dynamic templates can be cached', () => {})
+    xit('Constructor is not executed prematurely', () => {})
+    xit('If rule still works', () => {})
+    xit('For rule still works', () => {})
 
 })
