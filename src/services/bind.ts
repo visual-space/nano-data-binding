@@ -126,7 +126,7 @@ export function cacheInitialState (dataBind: DataBind): boolean {
         
         // Cache original html for reuse when the list is updated
         let tplId = +Array.from(child.attributes).find( attr => attr.nodeName === `tpl` ).nodeValue
-        console.log(`+++Cached template (retrieved after preprocessing)`, tplId, templates[tplId])
+        // debug(`Cached template (retrieved after preprocessing)`, tplId, templates[tplId]) // Verbose
         dataBind.template = templates[tplId]
         // dataBind.template = child.innerHTML // DEPRECATE Retrieved from the cached templates (after preprocessing)
         // child.innerHTML = '' // DEPRECATE Already done in preprocessing
