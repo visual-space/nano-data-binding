@@ -44,7 +44,7 @@ export function initDataBinds(parent: HTMLElement, children: HTMLElement[]): voi
             if (parent.hasAttribute('no-auto-bind')) {
                 debug('Data bind already initialised', {dataBind: this._nano_dataBind})
             } else {
-                console.warn('Data bind already initialised', {dataBind: this._nano_dataBind})
+                // console.warn('Data bind already initialised', {dataBind: this._nano_dataBind}) // REVIEW, seems to fire more than needed
             }
             return
         }

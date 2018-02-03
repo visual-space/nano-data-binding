@@ -1,3 +1,7 @@
+# 0.0.11
+* For data bind - Instead of using a container, use a comment placeholder and repeat the entire tag.
+* Try catch erorrs from preprocessing invalid templates. They typically throw hard to debug errors.
+
 # 0.0.10
 * FOR rule - Fix bad timing of constructors
     * When adding the iterated component to the template, the constructor failed to execute. Fixed by parsing the template as HTML instead of XML.

@@ -85,6 +85,10 @@ let expectedTemplate = `
 // Common specs for all data binds
 describe('Self init', () => {
 
+    it('Ignores templates that don\'t contain html tags', () => {
+        expect(cacheDynamicTemplates('Only text')).toEqual('Only text')
+    })
+
     it('Automatically adds data binds when element is added in the DOM', () => {
         expect(cacheDynamicTemplates(mockTemplate)).toEqual(expectedTemplate)
     })

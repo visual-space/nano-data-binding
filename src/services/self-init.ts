@@ -10,7 +10,7 @@ import { isAttrDataBind, getParentWebCmpContext, getRule } from './utils'
 import { HAS_DATA_BIND, SINGLETONE_TAG, CLOSE_TAG, HTML_TAG, TAG_NAME } from '../constants/nano-data-binding.const'
 
 // Debug
-let Debug = require('debug'), debug = Debug ? Debug('ndb:AutoInit') : () => {}
+let Debug = require('debug'), debug = Debug ? Debug('ndb:AutoInit') : () => { }
 debug('Instantiate AutoInit')
 
 /**
@@ -23,18 +23,18 @@ debug('Instantiate AutoInit')
  *     IN case you really need to start a data bind imediatly then initialise it manually using `nanoBind()`
  */
 
- /**
-  * <!> Sets up DOM API wrapper methods that intercept templates for pre-processing before attaching to DOM.
-  *     The preprocessing step is needed in order to prevent executing constructors of templates before they are actually requested via data binding.
-  * <!> Sets up mutation observalbe that triggers the data binds.
-  *     So far, the best option to keep minimal 
-  */
+/**
+ * <!> Sets up DOM API wrapper methods that intercept templates for pre-processing before attaching to DOM.
+ *     The preprocessing step is needed in order to prevent executing constructors of templates before they are actually requested via data binding.
+ * <!> Sets up mutation observalbe that triggers the data binds.
+ *     So far, the best option to keep minimal 
+ */
 export function setupAutoBindUnbind(): void {
     debug('Setup auto bind, unbind')
 
     // Prepare templates
     templatePreprocessing()
-    
+
     // Bind
     autoBindUnbind()
 }
@@ -46,8 +46,12 @@ function templatePreprocessing(): void {
     var setInnerHTML = Object.getOwnPropertyDescriptor(Element.prototype, 'innerHTML').set
 
     Object.defineProperty(Element.prototype, 'innerHTML', {
-        set: function (value: string) {
-            setInnerHTML.call(this, cacheDynamicTemplates(value))    
+        set: function (template: string) {
+            try {
+                setInnerHTML.call(this, cacheDynamicTemplates(template))
+            } catch {
+                throw new Error('Check the template for syntax errors/n' + template)
+            }
         }
     })
 
@@ -87,17 +91,21 @@ export function cacheDynamicTemplates(template: string) {
         })
 
     }
-        
+
     // For and If Data binds (need preprocessing)
-    bindsWithTemplates = tags.filter( ({rule}) => rule === 'for' || rule === 'if' )
+    bindsWithTemplates = tags.filter(({ rule }) => rule === 'for' || rule === 'if')
     // debug('Matched tags', tags) // Verbose
     // debug('Binds with dynamic templates', bindsWithTemplates) // Verbose
-    
+
     // Reversing prevents mismatched tag indexes when caching the template
     bindsWithTemplates.reverse()
 
     // Extract dynamic templates
-    bindsWithTemplates.forEach( bind => extractTemplate(bind, tags, templateRef) )
+    // bindsWithTemplates.forEach( bind => extractTemplate(bind, tags, templateRef) )
+    bindsWithTemplates.forEach(bind => {
+        console.log('++++++', { template, bind, tags })
+        extractTemplate(bind, tags, templateRef)
+    })
 
     return templateRef.template
 }
@@ -119,39 +127,42 @@ function extractTemplate(bind: HtmlTagMatch, tags: HtmlTagMatch[], templateRef: 
         ci: number, // Closing index
         ti: number // Template index
 
-    while(true) {
-        
+    console.log('++++++', {tags})
+
+    while (true) {
+
         // Extract first tag and add or remove from queue if tag is starting or closing tag
         tag = queue.shift()
 
         // Stack open tags
-        if ( tag.isOpenTag && tag.isSingletone === false ) stack.push(tag)
-        
+        if (tag.isOpenTag && tag.isSingletone === false) stack.push(tag)
+
         // Unstack closed pairs
-        if ( tag.isOpenTag === false ) {
-            
+        if (tag.isOpenTag === false) {
+
             // Unstack unclosed tags (browsers autoclose them)
             // <a><b><c></b></a> - c is ignored
-            prev = stack[stack.length-1]
+            prev = stack[stack.length - 1]
             while (prev && tag.tagName !== prev.tagName) {
                 stack.pop()
-                prev = stack[stack.length-1]
+                prev = stack[stack.length - 1]
                 // debug('- Removed unclosed tag', prev.tagName) // Verbose
             }
 
             // Unstack closed pairs
             stack.pop()
             // prev && debug('- Removed closed pair', prev.tagName, `/` + tag.tagName) // Verbose
-            
+
         }
 
         // Debug
         // debug((tag && tag.isOpenTag && tag.isOpenTag === true ? '' : '/') + tag.tagName, '-', printStackedXpath(stack), queue.length) // Verbose
+        console.log((tag && tag.isOpenTag && tag.isOpenTag === true ? '' : '/') + tag.tagName, '-', printStackedXpath(stack), queue.length) // Verbose
 
         // Closing tag matched
         if (stack.length === 0) {
             closing = tag
-            
+
             // Template
             dynamicTemplate = template.substring(bind.index, closing.index - closing.tag.length)
             // debug('Dynamic template \n', dynamicTemplate) // Verbose
@@ -162,23 +173,17 @@ function extractTemplate(bind: HtmlTagMatch, tags: HtmlTagMatch[], templateRef: 
             ci = closing.index - closing.tag.length //+ indexOffset
             ti = templates.length - 1 //+ indexOffset
             templateRef.template = `${template.substring(0, oi)} tpl="${ti}">${template.substring(ci)}`
-            
+
             // debug('Cleaned up template \n', templateRef.template) // Verbose
+            console.log('++++++Cleaned up template \n', templateRef.template) // Verbose
             // debug('Opening tag', bind) // Verbose
             // debug('Closing tag', closing) // Verbose
 
             break
         }
-        
+
     }
 }
-
-// Debug // DEPRECATE (maybe)
-// function printStackedXpath(stack: HtmlTagMatch[]) {
-//     let log = ''
-//     stack.forEach(tag => log += tag.tagName + ' ')
-//     return log
-// }
 
 /**
  * A mutation observer is scanning for added and removed elements
@@ -205,13 +210,13 @@ function autoBindUnbind(): void {
                         let allNodes = [], collection = node.getElementsByTagName("*")
                         allNodes.push(node) // Just in case
                         for (let n of collection) allNodes.push(n)
-                        
+
                         // debug('All nodes', allNodes) // Verbose
-                        allNodes.forEach((n: any) => initDataBinds(n) )
-                    } 
+                        allNodes.forEach((n: any) => initDataBinds(n))
+                    }
                 })
             }
-    
+
             // Detect removed nodes with custom event listeners
             if (mutation.removedNodes) {
                 let nodes = Array.from(mutation.removedNodes)
@@ -221,13 +226,13 @@ function autoBindUnbind(): void {
                         let allNodes = [], collection = node.getElementsByTagName("*")
                         allNodes.push(node) // Just in case
                         for (let n of collection) allNodes.push(n)
-                        
+
                         // debug('All nodes', allNodes) // Ultra verbose
                         allNodes.forEach((n: any) => {
                             removeEventListeners(n)
                             removeSubscriptions(n)
                         })
-                    } 
+                    }
                 })
             }
         })
@@ -244,18 +249,18 @@ function autoBindUnbind(): void {
  * The first node that is a web component in the hieratchy chain is used as the parent context
  */
 function initDataBinds(child: HTMLElement): void {
-    
+
     let attributes: Attr[] = Array.from(child.attributes)
     attributes.forEach(attr => {
         if (isAttrDataBind(attr)) {
             let parent = getParentWebCmpContext(child)
             // debug('Parent web component', {parent, child}) // Ultra verbose
             if (parent) {
-                
+
                 // Block autobind via attribute (for testing purposes)
                 if (parent.hasAttribute('no-auto-bind')) return
 
-                debug('Init data binds', {parent, child})
+                debug('Init data binds', { parent, child })
                 nanoBind(parent, child)
             }
             else console.warn('Cannot find parent for data bind', child)
@@ -266,7 +271,7 @@ function initDataBinds(child: HTMLElement): void {
 /** Removes listeners that were setup by the data binds */
 function removeEventListeners(node: HTMLElement): void {
     let listeners: Listeners = (<any>node)._nano_listeners
-    
+
     // Ignore non data bind elements
     if (!listeners) return
     let tagName: string = node.tagName.toLowerCase()
@@ -283,7 +288,7 @@ function removeEventListeners(node: HTMLElement): void {
 /** Removes observables that were setup by the data binds */
 function removeSubscriptions(node: HTMLElement): void {
     let subscriptions: any = (<any>node)._nano_subscriptions
-    
+
     // Ignore non data bind elements
     if (!subscriptions) return
     let tagName: string = node.tagName.toLowerCase()
@@ -295,4 +300,11 @@ function removeSubscriptions(node: HTMLElement): void {
         subscription.unsubscribe()
         // debug(`Removed subscription "${id}" from "<${tagName}>"`) // Verbose
     }
+}
+
+// Debug // DEPRECATE (maybe)
+function printStackedXpath(stack: HtmlTagMatch[]) {
+    let log = ''
+    stack.forEach(tag => log += tag.tagName + ' ')
+    return log
 }
