@@ -2,10 +2,6 @@ import { DataBind, Changes } from '../interfaces/nano-data-binding'
 import * as utils from './utils'
 // import { nanoBind } from './manual-selectors' // DEPRECATED
 
-// Debug
-let Debug = require('debug'), debug = Debug ? Debug('ndb:Parser') : () => {}
-debug('Instantiate Parser')
-
 /**
  * Each data bind rule has an expected behavior. 
  * Most of these behaviors are inspired by the Angualr framework.
@@ -20,12 +16,9 @@ debug('Instantiate Parser')
  *                ALl the previous rules could be implemented using this one.     
  */
 
-/**
- * Parse templates provided by the FOR rule
- * Templates might contain custom attributes, text or multiple elements. 
- * That's why caching only the tag name ofthe iterated element is not wnough.
- */
-// let parser = new DOMParser() // DEPRECATED does not fulfill the expected role of generating dom elements
+ // Debug
+let Debug = require('debug'), debug = Debug ? Debug('ndb:Parser') : () => {}
+debug('Instantiate Parser')
 
 /**
  * Binds the values defined in the descriptor object to the child element
