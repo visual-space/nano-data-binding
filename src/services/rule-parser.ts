@@ -1,6 +1,6 @@
 import { DataBind, Changes } from '../interfaces/nano-data-binding'
 import * as utils from './utils'
-import { nanoBind } from './selectors'
+// import { nanoBind } from './manual-selectors' // DEPRECATED
 
 // Debug
 let Debug = require('debug'), debug = Debug ? Debug('ndb:Parser') : () => {}
@@ -92,7 +92,7 @@ export function setupIfDataBindPlaceholder(dataBind: DataBind): void {
 
 /** Toggle the  an element using a comment node as a placeholder */
 export function toggleIfDataBindElement(dataBind: DataBind): void {
-    let { child, placeholder, parent } = dataBind,
+    let { child, placeholder } = dataBind, // , parent
         isVisible: boolean,
         ifElement: HTMLElement
 
@@ -122,8 +122,8 @@ export function toggleIfDataBindElement(dataBind: DataBind): void {
         // Reuse data bind object (It is kept alive by the placeholder comment)
         dataBind.child = ifElement
 
-        // Bind again, other data binds might actuall need to run again
-        nanoBind(parent, ifElement)
+        // Bind again, other data binds might need to execute again
+        // nanoBind(parent, ifElement) // DEPRECATED - it is already happening from the global mutation observable
 
     } else if (isVisible === false) {
         debug('Remove child')

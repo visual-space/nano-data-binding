@@ -1,4 +1,4 @@
-import { nanoBind, nanoBindAll } from '../selectors'
+import { nanoBind, nanoBindAll } from '../manual-selectors'
 import { setupTemplate, dispatchEvent, id } from '../../mocks/specs.utils'
 import { MockWebCmp } from '../../mocks/nano-data-bind.mock'
 

@@ -4,7 +4,7 @@ import { Listeners, HtmlTagMatch, TemplateRef } from '../interfaces/nano-data-bi
 // Services
 // import { nanoBind } from './selectors' // DEPRECATED
 import { initDataBinds } from './bind'
-import { templates } from './cache'
+import { templates } from './template-cache'
 import { isAttrDataBind, getParentWebCmpContext, getRule } from './utils'
 
 // Constants
@@ -32,6 +32,8 @@ export function setupAutoBindUnbind(): void {
     // Bind
     autoBindUnbind()
 }
+
+// ====== PREPROCESSING TEMPLATES ======
 
 /** 
  * <!> Sets up DOM API wrapper methods that intercept templates for pre-processing before attaching to DOM.
@@ -177,6 +179,8 @@ function extractTemplate(bind: HtmlTagMatch, tags: HtmlTagMatch[], templateRef: 
     }
 }
 
+// ====== AUTO BIND, UNBIND ======
+
 /**
  * A mutation observer is scanning for added and removed elements
  * <!> Automatically bind elements with nano data binds.
@@ -196,14 +200,17 @@ function autoBindUnbind(): void {
             // Detect new nodes with data bind attributes
             if (mutation.addedNodes) {
                 let nodes = Array.from(mutation.addedNodes)
-                nodes.forEach((node: any) => { // <!> any by intent
+                nodes.forEach((node: any) => { // <!> any used intentionaly
                     // debug('Added node', node.tagName, node.classList) // Ultra verbose
                     if (node.tagName) {
-                        let allNodes = [], collection = node.getElementsByTagName("*")
-                        allNodes.push(node) // Just in case
-                        for (let n of collection) allNodes.push(n)
+                        let allNodes = [], 
+                            collection = node.getElementsByTagName("*")
 
+                        // Check all nodes
+                        allNodes.push(node)
+                        for (let n of collection) allNodes.push(n)
                         // debug('All nodes', allNodes) // Verbose
+
                         allNodes.forEach((n: any) => initOnlyDataBinds(n))
                     }
                 })
@@ -215,11 +222,14 @@ function autoBindUnbind(): void {
                 nodes.forEach((node: any) => { // <!> any by intent
                     // debug('Added node', node.tagName, node.classList) // Ultra verbose
                     if (node.tagName) {
-                        let allNodes = [], collection = node.getElementsByTagName("*")
-                        allNodes.push(node) // Just in case
-                        for (let n of collection) allNodes.push(n)
+                        let allNodes = [], 
+                            collection = node.getElementsByTagName("*")
 
+                        // Check all nodes
+                        allNodes.push(node)
+                        for (let n of collection) allNodes.push(n)
                         // debug('All nodes', allNodes) // Ultra verbose
+
                         allNodes.forEach((n: any) => {
                             removeEventListeners(n)
                             removeSubscriptions(n)
