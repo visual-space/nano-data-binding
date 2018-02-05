@@ -10,67 +10,70 @@ import { templates } from './cache'
 let Debug = require('debug'), debug = Debug ? Debug('ndb:Bind') : () => {}
 debug('Instantiate Bind')
 
-/** 
- * ====== BIND ======
- * After selecting the target elements we need to bind the parent and the children contexts.
- * This is the core of the entire system
- * 
- * <!> Several operations are performed: 
- *     // Copying references to methods so that they can be invoked by inline event handlers such ast `onclick`.  // DEPRECATED
- *     Building the `dataBind` descriptor object that is used to transfer information between the various stages of the process.
- *     Setting up DOM caches for the rules that require them (IF and FOR).
- *     Whatching for changes in the source values (context properties, events, observables).
- *     If a method is not defined in the child context than it is looked-up in the parent context and if found the reference is copied.
- *     Reacting to any changed values by executing a certain behavior for each rule.
- * 
- * <!> The original approach was to copy references from parent context to the child context.
- *     This approach had a long list a drawbacks.
- *     - Possiblity of collisions between members of parent and child contexts.
- *     - Members added to the parent context at runtime are ignored.
- *     - References to primitives form the parent context were copied and then remaind stale`.
- *     - Setters and getters could not by copied, it was necessary to use `Object.defineProperty()`.
- */
-
 /**
- * <!> The event handler will be evaluated in the context of the child element
- * <!> All event listeners are automatically cleaned up when the component is destroyed
+ * <!> Data binding requires several steps: 
+ *     Building the `dataBind` descriptor object that is used to transfer information between the various stages of the process.
+ *     Caching dynamyc templates- `If` and `For` rules reuse the cached templates.
+ *     Setting up change detection for the source values (parent context properties, events, observables).
+ *     Triggering the data bind behavior when the source value changes.
+ *     All data bound methods are evaluated in the context of the child element.
+ *     If a method is not defined in the child context than it is looked-up in the parent context and if found the reference is copied.
+ *     All event listeners and subscriptions are returned for automatical clean-up when the component is destroyed.
+ * REFACTOR: Current design has a big flaw. Multiple data binds cannot be stored for the same element. If, For and Data cannot work together.
  */
-export function initDataBinds(parent: HTMLElement, children: HTMLElement[]): void { 
+export function initDataBinds(parent: HTMLElement, children: HTMLElement[]): void {
 
     children.forEach(child => {
 
-        // Prevent double init of the same element
-        if ((<any>child)._nano_dataBind) {
-            if (parent.hasAttribute('no-auto-bind')) {
-                debug('Data bind already initialised', {dataBind: this._nano_dataBind})
-            } else {
-                // console.warn('Data bind already initialised', {dataBind: this._nano_dataBind}) // REVIEW, seems to fire more than needed
-            }
-            return
-        }
+                                // Prevent double init of the same element
+                                // When an if element is rendered the second time the data bind attributes might trigger the init process again.
+                                // DEPRECATE - This might be removed if data bind attributes are removed after init.
+                                if ((<any>child)._nano_dataBind) {
+                                    if (parent.hasAttribute('no-auto-bind')) {
+                                        debug('Data bind already initialised', {dataBind: this._nano_dataBind})
+                                    } else {
+                                        // console.warn('Data bind already initialised', {dataBind: this._nano_dataBind}) // REVIEW, seems to fire more than needed
+                                    }
+                                    return
+                                }
 
-        let attributes: Attr[] = Array.from(child.attributes),
-            dataBind: DataBind = <DataBind>{ parent, child },
-            listeners: Listeners = {},
-            subscriptions: Subscriptions = {},
-            hostEl: Node, // child or in the case of the IF rule the placehodler comment
-            // TODO, find a better way, this approach is not simple and easy. The other rules may execute first.
-            hasPlaceholder: boolean // If placehodler is already defined, than skip the data bind process
+        // Collect all child element attributes and scan them later for data bind declarations
+        let attributes: Attr[] = Array.from(child.attributes)
+
+        // All methods will use the data binds descriptions in various ways.
+        // The parent elemenet contains the data sources, the child declares the data binds.
+        let dataBind: DataBind = <DataBind>{ parent, child }
+        
+        // All listeners and subscriptions will be cleaned automatically
+        let listeners: Listeners = {},
+            subscriptions: Subscriptions = {}
+
+        // The child element that declares the data bind. 
+        // In the case of the "if" and "for" rules the placehodler comment is used to maintain the right position.
+        let hostEl: Node, 
+
+                                    // DEPRECATE
+                                    // TODO, find a better way, this approach is not simple and easy. The other rules may execute first.
+                                    hasPlaceholder: boolean // If placehodler is already defined, than skip the data bind process
 
         attributes.forEach(attr => {
 
             // Ignore other attributes
             if (!utils.isAttrDataBind(attr)) {return}
             
-            // Parse
-            Object.assign(dataBind, getDataBindFromAttribute(attr))
+            // Parse and cache
+            Object.assign(dataBind, getDataBindDescriptor(attr))
             debug('Data bind', {dataBind})
 
+            // Cache attribute
+            dataBind.attribute = attr
+
             // Cache
-            hasPlaceholder = cacheInitialState(dataBind)
-            if (hasPlaceholder === true) return // Prevent double init of IF rule
+                                    hasPlaceholder = cacheInitialState(dataBind)
+                                    if (hasPlaceholder === true) return // Prevent double init of IF rule
             hostEl = dataBind.rule === RULE.If ? dataBind.placeholder : dataBind.child
             // debug('Host element', {hostEl}) // Verbose
+
             ;(hostEl as any)._nano_dataBind = dataBind
 
             // Watch
@@ -80,8 +83,16 @@ export function initDataBinds(parent: HTMLElement, children: HTMLElement[]): voi
 
         })
 
-        if (hasPlaceholder === true) return // Prevent double init of IF rule
+                                // DEPRECATE
+                                // Prevent double init of IF rule
+                                if (hasPlaceholder === true) return 
+
+        // Ignore elements generated by the IF rule
+        // REVIEW - This condition should not be necessary
+        if (!hostEl) return
+
         // <!> Provide an easy method for removing all custom listeners when the child element is destroyed
+        // "If" and "for" rules avoid trigering unwanted unsubscribe actions by caching the listeners and subs in the placeholder comment.
         ;(hostEl as any)._nano_listeners = listeners
         ;(hostEl as any)._nano_subscriptions = subscriptions
 
@@ -89,52 +100,55 @@ export function initDataBinds(parent: HTMLElement, children: HTMLElement[]): voi
 
 }
 
-export function getDataBindFromAttribute (attribute: Attr): DataBind {
+/** Complete description of the data bind */
+export function getDataBindDescriptor (attribute: Attr): DataBind {
     let dataBind: DataBind = <DataBind>{
         origin: utils.getDataBindOrigin(attribute),
         rule: utils.getDataBindRule(attribute),
         source: utils.getDataBindSource(attribute),
         code: utils.getDataBindCode(attribute)
     }
-    // debug('Get data bind from attribute', {dataBind}) // Verbose
+    // debug('Get data bind descriptor', {dataBind}) // Verbose
     return dataBind
 }
 
-/**
- * IF rule sets up a placeholder comment
- * FOR rule cached the initial template
- */
-export function cacheInitialState (dataBind: DataBind): boolean {
-    debug('Cache initial state', { dataBind })
-    let { child } = dataBind,
-        placeholderIndex: number, // Used to identify the position of the targeted IF element and then find the placeholder comment
-        placeholder: Node, // A placeholder comment will be present if the data bind was already initialised
-        isComment: boolean // Double check that the placeholder is the right node
-    
-    if (dataBind.rule === RULE.If) {
+                        /**
+                         * IF rule sets up a placeholder comment
+                         * FOR rule cached the initial template
+                         * DEPRECATE
+                         */
+                        export function cacheInitialState (dataBind: DataBind): boolean {
+                            debug('Cache initial state', { dataBind })
+                            let { child } = dataBind,
+                                placeholderIndex: number, // Used to identify the position of the targeted IF element and then find the placeholder comment
+                                placeholder: Node, // A placeholder comment will be present if the data bind was already initialised
+                                isComment: boolean // Double check that the placeholder is the right node
+                            
+                            if (dataBind.rule === RULE.If) {
 
-        // n-if uses a placehodler comment that will control the visibility of the target/child element
-        placeholderIndex = Array.prototype.indexOf.call(child.parentElement.childNodes, child) - 1
-        placeholder = child.parentElement.childNodes[placeholderIndex]
-        isComment = placeholder.nodeType === 8
-        debug('Recover IF data bind placeholder', { isComment, placeholderIndex, placeholder })
-            
-        // Create placeholder only once
-        if (isComment !== true) parser.setupIfDataBindPlaceholder(dataBind)
+                                // "If" uses a placehodler comment that will control the visibility of the target/child element
+                                placeholderIndex = Array.prototype.indexOf.call(child.parentElement.childNodes, child) - 1
+                                placeholder = child.parentElement.childNodes[placeholderIndex]
+                                isComment = placeholder.nodeType === 8
+                                debug('Recover IF data bind placeholder', { isComment, placeholderIndex, placeholder })
+                                    
+                                // Create placeholder only once
+                                if (isComment !== true) parser.setupIfDataBindPlaceholder(dataBind)
 
-    } else if (dataBind.rule === RULE.For) {
-        
-        // Cache original html for reuse when the list is updated
-        let tplId = +Array.from(child.attributes).find( attr => attr.nodeName === `tpl` ).nodeValue
-        // debug(`Cached template (retrieved after preprocessing)`, tplId, templates[tplId]) // Verbose
-        dataBind.template = templates[tplId]
-        // dataBind.template = child.innerHTML // DEPRECATE Retrieved from the cached templates (after preprocessing)
-        // child.innerHTML = '' // DEPRECATE Already done in preprocessing
+                            } else if (dataBind.rule === RULE.For) {
+                                
+                                // Cache original html for reuse when the list is updated
+                                let tplId = +Array.from(child.attributes).find( attr => attr.nodeName === `tpl` ).nodeValue
+                                // debug(`Cached template (retrieved after preprocessing)`, tplId, templates[tplId]) // Verbose
 
-    }
+                                dataBind.template = templates[tplId]
+                                // dataBind.template = child.innerHTML // DEPRECATE Retrieved from the cached templates (after preprocessing)
+                                // child.innerHTML = '' // DEPRECATE Already done in preprocessing
 
-    return isComment
-}
+                            }
+
+                            return isComment
+                        }
 
 // TODO Break in smaller parts
 export function watchForValueChanges (dataBind: DataBind): Listeners | Subscriptions {
@@ -239,10 +253,6 @@ export function evaluateDataBind(dataBind: DataBind): void {
         case RULE.Class:
             parser.addCssClassesToElem(dataBind)
             break
-
-        // case RULE.Class:
-        //     parser.addCssClassesToElem(dataBind)
-        //     break
 
         case RULE.Call:
             parser.callChildContextMethod(dataBind)

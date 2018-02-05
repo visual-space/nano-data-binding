@@ -7,7 +7,6 @@ let Debug = require('debug'), debug = Debug ? Debug('ndb:Parser') : () => {}
 debug('Instantiate Parser')
 
 /**
- * ====== PARSER RULES / BEHAVIORS ======
  * Each data bind rule has an expected behavior. 
  * Most of these behaviors are inspired by the Angualr framework.
  * These data binds have been tailored for taking advantage of the web components API.
@@ -62,13 +61,17 @@ export function bindDataToElem(dataBind: DataBind): void {
  * This simplifies a lot of the work needed to show/hide the element. However it breaks the pattern of the other rules.
  */
 export function setupIfDataBindPlaceholder(dataBind: DataBind): void {
-    let { child } = dataBind, //, origin, source
+    let { child, attribute } = dataBind,
         placeholder: Comment
 
         // Setup placeholder comment 
         placeholder = document.createComment('')
         dataBind.placeholder = placeholder
         debug('Setup IF rule placeholder', { dataBind })
+
+        // Remove data binds
+        // Rendering the if data bind won`t trigger new data bind initialisations
+        child.removeAttribute(attribute.nodeName)
     
         // Hidden element clone
         ;(placeholder as any)._nano_originalElement = child.cloneNode()

@@ -7,6 +7,9 @@
  */
 export interface DataBind {
 
+    // The original attribute
+    attribute: Attr
+
     // Custom event (optional)
     // If the origin of the data bind is an custom event than this property is defined
     event?: CustomEvent

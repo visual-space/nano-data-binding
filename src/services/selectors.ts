@@ -1,18 +1,22 @@
 import { StringOrHTMLElement } from '../interfaces/nano-data-binding'
 import { initDataBinds } from './bind'
 
+/**
+ * In normal operation mode all data binds are initialised automatically.
+ * It is recommended to avoid manual initialisation
+ * In testing environment, in certain situations it is necesarry to trigger the data binds manually.
+ * This is the only reason we still ahve DOM query selectors defined
+ * DEPRECATE - Manual selectors are no longer used and are discouraged
+ */
+
 // Debug
 let Debug = require('debug'), debug = Debug ? Debug('ndb:Selectors') : () => {}
 debug('Instantiate Selectors')
 
-/**
- * ====== SELECTORS ======
- * Manual or automatic, all data binds start with selecting the DOM elements that exhibit data biond syntax
- */
-
 /** 
- * Creates references in the child context to all the methods in the parent context, including the inherited ones from abstract classes 
- * Accepts both css selectors and DOM elements
+ * Takes a css selector or a DOM element reference and it a triggers the data bind init procedure.
+ * Still useful for testing environments.
+ * DEPRECATE - Extra validation is not necessary for running tests.
  */
 export function nanoBind(parent: HTMLElement, ...selectors: StringOrHTMLElement[]): HTMLElement[] {
     debug('Nano bind', { parent, selectors })
@@ -58,7 +62,7 @@ export function nanoBind(parent: HTMLElement, ...selectors: StringOrHTMLElement[
         children = children.filter(child => child !== null)
 
     } else if (selAreElements) {
-        // Just reuse the params under chilren name
+        // Just reuse the params under children name
         children = [...selectors as HTMLElement[]]
     }
 
@@ -67,9 +71,9 @@ export function nanoBind(parent: HTMLElement, ...selectors: StringOrHTMLElement[
 }
 
 /** 
- * Creates references in the child context to all the methods in the parent context, including the inherited ones from abstract classes 
- * Accepts onöy css selectors and calls `querySelectorAll()`
+ * Accepts onöy css selectors and calls `querySelectorAll()`.
  * `nanoBindAll()` does not accept HTMLElement selectors. Use `nanoBind()` instead.
+ * DEPRECATE - No longer useful
  */
 export function nanoBindAll(parent: HTMLElement, ...selectors: string[]): HTMLElement[] {
     debug('Nano bind', { parent, selectors })

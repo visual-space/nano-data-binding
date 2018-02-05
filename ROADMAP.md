@@ -4,6 +4,9 @@
 * Multiple data bind inputs. Currently only one is possible with current notation. This can be achieved by using attirbute normalisation rules. Even the DOM API wrappers can be useful somehow for this task.
 
 # Other
+* Improved data binding tracing of the tree. Data should be easily acccessed via `_nano_inspectDataBinds()`.
+* Fully deprecate manual data binds.
+* Remove all traces of syntax from the final dom elements. It is confusing to read for unexperienced devs.
 * The same problem of initial constructor execution that was found in the FOR rule is also happening for the IF rule. The same fix needs to be applied also for the IF rule. 
 * Remove the manual initialisation of data binds all together. Manual data binds can bypass the rule of finding the right parent and then the templates get a whole lot harder to read.
 * Security - Interpolation automatically escapes any HTML. This helps to protect us from malicious attacks such as XSS by sanitizing any data that may contain script tags. 

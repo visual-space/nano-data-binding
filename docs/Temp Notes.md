@@ -1,3 +1,4 @@
+<!-- 
 **THe library is still work in progress. For the moment a true documentation does not exist. These are notes that will be used later for writting the documentation.**
 
 ## No real private in typescript
@@ -20,3 +21,13 @@ Chaining properties in multiple levels from the same web component is possible. 
 
 ## Avoid caching references 
 Caching references of `n-if` elements will prevent them from being released and destroyed. The script does not intend to provide additional API that can safely get references without interfering with `n-if`. The developers need to be aware of this limitation in order to keep this script lightweight. Querying at runtime for the required `n-if` element is enough to prevent this obstruction of the element removal.
+
+In the initial development phase the data binds were started manually. This was prone to error.
+
+ * <!> The original approach was to copy references from parent context to the child context.
+ *     This approach had a long list a drawbacks.
+ *     - Possiblity of collisions between members of parent and child contexts.
+ *     - Members added to the parent context at runtime are ignored.
+ *     - References to primitives form the parent context were copied and then remaind stale`.
+ *     - Setters and getters could not by copied, it was necessary to use `Object.defineProperty()`. 
+ -->

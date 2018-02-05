@@ -1,6 +1,9 @@
 # 0.0.11
-* For data bind - Instead of using a container, use a comment placeholder and repeat the entire tag.
 * Try catch erorrs from preprocessing invalid templates. They typically throw hard to debug errors.
+* Cleaned up code and updated comments.
+* Removed data binds attributes after init. Prevents double initialisation for the "if" and "for" rules.
+* For data bind - Instead of using a container, use a comment placeholder and repeat the entire tag.
+* Current design has a big flaw. Multiple data binds cannot be stored for the same element. If, For and Data cannot work together.
 
 # 0.0.10
 * FOR rule - Fix bad timing of constructors

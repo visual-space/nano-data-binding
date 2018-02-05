@@ -2,33 +2,27 @@
 import { Listeners, HtmlTagMatch, TemplateRef } from '../interfaces/nano-data-binding'
 
 // Services
-import { nanoBind } from './selectors'
+// import { nanoBind } from './selectors' // DEPRECATED
+import { initDataBinds } from './bind'
 import { templates } from './cache'
 import { isAttrDataBind, getParentWebCmpContext, getRule } from './utils'
 
 // Constants
 import { HAS_DATA_BIND, SINGLETONE_TAG, CLOSE_TAG, HTML_TAG, TAG_NAME } from '../constants/nano-data-binding.const'
 
+/**
+ * Data binds are initialised automatically just by typing them in templates.
+ * <!> A mutation observer scans all new dom elements for data binds and triggers theyr initialisation.
+ *     The parent context (source values) is detected by searching for the first web component in the ancestors hierarchy.
+ *     Synchronous code will not see the data bind executed imeditatly due to the 'end-of-microtask' timing model
+ *     `_nano_no-auto-init` flag can be used to disable the autobind behavior for automatic testing purposes.
+ */
+
 // Debug
 let Debug = require('debug'), debug = Debug ? Debug('ndb:AutoInit') : () => { }
 debug('Instantiate AutoInit')
 
-/**
- * ====== SELF INIT ======
- * Automatically init nano data bind syntax.
- * By default, the first web component encountered in the ancestors hierarchy is selected as the parent context.
- * `_nano_no-auto-init` flag can be used to disable the autobind behavior for automatic testing purposes.
- * <!> Data binds are initialised by a mutation observer.
- *     As a side effect this means that synchronous code will not see the change made in template imediatly due to the 'end-of-microtask' timing model
- *     IN case you really need to start a data bind imediatly then initialise it manually using `nanoBind()`
- */
-
-/**
- * <!> Sets up DOM API wrapper methods that intercept templates for pre-processing before attaching to DOM.
- *     The preprocessing step is needed in order to prevent executing constructors of templates before they are actually requested via data binding.
- * <!> Sets up mutation observalbe that triggers the data binds.
- *     So far, the best option to keep minimal 
- */
+/** Start watching for added and removed elements */
 export function setupAutoBindUnbind(): void {
     debug('Setup auto bind, unbind')
 
@@ -39,7 +33,12 @@ export function setupAutoBindUnbind(): void {
     autoBindUnbind()
 }
 
-/** Wrap DOM API mezhods used to add DOM elements in the document */
+/** 
+ * <!> Sets up DOM API wrapper methods that intercept templates for pre-processing before attaching to DOM.
+ *     The preprocessing step prevents initilisation of dom elements before the data bind is activated with non-empty values.
+ *     This is achieved by removing the dynamic parts from the html template before the browser parses them. 
+ * <!> Wraps DOM API mezhods used to add DOM elements in the document 
+ */
 function templatePreprocessing(): void {
     debug('Template preprocessing')
 
@@ -66,7 +65,7 @@ export function cacheDynamicTemplates(template: string) {
     // debug('Cache dynamic templates') // Verbose
     let tags: HtmlTagMatch[] = <HtmlTagMatch[]>[],
         bindsWithTemplates: HtmlTagMatch[],
-        templateRef: TemplateRef = { template }, // Easy access via reference
+        templateRef: TemplateRef = { template }, // Easy access via reference between multiple iterations
         match, tag, _tagName, tagName
 
     // Match all tags
@@ -74,8 +73,8 @@ export function cacheDynamicTemplates(template: string) {
         tag = match[0]
 
         // Tag name
-        let $TAG_NAME = new RegExp(TAG_NAME, `gm`)
-        while (_tagName = $TAG_NAME.exec(tag)) {
+        let _TAG_NAME = new RegExp(TAG_NAME, `gm`)
+        while (_tagName = _TAG_NAME.exec(tag)) { // TODO better code, this is only one loop always
             tagName = _tagName[1]
         }
 
@@ -102,10 +101,7 @@ export function cacheDynamicTemplates(template: string) {
 
     // Extract dynamic templates
     // bindsWithTemplates.forEach( bind => extractTemplate(bind, tags, templateRef) )
-    bindsWithTemplates.forEach(bind => {
-        console.log('++++++', { template, bind, tags })
-        extractTemplate(bind, tags, templateRef)
-    })
+    bindsWithTemplates.forEach(bind => extractTemplate(bind, tags, templateRef) )
 
     return templateRef.template
 }
@@ -126,8 +122,6 @@ function extractTemplate(bind: HtmlTagMatch, tags: HtmlTagMatch[], templateRef: 
         oi: number, // Opening index
         ci: number, // Closing index
         ti: number // Template index
-
-    console.log('++++++', {tags})
 
     while (true) {
 
@@ -157,7 +151,6 @@ function extractTemplate(bind: HtmlTagMatch, tags: HtmlTagMatch[], templateRef: 
 
         // Debug
         // debug((tag && tag.isOpenTag && tag.isOpenTag === true ? '' : '/') + tag.tagName, '-', printStackedXpath(stack), queue.length) // Verbose
-        console.log((tag && tag.isOpenTag && tag.isOpenTag === true ? '' : '/') + tag.tagName, '-', printStackedXpath(stack), queue.length) // Verbose
 
         // Closing tag matched
         if (stack.length === 0) {
@@ -175,7 +168,6 @@ function extractTemplate(bind: HtmlTagMatch, tags: HtmlTagMatch[], templateRef: 
             templateRef.template = `${template.substring(0, oi)} tpl="${ti}">${template.substring(ci)}`
 
             // debug('Cleaned up template \n', templateRef.template) // Verbose
-            console.log('++++++Cleaned up template \n', templateRef.template) // Verbose
             // debug('Opening tag', bind) // Verbose
             // debug('Closing tag', closing) // Verbose
 
@@ -212,7 +204,7 @@ function autoBindUnbind(): void {
                         for (let n of collection) allNodes.push(n)
 
                         // debug('All nodes', allNodes) // Verbose
-                        allNodes.forEach((n: any) => initDataBinds(n))
+                        allNodes.forEach((n: any) => initOnlyDataBinds(n))
                     }
                 })
             }
@@ -248,7 +240,7 @@ function autoBindUnbind(): void {
  * Scans for nano data bind syntax and initilises it 
  * The first node that is a web component in the hieratchy chain is used as the parent context
  */
-function initDataBinds(child: HTMLElement): void {
+function initOnlyDataBinds(child: HTMLElement): void {
 
     let attributes: Attr[] = Array.from(child.attributes)
     attributes.forEach(attr => {
@@ -261,7 +253,7 @@ function initDataBinds(child: HTMLElement): void {
                 if (parent.hasAttribute('no-auto-bind')) return
 
                 debug('Init data binds', { parent, child })
-                nanoBind(parent, child)
+                initDataBinds(parent, [child])
             }
             else console.warn('Cannot find parent for data bind', child)
         }
@@ -302,9 +294,9 @@ function removeSubscriptions(node: HTMLElement): void {
     }
 }
 
-// Debug // DEPRECATE (maybe)
-function printStackedXpath(stack: HtmlTagMatch[]) {
-    let log = ''
-    stack.forEach(tag => log += tag.tagName + ' ')
-    return log
-}
+// // Debug // DEPRECATE (maybe)
+// function printStackedXpath(stack: HtmlTagMatch[]) {
+//     let log = ''
+//     stack.forEach(tag => log += tag.tagName + ' ')
+//     return log
+// }
