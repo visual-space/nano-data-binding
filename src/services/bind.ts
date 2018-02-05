@@ -26,8 +26,8 @@ export function initDataBinds(parent: HTMLElement, children: HTMLElement[]): voi
 
     children.forEach(child => {
         let attributes: Attr[] = Array.from(child.attributes),
-            dataBind: DataBind = <DataBind>{ parent, child },
-            cacheHostEl: Node,
+            dataBind: DataBind,
+            cacheHostEl: any, // Node
             listeners: Listeners = {},
             subscriptions: Subscriptions = {}
 
@@ -35,6 +35,8 @@ export function initDataBinds(parent: HTMLElement, children: HTMLElement[]): voi
 
             // Ignore other attributes
             if (!utils.isAttrDataBind(attr)) {return}
+
+            dataBind = <DataBind>{ parent, child }
             
             // Parse and cache
             Object.assign(dataBind, getDataBindDescriptor(attr))
@@ -54,10 +56,16 @@ export function initDataBinds(parent: HTMLElement, children: HTMLElement[]): voi
                 child.removeAttribute(`tpl`) // Clean-up data bind tags
             }
             
-            cacheHostEl = dataBind.rule === RULE.If ? dataBind.placeholder : dataBind.child
+            // "If" and "for" rules avoid trigering unwanted unsubscribe actions by caching the listeners and subscriptions in the placeholder comment.
+            if (dataBind.rule === RULE.If ) {
+                cacheHostEl = dataBind.placeholder
+            } else {
+                cacheHostEl = dataBind.child
+            }
 
             // Cache data bind for easy inspections
-            ;(cacheHostEl as any)._nano_dataBind = dataBind
+            if (!cacheHostEl._nano_dataBinds) cacheHostEl._nano_dataBinds = []
+            cacheHostEl._nano_dataBinds.push(dataBind)
 
             // Watch source values
             let refs = watchForValueChanges(dataBind)
@@ -66,12 +74,14 @@ export function initDataBinds(parent: HTMLElement, children: HTMLElement[]): voi
             if (dataBind.origin === ORIGIN.Event) Object.assign(listeners, refs)
             if (dataBind.origin === ORIGIN.Observable) Object.assign(subscriptions, refs)
 
-        })
+            // <!> Provide an easy method for removing all custom listeners from all data binds when the child element is destroyed
+            // "If" and "for" rules avoid trigering unwanted unsubscribe actions by caching the listeners and subs in the placeholder comment.
+            if (!cacheHostEl._nano_listeners) cacheHostEl._nano_listeners = {}
+            if (!cacheHostEl._nano_subscriptions) cacheHostEl._nano_subscriptions = {}
+            Object.assign(cacheHostEl._nano_listeners, listeners)
+            Object.assign(cacheHostEl._nano_subscriptions, subscriptions)
 
-        // <!> Provide an easy method for removing all custom listeners when the child element is destroyed
-        // "If" and "for" rules avoid trigering unwanted unsubscribe actions by caching the listeners and subs in the placeholder comment.
-        ;(cacheHostEl as any)._nano_listeners = listeners
-        ;(cacheHostEl as any)._nano_subscriptions = subscriptions
+        })
 
     })
 
