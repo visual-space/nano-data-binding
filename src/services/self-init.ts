@@ -3,7 +3,7 @@ import { Listeners, HtmlTagMatch, TemplateRef } from '../interfaces/nano-data-bi
 
 // Services
 // import { nanoBind } from './selectors' // DEPRECATED
-import { initDataBinds } from './bind'
+import { initElDataBinds } from './bind'
 import { templates } from './template-cache'
 import { isAttrDataBind, getParentWebCmpContext, getRule } from './utils'
 
@@ -263,7 +263,7 @@ function initOnlyDataBinds(child: HTMLElement): void {
                 if (parent.hasAttribute('no-auto-bind')) return
 
                 debug('Init data binds', { parent, child })
-                initDataBinds(parent, [child])
+                initElDataBinds(parent, [child])
             }
             else console.warn('Cannot find parent for data bind', child)
         }

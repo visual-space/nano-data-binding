@@ -3,11 +3,8 @@ import { ORIGIN, RULE } from '../constants/nano-data-binding.const'
 import * as utils from './utils'
 import * as parser from './rule-parser'
 
-// Services
-import { templates } from './template-cache'
-
 // Debug
-let Debug = require('debug'), debug = Debug ? Debug('ndb:Bind') : () => {}
+let Debug = require('debug'), debug = Debug ? Debug('ndb:Bind') : () => { }
 debug('Instantiate Bind')
 
 /**
@@ -22,7 +19,7 @@ debug('Instantiate Bind')
  * <!> The parent elemenet contains the data sources, the child declares the data binds.
  * REFACTOR: Current design has a big flaw. Multiple data binds cannot be stored for the same element. If, For and Data cannot work together.
  */
-export function initDataBinds(parent: HTMLElement, children: HTMLElement[]): void {
+export function initElDataBinds(parent: HTMLElement, children: HTMLElement[]): void {
 
     children.forEach(child => {
         let attributes: Attr[] = Array.from(child.attributes),
@@ -31,33 +28,25 @@ export function initDataBinds(parent: HTMLElement, children: HTMLElement[]): voi
             listeners: Listeners = {},
             subscriptions: Subscriptions = {}
 
-        attributes.forEach(attr => {
+        attributes.forEach(attribute => {
 
-            // Ignore other attributes
-            if (!utils.isAttrDataBind(attr)) {return}
+            // Parse only data bind attributes
+            if (!utils.isAttrDataBind(attribute)) { return }
 
-            dataBind = <DataBind>{ parent, child }
-            
             // Parse and cache
-            Object.assign(dataBind, getDataBindDescriptor(attr))
-            debug('Data bind', {dataBind})
+            dataBind = getDataBindDescriptor(attribute)
+            Object.assign(dataBind, { parent, child, attribute })
+            debug('Data bind', { dataBind })
 
-            // Cache attribute for easy delete after init
-            dataBind.attribute = attr
-
-            // Setup placeholder comment for "if" rule
+            // Custom init for "if" and "for" rules
             if (dataBind.rule === RULE.If) parser.setupIfDataBindPlaceholder(dataBind)
+            if (dataBind.rule === RULE.For) parser.getForDataBindTemplate(dataBind)
 
-            // Cache "for" rule template for reuse when the list is updated.
-            // The dynamic template was initialy intercepted in preprocessing and assigned as an id in the tpl attribute.
-            if (dataBind.rule === RULE.For) {
-                let tplId = +Array.from(child.attributes).find( attr => attr.nodeName === `tpl` ).nodeValue
-                dataBind.template = templates[tplId]
-                child.removeAttribute(`tpl`) // Clean-up data bind tags
-            }
-            
+            // Watch source values
+            let refs = watchForValueChanges(dataBind)
+
             // "If" and "for" rules avoid trigering unwanted unsubscribe actions by caching the listeners and subscriptions in the placeholder comment.
-            if (dataBind.rule === RULE.If ) {
+            if (dataBind.rule === RULE.If) {
                 cacheHostEl = dataBind.placeholder
             } else {
                 cacheHostEl = dataBind.child
@@ -67,15 +56,11 @@ export function initDataBinds(parent: HTMLElement, children: HTMLElement[]): voi
             if (!cacheHostEl._nano_dataBinds) cacheHostEl._nano_dataBinds = []
             cacheHostEl._nano_dataBinds.push(dataBind)
 
-            // Watch source values
-            let refs = watchForValueChanges(dataBind)
-
             // Store listeners and subscriptions until the host element is destroyed.
             if (dataBind.origin === ORIGIN.Event) Object.assign(listeners, refs)
             if (dataBind.origin === ORIGIN.Observable) Object.assign(subscriptions, refs)
 
             // <!> Provide an easy method for removing all custom listeners from all data binds when the child element is destroyed
-            // "If" and "for" rules avoid trigering unwanted unsubscribe actions by caching the listeners and subs in the placeholder comment.
             if (!cacheHostEl._nano_listeners) cacheHostEl._nano_listeners = {}
             if (!cacheHostEl._nano_subscriptions) cacheHostEl._nano_subscriptions = {}
             Object.assign(cacheHostEl._nano_listeners, listeners)
@@ -88,7 +73,7 @@ export function initDataBinds(parent: HTMLElement, children: HTMLElement[]): voi
 }
 
 /** Complete description of the data bind */
-function getDataBindDescriptor (attribute: Attr): DataBind {
+function getDataBindDescriptor(attribute: Attr): DataBind {
     let dataBind: DataBind = <DataBind>{
         origin: utils.getDataBindOrigin(attribute),
         rule: utils.getDataBindRule(attribute),
@@ -104,8 +89,8 @@ function getDataBindDescriptor (attribute: Attr): DataBind {
  * Any exsiting getter setters are wrapped
  * Events are listende and observables are subscribed
  */
-function watchForValueChanges (dataBind: DataBind): Listeners | Subscriptions {
-    debug('Watch for value changes', {dataBind})
+function watchForValueChanges(dataBind: DataBind): Listeners | Subscriptions {
+    debug('Watch for value changes', { dataBind })
     let { origin, parent, source } = dataBind,
         listeners: Listeners = {},
         subscriptions: Subscriptions = {}
@@ -130,7 +115,7 @@ function watchForValueChanges (dataBind: DataBind): Listeners | Subscriptions {
             if (_desc) _set = _desc.set
             else _set = function (val: any) { value = val }
         }
-        
+
         // Original or new get
         _get = proto.__lookupGetter__(source)
         if (!_get) {
@@ -141,7 +126,7 @@ function watchForValueChanges (dataBind: DataBind): Listeners | Subscriptions {
         // Cache original property value
         if ((<any>parent)[source] !== undefined) {
             value = (<any>parent)[source]
-            
+
             // <!> Evaluate data bind with first value
             evaluateDataBind(dataBind)
         }
@@ -154,7 +139,7 @@ function watchForValueChanges (dataBind: DataBind): Listeners | Subscriptions {
         get = () => { return _get.call(parent) }
 
         // Bind
-        desc = { set , get }
+        desc = { set, get }
         Object.defineProperty(parent, source, desc)
 
     } else if (origin === ORIGIN.Event) {

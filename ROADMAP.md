@@ -6,6 +6,7 @@
 # Other
 * Improved data binding tracing of the tree. Data should be easily acccessed via `_nano_inspectDataBinds()`.
 * Fully deprecate manual data binds.
+* Update existing methods tu use functional programming style.
 * Remove all traces of syntax from the final dom elements. It is confusing to read for unexperienced devs.
 * The same problem of initial constructor execution that was found in the FOR rule is also happening for the IF rule. The same fix needs to be applied also for the IF rule. 
 * Remove the manual initialisation of data binds all together. Manual data binds can bypass the rule of finding the right parent and then the templates get a whole lot harder to read.

@@ -1,5 +1,5 @@
 import { StringOrHTMLElement } from '../interfaces/nano-data-binding'
-import { initDataBinds } from './bind'
+import { initElDataBinds } from './bind'
 
 /**
  * In normal operation mode all data binds are initialised automatically.
@@ -66,7 +66,7 @@ export function nanoBind(parent: HTMLElement, ...selectors: StringOrHTMLElement[
         children = [...selectors as HTMLElement[]]
     }
 
-    initDataBinds(parent, children)
+    initElDataBinds(parent, children)
     return children
 }
 
@@ -112,6 +112,6 @@ export function nanoBindAll(parent: HTMLElement, ...selectors: string[]): HTMLEl
     // Filter out invalid selectors
     children = children.filter(child => child !== null)
 
-    initDataBinds(parent, children)
+    initElDataBinds(parent, children)
     return children
 }
