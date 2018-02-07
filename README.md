@@ -155,7 +155,7 @@ If none of the above options is not good enough feel free to implement your own 
 </some-web-cmp>
 ```
 
-## How it works (quick overview)
+## How it works (quick overview) (Needs update)
 * **src/self-init.ts** - Importing the script triggers two initialisation actioms:
     * Several DOM API methods are wrapped so that new elements are intercepted for a small pre-processing step. This step prevents the browser from parsing the template straight away as it is. In the preprocessing step, some parts of the template are cached for later reuse when the data binds are active (IF and FOR rules). 
     * A mutation observable is activated to detect added and removed elements in order to bind and unbind them. Parsing and initialising the data binding syntax is triggered from here.

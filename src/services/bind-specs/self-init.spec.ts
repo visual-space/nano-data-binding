@@ -1,4 +1,4 @@
-import { cacheForIfTemplates } from '../../services/self-init'
+import { cacheForIfTemplates } from '../../services/template-preprocessing'
 
 /** <!> All events are suffixed by the `setupTemplate()` method with unique ids in order to prevent cross-talk between tests */
 let mockTemplate = `

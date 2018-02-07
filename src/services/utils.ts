@@ -142,3 +142,16 @@ export function getRule (tag: string) {
     if (match) return match[0].slice(2)
     return match as null
 }
+
+/**
+ * Warn if `__lookupGetter__` is deprecated.
+ * Object.getOwnPropertyDescriptor works only for `Object.definePropert()`. `set` and `get` methods`defined on classes are ignored.
+ * In case it gets deprecated we have a preety difficult problem to fix.
+ */
+export function checkLookupGetterIsDefined() {
+    if (!(Object.prototype as any).__lookupGetter__) { 
+        throw new Error('Object.prototype.__lookupGetter__ is undefined. This methods is necessary to recover getter setter methods from ES6 classes.')
+    } else {
+        DEBUG.verbose && debug(`Object.prototype.__lookupGetter__ is defined. Data binding can be executed successfully for all use cases.`)
+    }
+}

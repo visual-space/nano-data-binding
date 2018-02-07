@@ -9,10 +9,16 @@ import * as utils from './utils'
 import * as parser from './rule-parser'
 
 // Debug
-let Debug = require('debug'), debug = Debug ? Debug('ndb:Bind') : () => { }
-debug('Instantiate Bind')
+let Debug = require('debug'), debug = Debug ? Debug('ndb:InitDataBinds') : () => { }
+debug('Instantiate InitDataBinds')
 
 /**
+ * <!> Terminology
+ *     Origin - The source type of the value: context property, event or observable.
+ *     Source - The name of the source property/event/observable.
+ *     Rule - Runtime behavior executed when a databind is created/updated.
+ *     Code - Parameters for the data bind behavior are defubed using custom syntax. 
+ * 
  * <!> Data binding requires several steps: 
  *     Building the `dataBind` descriptor object that is used to transfer information between the various stages of the process.
  *     Caching dynamyc templates- `If` and `For` rules reuse the cached templates.
@@ -21,8 +27,8 @@ debug('Instantiate Bind')
  *     All data bound methods are evaluated in the context of the child element.
  *     If a method is not defined in the child context than it is looked-up in the parent context and if found the reference is copied.
  *     All event listeners and subscriptions are returned for automatical clean-up when the component is destroyed.
+ * 
  * <!> The parent elemenet contains the data sources, the child declares the data binds.
- * REFACTOR: Current design has a big flaw. Multiple data binds cannot be stored for the same element. If, For and Data cannot work together.
  */
 export function initElDataBinds(parent: HTMLElement, children: HTMLElement[]): void {
 
@@ -38,7 +44,7 @@ export function initElDataBinds(parent: HTMLElement, children: HTMLElement[]): v
             // Parse only data bind attributes
             if (!utils.isAttrDataBind(attribute)) { return }
 
-            // Parse and cache
+            // Data bind descriptor object
             dataBind = getDataBindDescriptor(attribute)
             Object.assign(dataBind, { parent, child, attribute })
             debug('Data bind', { dataBind })

@@ -5,7 +5,7 @@ import { StringOrHTMLElement } from '../interfaces/nano-data-binding'
 import { DEBUG } from '../constants/nano-data-binding.const'
 
 // Services
-import { initElDataBinds } from './bind'
+import { initElDataBinds } from './init-data-binds'
 
 /**
  * In normal operation mode all data binds are initialised automatically.
@@ -120,4 +120,16 @@ export function nanoBindAll(parent: HTMLElement, ...selectors: string[]): HTMLEl
 
     initElDataBinds(parent, children)
     return children
+}
+
+/**
+ * Useful for testing scenarios
+ * REVIEW DEPRECATE (also the definition interface)
+ */
+export function publishManualSelectors() {
+    DEBUG.verbose && debug(`Publish manul selectors`)
+    if ((window as any).nanoBind) console.warn('Some other lib is using the same globals as nano-data-bind')
+    if ((window as any).nanoBindAll) console.warn('Some other lib is using the same globals as nano-data-bind')
+    ;(window as any).nanoBind = nanoBind
+    ;(window as any).nanoBindAll = nanoBindAll
 }
