@@ -84,10 +84,8 @@ export interface HtmlTag {
     isSingletone: boolean,
     isOpenTag: boolean
     isDataBind: boolean
-    rule: string
-    
-    // Optional. If a data bind has a cached template it will be cached here
-    template?: string 
+    rule: string,
+    attributes: Attr[]
 }
 
 /**

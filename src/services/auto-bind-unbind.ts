@@ -3,7 +3,7 @@ import { Listeners } from '../interfaces/nano-data-binding'
 
 // Services
 import { initElDataBinds } from './init-data-binds'
-import { isAttrDataBind, getParentWebCmpContext } from './utils'
+import { isAttrDataBind, isCommPlaceholder, getParentWebCmpContext } from './utils'
 
 // Constants
 import { DEBUG } from '../constants/nano-data-binding.const'
@@ -38,9 +38,23 @@ export function initAutoBindUnbind(): void {
                 let nodes = Array.from(mutation.addedNodes)
                 nodes.forEach((node: any) => { // <!> any used intentionaly
                     // debug('Added node', node.tagName, node.classList) // Ultra verbose
-                    if (node.tagName) {
+
+                    // Ignore text nodes. 8 is comment
+                    // Also placeholder comments from preprocessing need to be initialised
+                    if (node.tagName || node.nodeType === 8) {
                         let allNodes = [],
-                            collection = node.getElementsByTagName("*")
+
+                            // Empty iterable object (if no collection is returned)
+                            collection = {
+                                [Symbol.iterator]: function* () {
+                                    for (let key in this) {
+                                        yield [key, this[key]] 
+                                    }
+                                }
+                            }
+
+                        // REVIEW Slecting child nodes probably is overkill. All nodes should trigger the mutation observer
+                        if (node.getElementsByTagName) collection = node.getElementsByTagName("*")
 
                         // Check all nodes
                         allNodes.push(node)
@@ -57,9 +71,23 @@ export function initAutoBindUnbind(): void {
                 let nodes = Array.from(mutation.removedNodes)
                 nodes.forEach((node: any) => { // <!> any by intent
                     // debug('Added node', node.tagName, node.classList) // Ultra verbose
-                    if (node.tagName) {
+
+                    // Ignore text nodes. 8 is comment
+                    // Also placeholder comments need to destroy listeners and subscriptions
+                    if (node.tagName || node.nodeType === 8) {
                         let allNodes = [],
-                            collection = node.getElementsByTagName("*")
+
+                            // Empty iterable object (if no collection is returned)
+                            collection = {
+                                [Symbol.iterator]: function* () {
+                                    for (let key in this) {
+                                        yield [key, this[key]] 
+                                    }
+                                }
+                            }
+
+                        // REVIEW Slecting child nodes probably is overkill. All nodes should trigger the mutation observer
+                        if (node.getElementsByTagName) collection = node.getElementsByTagName("*")
 
                         // Check all nodes
                         allNodes.push(node)
@@ -87,23 +115,40 @@ export function initAutoBindUnbind(): void {
  * The first node that is a web component in the hieratchy chain is used as the parent context
  */
 function initOnlyDataBinds(child: HTMLElement): void {
+    let hasDataBinds: boolean,
+        attributes: Attr[]
+    // debug('==>Init only data binds', child) // Ultra verbods
 
-    let attributes: Attr[] = Array.from(child.attributes)
-    attributes.forEach(attr => {
-        if (isAttrDataBind(attr)) {
-            let parent = getParentWebCmpContext(child)
-            // debug('Parent web component', {parent, child}) // Ultra verbose
-            if (parent) {
+    if (child.nodeType === 8) {
 
-                // Block autobind via attribute (for testing purposes)
-                if (parent.hasAttribute('no-auto-bind')) return
+        // Placeholder
+        hasDataBinds = isCommPlaceholder(child as any)
 
-                debug('Init data binds', { parent, child })
-                initElDataBinds(parent, [child])
-            }
-            else console.warn('Cannot find parent for data bind', child)
-        }
-    })
+        if (hasDataBinds === false) return 
+
+    } else {
+        attributes = Array.from(child.attributes)
+    
+        // Check element for data binds
+        hasDataBinds = attributes.reduce((t, attr) => t || isAttrDataBind(attr) , false)
+    
+        if (hasDataBinds === false) return
+
+    }
+
+    // Parent object context
+    let parent = getParentWebCmpContext(child)
+    // debug('Parent web component', {parent, child}) // Ultra verbose
+    if (!parent) {
+        console.warn('Cannot find parent for data bind', child)
+        return
+    }
+
+    // Block autobind via attribute (for testing purposes)
+    if (parent.hasAttribute('no-auto-bind')) return
+
+    debug('Init data binds', { parent, child })
+    initElDataBinds(parent, [child])
 }
 
 /** Removes listeners that were setup by the data binds */

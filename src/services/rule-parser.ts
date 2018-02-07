@@ -1,9 +1,6 @@
 import { DataBind, Changes } from '../interfaces/nano-data-binding'
 import * as utils from './utils'
 
-// Services
-import { templates } from './template-cache'
-
 /**
  * Each data bind rule has an expected behavior. 
  * Most of these behaviors are inspired by the Angualr framework.
@@ -83,15 +80,6 @@ export function setupIfDataBindPlaceholder(dataBind: DataBind): void {
 
         // Release the original element from memory
         delete dataBind.child
-}
-
-/** Retrieve and cache "for" rule template from the preprocessing step. */
-export function getForDataBindTemplate(dataBind: DataBind): void {
-    debug('Get "for" rule template', { dataBind })
-    let { child } = dataBind
-    let tplId = +Array.from(child.attributes).find( attr => attr.nodeName === `tpl` ).nodeValue
-    dataBind.template = templates[tplId]
-    child.removeAttribute(`tpl`) // Clean-up data bind tags
 }
 
 /** Toggle the  an element using a comment node as a placeholder */

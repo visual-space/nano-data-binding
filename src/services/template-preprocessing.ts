@@ -1,12 +1,21 @@
 // Interfaces
-import { HtmlTag, TemplateRef } from '../interfaces/nano-data-binding'
+import { DataBind, HtmlTag, TemplateRef } from '../interfaces/nano-data-binding'
 
 // Services
-import { templates } from './template-cache'
+import { dataBinds } from './data-binds-cache'
+import { getDataBindDescriptor } from './init-data-binds'
 import { getRule } from './utils'
 
 // Constants
-import { DEBUG, HAS_DATA_BIND, SINGLETONE_TAG, CLOSE_TAG, HTML_TAG, TAG_NAME } from '../constants/nano-data-binding.const'
+import { 
+    DEBUG, 
+    HAS_DATA_BIND,
+    SINGLETONE_TAG, 
+    CLOSE_TAG, 
+    HTML_TAG, 
+    TAG_NAME, 
+    FOR_IF_ATTRIBUTES 
+} from '../constants/nano-data-binding.const'
 
 // Debug
 let Debug = require('debug'), debug = Debug ? Debug('ndb:TemplatePreprocessing') : () => { }
@@ -64,7 +73,7 @@ export function cacheForIfTemplates(template: string) {
 function matchAllTags(template: string): HtmlTag[] {
     DEBUG.verbose && debug('Cache dynamic templates')
     let tags: HtmlTag[] = <HtmlTag[]>[],
-        match, tag, _tagName, tagName
+        match, tag: string, _tagName, tagName: string
 
     while (match = HTML_TAG.exec(template)) {
         tag = match[0]
@@ -83,13 +92,29 @@ function matchAllTags(template: string): HtmlTag[] {
             isOpenTag: !(new RegExp(CLOSE_TAG, `gm`).test(tag)),
             isSingletone: new RegExp(SINGLETONE_TAG, `gm`).test(tag),
             tagName: tagName,
-            rule: getRule(tag)
+            rule: getRule(tag),
+            attributes: getDataBindAttributes(tag)
         })
 
     }
 
     DEBUG.verbose && debug('Matched tags', tags)
     return tags
+}
+
+/** Extract data bind attributes from a template string */
+function getDataBindAttributes(tag: string): Attr[] {
+    let attributes: Attr[] = [],
+        _ATTRIBUTES, _attributes 
+
+    _ATTRIBUTES = new RegExp(FOR_IF_ATTRIBUTES, `gm`)
+    while (_attributes = _ATTRIBUTES.exec(tag)) { // TODO better code, this is only one loop always
+        attributes.push(<Attr>{ nodeName: _attributes[1], nodeValue: _attributes[4] || _attributes[5] }) 
+    }
+
+    DEBUG.verbose && debug('+++Tag', tag)
+    DEBUG.verbose && debug('+++Attributes', attributes)
+    return attributes
 }
 
 /** "For" and "if" data binds define dynamic templates that need to be cached */
@@ -162,35 +187,50 @@ function unstackClosedTag(tag: HtmlTag, stack: HtmlTag[]) {
 }
 
 /** 
- * Once the data bind template is identified then we replace it with a placeholder comment.
+ * "For" and "if" data bind templates are replaced with placeholder comments.
+ * The placeholder comment links to a cached data bind descriptor object.
  * This comment will be used to initialiose the "for" and "if" data binds at runtime.
  */
-function extractTemplate(forIfTag: HtmlTag, currTag: HtmlTag, templateRef: TemplateRef) {
-    let closing: HtmlTag,
+function extractTemplate(forIfTag: HtmlTag, closingTag: HtmlTag, templateRef: TemplateRef) {
+    let { template } = templateRef,
         forIfTemplate: string,
-        { template } = templateRef,
-        oi: number, // Opening index
-        ci: number, // Closing index
-        ti: number // Template index
-
-    closing = currTag
+        dataBind: DataBind,
+        start: number,
+        end: number,
+        index: number,
+        placeholder: string
 
     // Template (tags included)
-    forIfTemplate = template.substring(forIfTag.index, closing.index - closing.tag.length)
-    DEBUG.verbose && debug('Dynamic template \n', forIfTemplate)
+    start = forIfTag.index - forIfTag.tag.length
+    end = closingTag.index
+    forIfTemplate = template.substring(start, end)
+    DEBUG.verbose && debug('Dynamic "for" or "if" template \n', forIfTemplate)
+
+    // Parse the "for" and "if" data binds attributes
+    forIfTag.attributes.forEach( attr => {
+        
+        dataBind = getDataBindDescriptor(attr)
+        
+        // "For" and "if" share the same template
+        dataBind.template = forIfTemplate
+    })
 
     // Cache
-    templates.push(forIfTemplate)
+    dataBinds.push(dataBind)
 
+    // Placeholder
+    // REVIEW Passing the index via comment content is not the best approach. Look for something better
+    index = dataBinds.length - 1
+    placeholder = `<!-- _nano_placeholder="${index}" -->`    
+    DEBUG.verbose && debug('Placeholder', placeholder)
+    
     // Replace with placeholder
-    oi = forIfTag.index - 1 //+ indexOffset
-    ci = closing.index - closing.tag.length //+ indexOffset
-    ti = templates.length - 1 //+ indexOffset
-    templateRef.template = `${template.substring(0, oi)} tpl="${ti}">${template.substring(ci)}`
+    templateRef.template = template.substring(0, start) + placeholder + template.substring(end)
 
     DEBUG.verbose && debug('Cleaned up template \n', templateRef.template)
+    console.log('Cleaned up template \n', templateRef.template)
     DEBUG.verbose && debug('Opening tag', forIfTag)
-    DEBUG.verbose && debug('Closing tag', closing)
+    DEBUG.verbose && debug('Closing tag', closingTag)
 }
 
 function getCurrTagName(tag: HtmlTag) {

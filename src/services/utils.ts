@@ -1,8 +1,18 @@
 // Interfaces
 import { DataBind } from '../interfaces/nano-data-binding'
 
+// Services
+import { dataBinds } from './data-binds-cache';
+
 // Constants
-import { DEBUG, HAS_DATA_BIND, MATCH_RULE, MATCH_CODE, MATCH_SOURCE } from '../constants/nano-data-binding.const'
+import { 
+    DEBUG, 
+    HAS_DATA_BIND, 
+    MATCH_RULE, 
+    MATCH_PLACEHOLDER, 
+    MATCH_CODE, 
+    MATCH_SOURCE 
+} from '../constants/nano-data-binding.const'
 
 // Debug
 let Debug = require('debug'), debug = Debug ? Debug('ndb:Utils') : () => {}
@@ -17,6 +27,13 @@ export function isAttrDataBind(attribute: Attr): boolean {
     return isListener
 }
 
+/** Detect placeholder comments defined after preprocessing templates */
+export function isCommPlaceholder(node: Comment): boolean {
+    let hasDataBinds: boolean = node.data.search(MATCH_PLACEHOLDER) === 0
+    DEBUG.verbose && debug('Is comment data bind placeholder', node, hasDataBinds) 
+    return hasDataBinds
+}
+
 /** Retrieves first web component in the parent chain for a given element */
 export function getParentWebCmpContext (child: HTMLElement): HTMLElement {
     let el: any = child
@@ -26,6 +43,17 @@ export function getParentWebCmpContext (child: HTMLElement): HTMLElement {
             return el
     }
     return null
+}
+
+/** 
+ * Preprocessing replaces the "for" and "if" data binds with placeholder comments.
+ * A data bind descriptor is created and later it is retrieved to initialised the data bind. 
+ */
+export function getDataBindFromComment(_commentEl: Node):DataBind {
+    let dataBind: DataBind
+    dataBinds
+    DEBUG.verbose && debug('Get data bind from comment', dataBind)
+    return dataBind
 }
 
 export function getDataBindOrigin(attribute: Attr): string {
@@ -139,7 +167,10 @@ export function printDataBindInfo(dataBind: DataBind): string {
 /** Extract the rule if a tag has data binds */
 export function getRule (tag: string) {
     let match = tag.match(HAS_DATA_BIND)
-    if (match) return match[0].slice(2)
+    if (match) {
+        DEBUG.verbose && debug(`Get rule`, {match})
+        return match[0].slice(2)
+    }
     return match as null
 }
 

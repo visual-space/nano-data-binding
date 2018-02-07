@@ -32,6 +32,9 @@ debug('Instantiate InitDataBinds')
  */
 export function initElDataBinds(parent: HTMLElement, children: HTMLElement[]): void {
 
+    console.log('+++', {parent, children})
+
+    // REFACTOR Init one lement at a time. Manual selectors are no longer needed
     children.forEach(child => {
         let attributes: Attr[] = Array.from(child.attributes),
             dataBind: DataBind,
@@ -49,9 +52,10 @@ export function initElDataBinds(parent: HTMLElement, children: HTMLElement[]): v
             Object.assign(dataBind, { parent, child, attribute })
             debug('Data bind', { dataBind })
 
-            // Custom init for "if" and "for" rules
-            if (dataBind.rule === RULE.If) parser.setupIfDataBindPlaceholder(dataBind)
-            if (dataBind.rule === RULE.For) parser.getForDataBindTemplate(dataBind)
+                                    // DEPRECATED
+                                    // // Custom init for "if" and "for" rules
+                                    // if (dataBind.rule === RULE.If) parser.setupIfDataBindPlaceholder(dataBind)
+                                    // if (dataBind.rule === RULE.For) parser.getForDataBindTemplate(dataBind)
 
             // Watch source values
             let refs = watchForValueChanges(dataBind)
@@ -84,7 +88,7 @@ export function initElDataBinds(parent: HTMLElement, children: HTMLElement[]): v
 }
 
 /** Complete description of the data bind */
-function getDataBindDescriptor(attribute: Attr): DataBind {
+export function getDataBindDescriptor(attribute: Attr): DataBind {
     let dataBind: DataBind = <DataBind>{
         origin: utils.getDataBindOrigin(attribute),
         rule: utils.getDataBindRule(attribute),
