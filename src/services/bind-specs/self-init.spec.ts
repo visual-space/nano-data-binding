@@ -1,4 +1,4 @@
-import { cacheDynamicTemplates } from '../../services/self-init'
+import { cacheForIfTemplates } from '../../services/self-init'
 
 /** <!> All events are suffixed by the `setupTemplate()` method with unique ids in order to prevent cross-talk between tests */
 let mockTemplate = `
@@ -86,11 +86,11 @@ let expectedTemplate = `
 describe('Self init', () => {
 
     it('Ignores templates that don\'t contain html tags', () => {
-        expect(cacheDynamicTemplates('Only text')).toEqual('Only text')
+        expect(cacheForIfTemplates('Only text')).toEqual('Only text')
     })
 
     it('Automatically adds data binds when element is added in the DOM', () => {
-        expect(cacheDynamicTemplates(mockTemplate)).toEqual(expectedTemplate)
+        expect(cacheForIfTemplates(mockTemplate)).toEqual(expectedTemplate)
     })
 
     xit('Multiple dynamic templates can be cached', () => {})

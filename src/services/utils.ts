@@ -1,6 +1,8 @@
 // Interfaces
 import { DataBind } from '../interfaces/nano-data-binding'
-import { HAS_DATA_BIND, MATCH_RULE, MATCH_CODE, MATCH_SOURCE } from '../constants/nano-data-binding.const'
+
+// Constants
+import { DEBUG, HAS_DATA_BIND, MATCH_RULE, MATCH_CODE, MATCH_SOURCE } from '../constants/nano-data-binding.const'
 
 // Debug
 let Debug = require('debug'), debug = Debug ? Debug('ndb:Utils') : () => {}
@@ -11,7 +13,7 @@ debug('Instantiate Utils')
 /** Detect attributes with nano data bind syntax */
 export function isAttrDataBind(attribute: Attr): boolean {
     let isListener: boolean = attribute.nodeName.search(MATCH_RULE) === 0
-    // debug('Is attribute data bind', attribute.nodeName, isListener) // Verbose
+    DEBUG.verbose && debug('Is attribute data bind', attribute.nodeName, isListener) 
     return isListener
 }
 
@@ -28,25 +30,25 @@ export function getParentWebCmpContext (child: HTMLElement): HTMLElement {
 
 export function getDataBindOrigin(attribute: Attr): string {
     let origin: string = attribute.nodeName.substring(0,2)
-    // debug('Get data bind rule', attribute.nodeName, origin) // Verbose
+    DEBUG.verbose && debug('Get data bind rule', attribute.nodeName, origin) 
     return origin   
 }
 
 export function getDataBindRule(attribute: Attr): string {
     let rule: string = attribute.nodeName.substring(2,7)
-    // debug('Get data bind rule', attribute.nodeName, rule) // Verbose
+    DEBUG.verbose && debug('Get data bind rule', attribute.nodeName, rule) 
     return rule   
 }
 
 export function getDataBindSource(attribute: Attr): string {
     let source: string = attribute.nodeValue.match(MATCH_SOURCE)[0].replace(',','')
-    // debug('Get data bind source', attribute.nodeName, source) // Verbose
+    DEBUG.verbose && debug('Get data bind source', attribute.nodeName, source) 
     return source
 }
 
 export function getDataBindCode(attribute: Attr): string {
     let rule: string = attribute.nodeValue.match(MATCH_CODE)[0].replace(',','')
-    // debug('Get data bind code', attribute.nodeName, rule) // Verbose
+    DEBUG.verbose && debug('Get data bind code', attribute.nodeName, rule) 
     return rule
 }
 
@@ -107,7 +109,7 @@ export function copyMethodRefsToChild(dataBind: DataBind): void {
     methods = methods.filter( method => (<any>child)[method] === undefined)
     let chains = methods.map(method => method.replace('this.','').split('.'))
     dataBind.copiedMethods = methods // For debug purposes
-    // debug('Methods not defined in child context', {methods, chain}) // Verbose
+    DEBUG.verbose && debug('Methods not defined in child context', {methods, chains}) 
 
     // Validate that all methods exist in parent context
     chains.forEach((chain, i) => {

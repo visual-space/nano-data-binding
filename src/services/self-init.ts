@@ -1,14 +1,13 @@
 // Interfaces
-import { Listeners, HtmlTagMatch, TemplateRef } from '../interfaces/nano-data-binding'
+import { Listeners, HtmlTag, TemplateRef } from '../interfaces/nano-data-binding'
 
 // Services
-// import { nanoBind } from './selectors' // DEPRECATED
 import { initElDataBinds } from './bind'
 import { templates } from './template-cache'
 import { isAttrDataBind, getParentWebCmpContext, getRule } from './utils'
 
 // Constants
-import { HAS_DATA_BIND, SINGLETONE_TAG, CLOSE_TAG, HTML_TAG, TAG_NAME } from '../constants/nano-data-binding.const'
+import { DEBUG, HAS_DATA_BIND, SINGLETONE_TAG, CLOSE_TAG, HTML_TAG, TAG_NAME } from '../constants/nano-data-binding.const'
 
 /**
  * Data binds are initialised automatically just by typing them in templates.
@@ -35,12 +34,7 @@ export function setupAutoBindUnbind(): void {
 
 // ====== PREPROCESSING TEMPLATES ======
 
-/** 
- * <!> Sets up DOM API wrapper methods that intercept templates for pre-processing before attaching to DOM.
- *     The preprocessing step prevents initilisation of dom elements before the data bind is activated with non-empty values.
- *     This is achieved by removing the dynamic parts from the html template before the browser parses them. 
- * <!> Wraps DOM API mezhods used to add DOM elements in the document 
- */
+/** Sets up DOM API wrapper methods that intercept templates for pre-processing before attaching to DOM. */
 function templatePreprocessing(): void {
     debug('Template preprocessing')
 
@@ -49,7 +43,7 @@ function templatePreprocessing(): void {
     Object.defineProperty(Element.prototype, 'innerHTML', {
         set: function (template: string) {
             try {
-                setInnerHTML.call(this, cacheDynamicTemplates(template))
+                setInnerHTML.call(this, cacheForIfTemplates(template))
             } catch {
                 throw new Error('Check the template for syntax errors/n' + template)
             }
@@ -59,18 +53,32 @@ function templatePreprocessing(): void {
 }
 
 /**
- * <!> Removes data bind templates from html
- *     Prevents parsing of the dynamic templates before they are required at runtime by changes in the data binds 
- * <!> This method is exported only for testing purposes
+ * <!> Prevent parsing of the dynamic templates before they are rendered at runtime.
+ *     Achieved by removing "if" and "for" templates from the intercepted html
+ * <!> Exported only for testing purposes
  */
-export function cacheDynamicTemplates(template: string) {
-    // debug('Cache dynamic templates') // Verbose
-    let tags: HtmlTagMatch[] = <HtmlTagMatch[]>[],
-        bindsWithTemplates: HtmlTagMatch[],
-        templateRef: TemplateRef = { template }, // Easy access via reference between multiple iterations
+export function cacheForIfTemplates(template: string) {
+    DEBUG.verbose && debug('Cache for if templates')
+    let templateRef: TemplateRef = { template }, // Pass by ref
+        allTags: HtmlTag[],
+        forIfTags: HtmlTag[]
+
+    // Extract dynamic templates  
+    allTags = matchAllTags(template)
+    forIfTags = getForIfTags(allTags)
+    forIfTags.reverse()
+    forIfTags.forEach(forIfTag => cacheForIfTemplate(forIfTag, allTags, templateRef))
+
+    // Pass back to innerHTML
+    return templateRef.template
+}
+
+/** Match all tags in the template and capture data about them */
+function matchAllTags(template: string): HtmlTag[] {
+    DEBUG.verbose && debug('Cache dynamic templates')
+    let tags: HtmlTag[] = <HtmlTag[]>[],
         match, tag, _tagName, tagName
 
-    // Match all tags
     while (match = HTML_TAG.exec(template)) {
         tag = match[0]
 
@@ -93,90 +101,104 @@ export function cacheDynamicTemplates(template: string) {
 
     }
 
-    // For and If Data binds (need preprocessing)
-    bindsWithTemplates = tags.filter(({ rule }) => rule === 'for' || rule === 'if')
-    // debug('Matched tags', tags) // Verbose
-    // debug('Binds with dynamic templates', bindsWithTemplates) // Verbose
+    DEBUG.verbose && debug('Matched tags', tags)
+    return tags
+}
 
-    // Reversing prevents mismatched tag indexes when caching the template
-    bindsWithTemplates.reverse()
-
-    // Extract dynamic templates
-    // bindsWithTemplates.forEach( bind => extractTemplate(bind, tags, templateRef) )
-    bindsWithTemplates.forEach(bind => extractTemplate(bind, tags, templateRef) )
-
-    return templateRef.template
+function getForIfTags(tags: HtmlTag[]): HtmlTag[] {
+    let ndbTags: HtmlTag[] = tags.filter(({ rule }) => rule === 'for' || rule === 'if')
+    DEBUG.verbose && debug('Binds with dynamic templates', ndbTags)
+    return ndbTags
 }
 
 /**
  * Match pairs of tags, ignore unclosed tags and singletone tags
  * When the closing tag of the current data bound tag is found return the template 
  */
-function extractTemplate(bind: HtmlTagMatch, tags: HtmlTagMatch[], templateRef: TemplateRef) {
-    let i = tags.indexOf(bind),
-        queue: HtmlTagMatch[] = tags.slice(i), // Tags starting from the current data bind
-        stack: HtmlTagMatch[] = [], // Starting tag adds, Closing tag removes
-        tag: HtmlTagMatch,
-        prev: HtmlTagMatch,
-        closing: HtmlTagMatch,
-        dynamicTemplate: string,
+function cacheForIfTemplate(forIfTag: HtmlTag, allTags: HtmlTag[], templateRef: TemplateRef) {
+    DEBUG.verbose && debug('Cache dynamic template')
+    let i = allTags.indexOf(forIfTag),
+        queue: HtmlTag[] = allTags.slice(i), // Tags starting from the current data bind
+        stack: HtmlTag[] = [], // Starting tag adds, Closing tag removes
+        currTag: HtmlTag
+
+    // Search the closing tag of the "for" or "if" data bind
+    while (true) {
+
+        // Current tag
+        currTag = queue.shift()
+
+        if (currTag.isOpenTag && 
+            currTag.isSingletone === false
+        ) {
+            
+            // Stack open tags, 
+            stack.push(currTag)
+
+        } else if (currTag.isOpenTag === false) {
+            
+            //unstack closed pairs
+            unstackClosedTag(currTag, stack)
+
+        }
+        DEBUG.verbose && debug(getCurrTagName(currTag), '-', getTagXpath(stack), queue.length)
+
+        // Closing tag found
+        if (stack.length === 0) {
+            extractTemplate(forIfTag, currTag, templateRef)
+            break
+        }
+
+    }
+}
+
+function unstackClosedTag(tag: HtmlTag, stack: HtmlTag[]) {
+    let prev: HtmlTag
+
+    // Unstack unclosed tags (browsers autoclose them)
+    // <a><b><c></b></a> - c is ignored
+    prev = stack[stack.length - 1]
+    while (prev && tag.tagName !== prev.tagName) {
+        stack.pop()
+        prev = stack[stack.length - 1]
+        DEBUG.verbose && debug('- Removed unclosed tag', prev.tagName)
+    }
+
+    // Unstack closed pairs
+    stack.pop()
+    DEBUG.verbose && prev && debug('- Removed closed pair', prev.tagName, `/` + tag.tagName)
+}
+
+/** 
+ * Once the data bind template is identified than replace it with a placeholder comment.
+ * This comment will be used to initialiose the for and if data binds.
+ */
+function extractTemplate(forIfTag: HtmlTag, currTag: HtmlTag, templateRef: TemplateRef) {
+    let closing: HtmlTag,
+        forIfTemplate: string,
         { template } = templateRef,
         oi: number, // Opening index
         ci: number, // Closing index
         ti: number // Template index
 
-    while (true) {
+    closing = currTag
 
-        // Extract first tag and add or remove from queue if tag is starting or closing tag
-        tag = queue.shift()
+    // Template (tags included)
+    forIfTemplate = template.substring(forIfTag.index, closing.index - closing.tag.length)
+    DEBUG.verbose && debug('Dynamic template \n', forIfTemplate)
 
-        // Stack open tags
-        if (tag.isOpenTag && tag.isSingletone === false) stack.push(tag)
+    // Cache
+    templates.push(forIfTemplate)
 
-        // Unstack closed pairs
-        if (tag.isOpenTag === false) {
+    // Replace with placeholder
+    oi = forIfTag.index - 1 //+ indexOffset
+    ci = closing.index - closing.tag.length //+ indexOffset
+    ti = templates.length - 1 //+ indexOffset
+    templateRef.template = `${template.substring(0, oi)} tpl="${ti}">${template.substring(ci)}`
 
-            // Unstack unclosed tags (browsers autoclose them)
-            // <a><b><c></b></a> - c is ignored
-            prev = stack[stack.length - 1]
-            while (prev && tag.tagName !== prev.tagName) {
-                stack.pop()
-                prev = stack[stack.length - 1]
-                // debug('- Removed unclosed tag', prev.tagName) // Verbose
-            }
-
-            // Unstack closed pairs
-            stack.pop()
-            // prev && debug('- Removed closed pair', prev.tagName, `/` + tag.tagName) // Verbose
-
-        }
-
-        // Debug
-        // debug((tag && tag.isOpenTag && tag.isOpenTag === true ? '' : '/') + tag.tagName, '-', printStackedXpath(stack), queue.length) // Verbose
-
-        // Closing tag matched
-        if (stack.length === 0) {
-            closing = tag
-
-            // Template
-            dynamicTemplate = template.substring(bind.index, closing.index - closing.tag.length)
-            // debug('Dynamic template \n', dynamicTemplate) // Verbose
-
-            // Cache & Remove
-            templates.push(dynamicTemplate)
-            oi = bind.index - 1 //+ indexOffset
-            ci = closing.index - closing.tag.length //+ indexOffset
-            ti = templates.length - 1 //+ indexOffset
-            templateRef.template = `${template.substring(0, oi)} tpl="${ti}">${template.substring(ci)}`
-
-            // debug('Cleaned up template \n', templateRef.template) // Verbose
-            // debug('Opening tag', bind) // Verbose
-            // debug('Closing tag', closing) // Verbose
-
-            break
-        }
-
-    }
+    DEBUG.verbose && debug('Cleaned up template \n', templateRef.template)
+    DEBUG.verbose && debug('Opening tag', forIfTag)
+    DEBUG.verbose && debug('Closing tag', closing)
 }
 
 // ====== AUTO BIND, UNBIND ======
@@ -193,7 +215,7 @@ function autoBindUnbind(): void {
     debug('Auto bind unbind')
 
     var mutObs = new MutationObserver(mutations => {
-        // debug('Document body mutated', mutations) // Verbose
+        DEBUG.verbose && debug('Document body mutated', mutations)
 
         mutations.forEach(mutation => {
 
@@ -203,13 +225,13 @@ function autoBindUnbind(): void {
                 nodes.forEach((node: any) => { // <!> any used intentionaly
                     // debug('Added node', node.tagName, node.classList) // Ultra verbose
                     if (node.tagName) {
-                        let allNodes = [], 
+                        let allNodes = [],
                             collection = node.getElementsByTagName("*")
 
                         // Check all nodes
                         allNodes.push(node)
                         for (let n of collection) allNodes.push(n)
-                        // debug('All nodes', allNodes) // Verbose
+                        DEBUG.verbose && debug('All nodes', allNodes)
 
                         allNodes.forEach((n: any) => initOnlyDataBinds(n))
                     }
@@ -222,7 +244,7 @@ function autoBindUnbind(): void {
                 nodes.forEach((node: any) => { // <!> any by intent
                     // debug('Added node', node.tagName, node.classList) // Ultra verbose
                     if (node.tagName) {
-                        let allNodes = [], 
+                        let allNodes = [],
                             collection = node.getElementsByTagName("*")
 
                         // Check all nodes
@@ -283,7 +305,7 @@ function removeEventListeners(node: HTMLElement): void {
     for (let eventName in listeners) {
         let eventHandler = listeners[eventName]
         document.removeEventListener(eventName, eventHandler)
-        // debug(`Removed custom event listener "${eventName}" from "<${tagName}>"`) // Verbose
+        DEBUG.verbose && debug(`Removed custom event listener "${eventName}" from "<${tagName}>"`)
     }
 }
 
@@ -300,13 +322,18 @@ function removeSubscriptions(node: HTMLElement): void {
     for (let id in subscriptions) {
         let subscription = subscriptions[id]
         subscription.unsubscribe()
-        // debug(`Removed subscription "${id}" from "<${tagName}>"`) // Verbose
+        DEBUG.verbose && debug(`Removed subscription "${id}" from "<${tagName}>"`)
     }
 }
 
-// // Debug // DEPRECATE (maybe)
-// function printStackedXpath(stack: HtmlTagMatch[]) {
-//     let log = ''
-//     stack.forEach(tag => log += tag.tagName + ' ')
-//     return log
-// }
+// ====== DEBUG ======
+
+function getCurrTagName(tag: HtmlTag) {
+    return (tag && tag.isOpenTag && tag.isOpenTag === true ? '' : '/') + tag.tagName
+}
+
+function getTagXpath(stack: HtmlTag[]) {
+    let log = ''
+    stack.forEach(tag => log += tag.tagName + ' ')
+    return log
+}

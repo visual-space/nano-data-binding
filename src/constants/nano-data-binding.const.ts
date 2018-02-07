@@ -42,3 +42,8 @@ export const HAS_DATA_BIND = /([peo]-(data|if|for|class|call))/g
 export const MATCH_RULE = /(^[peo]-(data|if|for|class|call)$)/g
 export const MATCH_CODE = /(,[\s\S]*)/gm
 export const MATCH_SOURCE = /(^[^.]*,)/gm
+
+/** Debug options */
+export const DEBUG = {
+    verbose: false
+}

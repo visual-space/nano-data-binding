@@ -4,7 +4,7 @@
 * Multiple data bind inputs. Currently only one is possible with current notation. This can be achieved by using attirbute normalisation rules. Even the DOM API wrappers can be useful somehow for this task.
 
 # Other
-* Improved data binding tracing of the tree. Data should be easily acccessed via `_nano_inspectDataBinds()`.
+* Improved data binding tracing of the tree. Data should be easily acccessed via `_nano_inspectDataBinds()`. Generate separate data strcutre that tracks all data binds. This would make the preprocessing step easier to follow. Currently, the for rule uses one way to retreive the template nad the if rule uses another one. This is really confusing. 
 * Fully deprecate manual data binds.
 * Update existing methods tu use functional programming style.
 * Remove all traces of syntax from the final dom elements. It is confusing to read for unexperienced devs.

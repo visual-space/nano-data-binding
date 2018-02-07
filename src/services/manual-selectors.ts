@@ -1,4 +1,10 @@
+// Interfaces
 import { StringOrHTMLElement } from '../interfaces/nano-data-binding'
+
+// Interfaces
+import { DEBUG } from '../constants/nano-data-binding.const'
+
+// Services
 import { initElDataBinds } from './bind'
 
 /**
@@ -28,8 +34,8 @@ export function nanoBind(parent: HTMLElement, ...selectors: StringOrHTMLElement[
     // Validation
     selAreStrings = selectors.reduce((val, sel) => val && typeof sel === 'string', true)
     selAreElements = selectors.reduce((val, sel) => val && sel instanceof HTMLElement, true)
-    // debug('All selectors are strings', selAreStrings) // Verbose
-    // debug('All selectors are elements', selAreElements) // Verbose
+    DEBUG.verbose && debug('All selectors are strings', selAreStrings) 
+    DEBUG.verbose && debug('All selectors are elements', selAreElements) 
     
     if (arguments.length < 1)
         throw Error('nanoBind() failed. First param missing. Provide a HTMLElement.')

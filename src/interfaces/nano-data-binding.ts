@@ -77,7 +77,7 @@ export type MockArr = {[key: string]: number}[]
  * Matched html tags are analysed to extract the templates for the data binds 
  * Without this step, element will trigger a constructor before the rule is enabled
  */
-export interface HtmlTagMatch {
+export interface HtmlTag {
     tag: string,
     tagName: string,
     index: number,

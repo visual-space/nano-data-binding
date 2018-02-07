@@ -1,3 +1,5 @@
+import { DEBUG } from '../constants/nano-data-binding.const'
+
 // Give acccess to debug in testing environment^s console
 // Sometimes tests can be fixed by studying the debug statements
 ;(window as any).debug = require('debug')
@@ -27,9 +29,9 @@ export function setupTemplate(template: string) {
     template = template.replace(/(mockEvent)/g, `mockEvent${++_id}`)
     
     // Simple nested web component with basic content
-    // debug('ORIGINAL template', template) // Verbose
+    DEBUG.verbose && debug('ORIGINAL template', template) 
     container.innerHTML = template
-    // debug('INTERCEPTED template', container.innerHTML) // Verbose
+    DEBUG.verbose && debug('INTERCEPTED template', container.innerHTML) 
         
     // Connect
     document.body.appendChild(container)

@@ -4,6 +4,8 @@
 * Removed data binds attributes after init. Prevents double initialisation for the "if" and "for" rules.
 * Fixed major design flaw. Multiple data binds can be parsed on the same element. If, For and Data will work together without interference.
 * For data bind - Instead of using a container, use a comment placeholder and repeat the entire tag.
+    * If and for use both generate placeholders at preprocessing preprocessing. When found together on the same tag they share the same placeholder. Use a perf regex to identify comments that trigger data binds and then call initElDataBinds. Reusing the comment from preprocessing keeps dom trashing to a minimum.
+    * Removed call data bind. It is 
 
 # 0.0.10
 * FOR rule - Fix bad timing of constructors

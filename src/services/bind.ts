@@ -1,5 +1,10 @@
+// Interfaces
 import { DataBind, Listener, Listeners, Subscriptions } from '../interfaces/nano-data-binding'
-import { ORIGIN, RULE } from '../constants/nano-data-binding.const'
+
+// Constants
+import { DEBUG, ORIGIN, RULE } from '../constants/nano-data-binding.const'
+
+// Services
 import * as utils from './utils'
 import * as parser from './rule-parser'
 
@@ -80,7 +85,7 @@ function getDataBindDescriptor(attribute: Attr): DataBind {
         source: utils.getDataBindSource(attribute),
         code: utils.getDataBindCode(attribute)
     }
-    // debug('Get data bind descriptor', {dataBind}) // Verbose
+    DEBUG.verbose && debug('Get data bind descriptor', {dataBind}) 
     return dataBind
 }
 
