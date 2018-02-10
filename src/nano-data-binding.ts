@@ -1,7 +1,7 @@
 // Services
 import { publishManualSelectors } from './services/manual-selectors'
 import { setupTemplatePreprocessing } from './services/template-preprocessing'
-import { initAutoBindUnbind } from './services/auto-bind-unbind'
+import { setupAutoBindUnbind } from './services/auto-bind-unbind'
 import { checkLookupGetterIsDefined } from './services/utils'
 
 // Debug
@@ -24,6 +24,6 @@ function init () {
     setupTemplatePreprocessing()
     
     // A mutation observer watches for added and removed nodes and binds/unbinds them
-    initAutoBindUnbind()
+    setupAutoBindUnbind()
 
 }

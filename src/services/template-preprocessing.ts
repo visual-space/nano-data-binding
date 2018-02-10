@@ -1,5 +1,5 @@
 // Interfaces
-import { HtmlTag } from '../interfaces/nano-data-binding'
+import { HtmlTag, Section } from '../interfaces/nano-data-binding'
 
 // Services
 import { cacheConditionalTemplate } from './data-binds-cache'
@@ -34,7 +34,7 @@ export function setupTemplatePreprocessing(): void {
             try {
 
                 // Cache dynamic templates
-                setInnerHTML.call(this, preprocessTemplates(template))
+                setInnerHTML.call(this, preprocessTemplate(template))
 
             } catch {
                 throw new Error('Check the template for syntax errors/n' + template)
@@ -49,7 +49,7 @@ export function setupTemplatePreprocessing(): void {
  * The intercepted elements will be later retrieved and theyr data binds initialised. 
  * <!> Exported only for testing purposes 
  */
-export function preprocessTemplates(template: string) {
+export function preprocessTemplate(template: string) {
     let allTags: HtmlTag[],
         forIfTags: HtmlTag[],
         closingTag: HtmlTag
@@ -59,6 +59,8 @@ export function preprocessTemplates(template: string) {
     forIfTags = getForIfTags(allTags)
     forIfTags.reverse()
 
+    console.log('+++ Template', template)
+
     // Replace conditional tempalte with placeholders  
     forIfTags.forEach(forIfTag => {
         closingTag = getClosingTag(forIfTag, allTags)
@@ -66,7 +68,8 @@ export function preprocessTemplates(template: string) {
     })
 
     // Pass back to innerHTML
-    DEBUG.verbose && debug('Preprocess templates', template)
+    DEBUG.verbose && debug('Preprocessed template', template)
+    console.log('+++Preprocessed template', template)
     return template
 }
 
@@ -175,41 +178,39 @@ function unstackClosedTag(tag: HtmlTag, stack: HtmlTag[]) {
 }
 
 /** 
- * "For" and "if" data bind templates are replaced with placeholder comments.
+ * Replace  "for", "if" conditional templates with placeholders.
  * The placeholder comment links to a container of cached data binds.
  * This comment will be used to initialiose the "for" and "if" data binds at runtime.
  * REVIEW Passing the index/id via comment content (data) is probably not the best approach. Check if something better can be done.
  */
 function replaceCondTemplateWithPlaceholder(forIfTag: HtmlTag, closingTag: HtmlTag, template: string): string {
-    let condTemplate: string, // "for", "if" templates
-        preprocessed: string,
+    let preprocessed: string,
         placeholder: string,
-        start: number,
-        end: number,
         index: number
 
-    // Replace with placeholders
-    condTemplate = getTemplateBeteenTags(forIfTag, closingTag, template)
-    index = cacheConditionalTemplate(condTemplate)
+    // Setup palceholders
+    let {section, start, end} = getTemplateBetweenTags(forIfTag, closingTag, template)
+    index = cacheConditionalTemplate(section)
     placeholder = `<!-- _nano_placeholder="${index}" -->`
     preprocessed = template.substring(0, start) + placeholder + template.substring(end)
 
-    DEBUG.verbose && debug('Replace conditional template with placeholder', { template, placeholder, preprocessed })
-
+    DEBUG.verbose && debug('Replace conditional template with placeholder', { template, placeholder, section, start, end, preprocessed })
     return preprocessed
 }
 
-function getTemplateBeteenTags(openingTag: HtmlTag, closingTag: HtmlTag, template: string): string {
-    let templateSection: string,
+function getTemplateBetweenTags(openingTag: HtmlTag, closingTag: HtmlTag, template: string): Section {
+    let section: string,
         start: number,
-        end: number
+        end: number,
+        result: Section
 
     start = openingTag.index - openingTag.tag.length
     end = closingTag.index
-    templateSection = template.substring(start, end)
+    section = template.substring(start, end)
 
-    DEBUG.verbose && debug('Template between tags', { openingTag, closingTag }, '\n' + templateSection)
-    return templateSection
+    result = { start, end, section }
+    DEBUG.verbose && debug('Template between tags', result)
+    return result
 }
 
 /** Debug helper */

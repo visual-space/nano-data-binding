@@ -25,8 +25,8 @@ debug('Instantiate AutoBindUnbind')
  *     Maybe wrapping the wenb componets declare method can do the trick.
  *     Performance benchmarking must be done before swithing methods of initialisation.
  */
-export function initAutoBindUnbind(): void {
-    debug('Init auto bind unbind')
+export function setupAutoBindUnbind(): void {
+    debug('Setup auto bind unbind')
 
     var mutObs = new MutationObserver(mutations => {
         DEBUG.verbose && debug('Document body mutated', mutations)

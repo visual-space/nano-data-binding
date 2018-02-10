@@ -37,7 +37,7 @@ export function initElDataBinds(parent: HTMLElement, children: HTMLElement[]): v
         let attributes: Attr[],
             placeholder: Comment,
             dataBind: DataBind,
-            dataBinds: DataBind[],
+            dataBinds: DataBind[] = [],
             hostEl: any, // Node,
             listeners: Listeners = {},
             subscriptions: Subscriptions = {},

@@ -93,3 +93,10 @@ export interface HtmlTag {
  *     before the data binds renders the element conditionally.
  */
 export type ElDataBinds = DataBind[]
+
+/** Used to extract a seciton from a template */
+export interface Section {
+    start: number
+    end: number
+    section: string
+}
