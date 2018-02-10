@@ -148,7 +148,7 @@ function initOnlyDataBinds(child: HTMLElement): void {
     if (parent.hasAttribute('no-auto-bind')) return
 
     debug('Init data binds', { parent, child })
-    initElDataBinds(parent, [child])
+    initElDataBinds(parent, child)
 }
 
 /** Removes listeners that were setup by the data binds */

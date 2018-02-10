@@ -1,6 +1,9 @@
 // Interfaces
 import { DataBind } from '../interfaces/nano-data-binding'
 
+// Services
+import { getConditionalTemplate } from './data-binds-cache'
+
 // Constants
 import { 
     DEBUG, 
@@ -12,11 +15,13 @@ import {
     FOR_IF_ATTRIBUTES 
 } from '../constants/nano-data-binding.const'
 
+/**
+ * Reusable util methods
+ */
+
 // Debug
 let Debug = require('debug'), debug = Debug ? Debug('ndb:Utils') : () => {}
 debug('Instantiate Utils')
-
-// ====== UTILS ======
 
 /** Detect attributes with nano data bind syntax */
 export function isAttrDataBind(attribute: Attr): boolean {
@@ -30,6 +35,17 @@ export function isCommPlaceholder(node: Comment): boolean {
     let hasDataBinds: boolean = node.data.search(MATCH_PLACEHOLDER) === 0
     DEBUG.verbose && debug('Is comment data bind placeholder', node, hasDataBinds) 
     return hasDataBinds
+}
+
+export function getTemplateFromPlaceholder(child: Comment) {
+    let index: number,
+        template: string
+
+    index = +MATCH_PLACEHOLDER.exec(child.data)[1]
+    template = getConditionalTemplate(index)
+    
+    DEBUG.verbose && debug('Get template from placeholder', { child, index, template })
+    return template
 }
 
 /** Retrieves first web component in the parent chain for a given element */

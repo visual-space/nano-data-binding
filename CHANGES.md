@@ -1,14 +1,20 @@
 # 0.0.11
-* Try catch erorrs from preprocessing invalid templates. They typically throw hard to debug errors.
+* Try catch errors from preprocessing invalid templates. They were throwing hard to debug errors.
 * Cleaned up code and updated comments.
-* Removed data binds attributes after init. Prevents double initialisation for the "if" and "for" rules.
-* Fixed major design flaw. Multiple data binds can be parsed on the same element. If, For and Data will work together without interference.
-* For data bind - Instead of using a container, use a comment placeholder and repeat the entire tag.
-    * If and for use both generate placeholders at preprocessing preprocessing. When found together on the same tag they share the same placeholder. Use a perf regex to identify comments that trigger data binds and then call initElDataBinds. Reusing the comment from preprocessing keeps dom trashing to a minimum.
-    * Removed call data bind. It is 
+* Removed data binds attributes after init. Prevents double initialisation for the "if" and "for" rules. Also cleaner html.
+* Fixed major design flaw. Parsing multiple data binds on the same element will overwrite each other.
+* Upgraded "if" and "for" rules to cache the entire tag not just the contents.
+* "If" and "for" rules use conditional templates. These templates are replaced with placeholder comments at preprocessing. This step prevents initiliasing DOM elements from the data binds before the rendering signal is received.
+    * Removed manual selectors.
+    * "If" and "for" data binds share the same template.
+    * Simpler declration syntax.
+    * Added string itnerpolation for text nodes.
+    * Added inline events syntax.
+    * Update documentation.
+    * Provided samples.
 
 # 0.0.10
-* FOR rule - Fix bad timing of constructors
+* "For" rule, fixed bad timing of constructors.
     * When adding the iterated component to the template, the constructor failed to execute. Fixed by parsing the template as HTML instead of XML.
     * The constructor of the iterated item is executed before the autobind (mutation observable) kicks in. This is basically a false execution which can lead to unwanted side effects or performance loss. Instead of simply rendering the host component template right away, a wrapper over `innerHTML`, `appendChild()`, `insertBefore()` is used to intercept that code and eliminate the iterated template. This stops the unwanted first execution of the constructor. Now the second part is the retrieval of this template for later reuse (when the data bind kicks in). This is done by caching the templates in a dictionary and storing the key as an attribute. Later when the dom element is finally detected by the MutationObserver the temlate is cache in the DOM element itself for easy retrieval at runtime.
 * Separate debug lib from the build package.

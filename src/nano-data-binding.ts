@@ -1,5 +1,4 @@
 // Services
-import { publishManualSelectors } from './services/manual-selectors'
 import { setupTemplatePreprocessing } from './services/template-preprocessing'
 import { setupAutoBindUnbind } from './services/auto-bind-unbind'
 import { checkLookupGetterIsDefined } from './services/utils'
@@ -16,9 +15,6 @@ function init () {
 
     // Failsafe
     checkLookupGetterIsDefined()
-    
-    // Expose bind methods globally (testing purposes)
-    publishManualSelectors()
     
     // Remove dynamic templates ("for", "if")
     setupTemplatePreprocessing()

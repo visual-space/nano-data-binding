@@ -65,6 +65,24 @@ export type Listener = (e: CustomEvent) => void
 export type Listeners = { [key: string]: Listener }
 export type Subscriptions = { [key: string]: any }
 
+/** HTML element with initiliased data binds */
+export interface DataBindElement extends HTMLElement {
+
+    // Cache data bind for easy inspection
+    _nano_dataBinds: DataBind[]
+   
+    // <!> Listeners and observables will be terminated when the child element is removed from DOM.
+    _nano_listeners: Listeners
+    _nano_subscriptions: Subscriptions
+}
+
+/** Data transfer object */
+export interface ElementData {
+    dataBinds: DataBind[]
+    listeners: Listeners
+    subscriptions: Subscriptions
+}
+
 /** Delta between old items and new items. Used in n-for. */
 export interface Changes {
     added: any[],
