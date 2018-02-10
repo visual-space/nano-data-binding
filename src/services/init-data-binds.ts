@@ -62,15 +62,14 @@ export function initElDataBinds(parent: HTMLElement, child: HTMLElement | Commen
 export function getDataBinds(child: HTMLElement | Comment): DataBind[] {
     let dataBinds: DataBind[] = [],
         attributes: Attr[],
-        dataBind: DataBind
+        dataBind: DataBind,
+        template: string
 
-    // Placeholder Comments - "For", "if"
     if (child.nodeType === 8) {
-
-        console.log(child)
-
-        utils.getTemplateFromPlaceholder(child as Comment)
-        // getDataBindAttributesFromString()
+            
+        // Placeholder Comments - "For", "if"
+        template = utils.getTemplateFromPlaceholder(child as Comment)
+        attributes = utils.getDataBindAttributes(template)
 
         // // Parse the "for" and "if" data binds attributes
         // // <!> Preserve the tag by caching all data binds 
@@ -85,24 +84,25 @@ export function getDataBinds(child: HTMLElement | Comment): DataBind[] {
 
         // })
 
-        // DEPRECATED
-        // // Custom init for "if" and "for" rules
-        // if (dataBind.rule === RULE.If) parser.setupIfDataBindPlaceholder(dataBind)
+                                        // DEPRECATED
+                                        // // Custom init for "if" and "for" rules
+                                        // if (dataBind.rule === RULE.If) parser.setupIfDataBindPlaceholder(dataBind)
 
-    // Host Elements - "data", "class", "call"
     } else {
-
-        // Parse only data bind attributes
+        
+        // Host Elements - "data", "class", "call"
         attributes = Array.from(child.attributes)
-            .filter(attribute => utils.isAttrDataBind(attribute))
 
     }
+
+    // Parse only data bind attributes
+    attributes = attributes.filter(attribute => utils.isAttrDataBind(attribute))
 
     attributes.forEach(attribute => {
 
         // Data bind descriptor object
         dataBind = getDataBindDescriptorByAttr(attribute)
-        Object.assign(dataBind, { parent, child, attribute })
+        Object.assign(dataBind, { parent, child, attribute, template })
         debug('Data bind', { dataBind })
         dataBinds.push(dataBind)
 

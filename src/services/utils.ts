@@ -12,7 +12,8 @@ import {
     MATCH_PLACEHOLDER, 
     MATCH_CODE, 
     MATCH_SOURCE, 
-    FOR_IF_ATTRIBUTES 
+    FOR_IF_ATTRIBUTES,
+    FIRST_TAG
 } from '../constants/nano-data-binding.const'
 
 /**
@@ -190,16 +191,24 @@ export function checkLookupGetterIsDefined() {
     }
 }
 
-/** Usaully attributes are extracted from a DOM elemenet instance via the  */
-export function getDataBindAttributesFromString(tag: string): Attr[] {
+/** 
+ * Usaully attributes are extracted from a DOM element instance.
+ * Databinds can be recovered also from placeholder templates.
+ * Only the first tag is scanned for attributes, the rest are ignored.
+ */
+export function getDataBindAttributes(template: string): Attr[] {
     let attributes: Attr[] = [],
-        _ATTRIBUTES, _attributes 
+        firstTag: string,
+        _ATTRIBUTES, 
+        _attributes 
+
+    firstTag = new RegExp(FIRST_TAG).exec(template)[1]
 
     _ATTRIBUTES = new RegExp(FOR_IF_ATTRIBUTES, `gm`)
-    while (_attributes = _ATTRIBUTES.exec(tag)) { // TODO better code, this is only one loop always
+    while (_attributes = _ATTRIBUTES.exec(firstTag)) {
         attributes.push(<Attr>{ nodeName: _attributes[1], nodeValue: _attributes[4] || _attributes[5] }) 
     }
 
-    DEBUG.verbose && debug('Get data bind attributes from string', { tag, attributes })
+    DEBUG.verbose && debug('Get data bind attributes from placeholder template', { template, firstTag, attributes })
     return attributes
 }

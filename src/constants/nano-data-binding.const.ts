@@ -36,6 +36,7 @@ export const HTML_TAG = /(<\/?[a-z](:?\S*?)?(:?(:?\s*?\S+?=".*?")*?(:?\s*?\S+?='
 export const SINGLETONE_TAG = 'area|base|br|col|command|embed|hr|img|input|keygen|link|menuitem|meta|param|source|track|wbr'
 export const CLOSE_TAG = '^<\\/' // <!> Missing the closing slash
 export const TAG_NAME = '^<\\/?([a-z][^\\s\\>\\/]*)' // Exclude greater than and slash
+export const FIRST_TAG = '(<.*>)'
 export const FOR_IF_ATTRIBUTES = '([peo]-(if|for))(="(.*?)"|=\'(.*?\'))'
 
 /** Regexes used to detect data bind attributes */
