@@ -29,6 +29,7 @@ export function setupTemplatePreprocessing(): void {
 
     var setInnerHTML = Object.getOwnPropertyDescriptor(Element.prototype, 'innerHTML').set
 
+    // Wrap innerHtml
     Object.defineProperty(Element.prototype, 'innerHTML', {
         set: function (template: string) {
             try {
@@ -59,8 +60,6 @@ export function preprocessTemplate(template: string) {
     forIfTags = getForIfTags(allTags)
     forIfTags.reverse()
 
-    console.log('+++ Template', template)
-
     // Replace conditional tempalte with placeholders  
     forIfTags.forEach(forIfTag => {
         closingTag = getClosingTag(forIfTag, allTags)
@@ -69,7 +68,6 @@ export function preprocessTemplate(template: string) {
 
     // Pass back to innerHTML
     DEBUG.verbose && debug('Preprocessed template', template)
-    console.log('+++Preprocessed template', template)
     return template
 }
 
@@ -148,7 +146,7 @@ function getClosingTag(openingTag: HtmlTag, allTags: HtmlTag[]): HtmlTag {
         }
 
         // Log progress
-        DEBUG.verbose && debug(getCurrTagName(currTag), '-', getTagXpath(stack), queue.length)
+        DEBUG.verbose && debug(traceTagStack(currTag, stack, queue))
 
         // Closing tag found
         if (stack.length === 0) return currTag
@@ -213,14 +211,13 @@ function getTemplateBetweenTags(openingTag: HtmlTag, closingTag: HtmlTag, templa
     return result
 }
 
-/** Debug helper */
-function getCurrTagName(tag: HtmlTag) {
-    return (tag && tag.isOpenTag && tag.isOpenTag === true ? '' : '/') + tag.tagName
-}
+/** Stack trace of html tags used while searching for closing tag */
+function traceTagStack(tag: HtmlTag, stack: HtmlTag[], queue: HtmlTag[]) {
+    let tagName: string, 
+        stackTrace: string = ' '
 
-/** Debug helper */
-function getTagXpath(stack: HtmlTag[]) {
-    let log = ''
-    stack.forEach(tag => log += tag.tagName + ' ')
-    return log
+    tagName = (tag && tag.isOpenTag && tag.isOpenTag === true ? '<' : '</') + tag.tagName + '>'
+    stack.forEach(tag => stackTrace += tag.tagName + ' ')
+
+    return `${tagName} [${stackTrace}] ${queue.length}` 
 }

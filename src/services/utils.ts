@@ -184,7 +184,6 @@ export function getDataBindAttributesFromString(tag: string): Attr[] {
         attributes.push(<Attr>{ nodeName: _attributes[1], nodeValue: _attributes[4] || _attributes[5] }) 
     }
 
-    DEBUG.verbose && debug('+++Tag', tag)
-    DEBUG.verbose && debug('+++Attributes', attributes)
+    DEBUG.verbose && debug('Get data bind attributes from string', { tag, attributes })
     return attributes
 }
