@@ -51,6 +51,7 @@ export function bindDataToElem(dataBind: DataBind): void {
  * Initialised only once. The rest of the updates are controlled by the comment placeholder.
  * Instead of creating the event listener in the child element the if rule maintains it in the placeholder ocmmnet.
  * This simplifies a lot of the work needed to show/hide the element. However it breaks the pattern of the other rules.
+ * REFACTOR & DEPRECATE  Update to the new placeholder generation from preprocessing
  */
 export function setupIfDataBindPlaceholder(dataBind: DataBind): void {
     let { child, attribute } = dataBind,

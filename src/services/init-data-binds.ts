@@ -32,70 +32,97 @@ debug('Instantiate InitDataBinds')
  */
 export function initElDataBinds(parent: HTMLElement, children: HTMLElement[]): void {
 
-    console.log('+++', {parent, children})
-
     // REFACTOR Init one lement at a time. Manual selectors are no longer needed
     children.forEach(child => {
-        let attributes: Attr[] = Array.from(child.attributes),
+        let attributes: Attr[],
+            placeholder: Comment,
             dataBind: DataBind,
-            cacheHostEl: any, // Node
+            dataBinds: DataBind[],
+            hostEl: any, // Node,
             listeners: Listeners = {},
-            subscriptions: Subscriptions = {}
+            subscriptions: Subscriptions = {},
+            refs
 
-        attributes.forEach(attribute => {
+        // "For", "if" (Placeholders)
+        if (child.nodeType === 8) {
+
+            console.log(child)
+
+            // "If" and "for" rules terminate listeners and subscritons when the placeholder is removed
+            hostEl = placeholder
+
+            // getDataBindAttributesFromString()
+
+            // // Parse the "for" and "if" data binds attributes
+            // // <!> Preserve the tag by caching all data binds 
+            // forIfTag.attributes.forEach( attr => {
+                
+            //     dataBind = getDataBindDescriptorByAttr(attr)
+                
+            //     // "For" and "if" share the same template
+            //     dataBind.template = forIfTemplate
+
+            //     placeholder.push(dataBind)
+
+            // })
+
+            // DEPRECATED
+            // // Custom init for "if" and "for" rules
+            // if (dataBind.rule === RULE.If) parser.setupIfDataBindPlaceholder(dataBind)
+
+        // "data", "class", "call" (Elements)
+        } else {
+
+            // "Data", "claa", "call" rules terminate listeners and subscritons when the element is removed
+            hostEl = child
 
             // Parse only data bind attributes
-            if (!utils.isAttrDataBind(attribute)) { return }
+            attributes = Array.from(child.attributes)
+                .filter(attribute => utils.isAttrDataBind(attribute))                
 
-            // Data bind descriptor object
-            dataBind = getDataBindDescriptor(attribute)
-            Object.assign(dataBind, { parent, child, attribute })
-            debug('Data bind', { dataBind })
+            attributes.forEach(attribute => {
 
-                                    // DEPRECATED
-                                    // // Custom init for "if" and "for" rules
-                                    // if (dataBind.rule === RULE.If) parser.setupIfDataBindPlaceholder(dataBind)
-                                    // if (dataBind.rule === RULE.For) parser.getForDataBindTemplate(dataBind)
+                // Data bind descriptor object
+                dataBind = getDataBindDescriptorByAttr(attribute)
+                Object.assign(dataBind, { parent, child, attribute })
+                debug('Data bind', { dataBind })
+                dataBinds.push(dataBind)
 
-            // Watch source values
-            let refs = watchForValueChanges(dataBind)
+            })
 
-            // "If" and "for" rules avoid trigering unwanted unsubscribe actions by caching the listeners and subscriptions in the placeholder comment.
-            if (dataBind.rule === RULE.If) {
-                cacheHostEl = dataBind.placeholder
-            } else {
-                cacheHostEl = dataBind.child
-            }
+        }
 
-            // Cache data bind for easy inspections
-            if (!cacheHostEl._nano_dataBinds) cacheHostEl._nano_dataBinds = []
-            cacheHostEl._nano_dataBinds.push(dataBind)
+        dataBinds.forEach(dataBind => {
 
-            // Store listeners and subscriptions until the host element is destroyed.
+            // Eval data bind when source value changes
+            refs = detectSourceValueChanges(evaluateDataBind, dataBind)
+
+            // <!> Both events and observables can potenatially be used on the same element
             if (dataBind.origin === ORIGIN.Event) Object.assign(listeners, refs)
             if (dataBind.origin === ORIGIN.Observable) Object.assign(subscriptions, refs)
 
-            // <!> Provide an easy method for removing all custom listeners from all data binds when the child element is destroyed
-            if (!cacheHostEl._nano_listeners) cacheHostEl._nano_listeners = {}
-            if (!cacheHostEl._nano_subscriptions) cacheHostEl._nano_subscriptions = {}
-            Object.assign(cacheHostEl._nano_listeners, listeners)
-            Object.assign(cacheHostEl._nano_subscriptions, subscriptions)
-
         })
+
+        // Cache data bind for easy inspection
+        hostEl._nano_dataBinds = dataBinds
+
+        // <!> Listeners and observables will be terminated when the child element is removed from DOM.
+        hostEl._nano_listeners = listeners
+        hostEl._nano_subscriptions = subscriptions
 
     })
 
 }
 
 /** Complete description of the data bind */
-export function getDataBindDescriptor(attribute: Attr): DataBind {
+export function getDataBindDescriptorByAttr(attribute: Attr): DataBind {
     let dataBind: DataBind = <DataBind>{
         origin: utils.getDataBindOrigin(attribute),
         rule: utils.getDataBindRule(attribute),
         source: utils.getDataBindSource(attribute),
         code: utils.getDataBindCode(attribute)
     }
-    DEBUG.verbose && debug('Get data bind descriptor', {dataBind}) 
+    DEBUG.verbose && debug('Get data bind descriptor', { dataBind })
     return dataBind
 }
 
@@ -103,9 +130,10 @@ export function getDataBindDescriptor(attribute: Attr): DataBind {
  * Creates getter setters for parent context properties
  * Any exsiting getter setters are wrapped
  * Events are listende and observables are subscribed
+ * <!> When any of these values changes the callback is executed
  */
-function watchForValueChanges(dataBind: DataBind): Listeners | Subscriptions {
-    debug('Watch for value changes', { dataBind })
+function detectSourceValueChanges(callback: (dataBind: DataBind) => void, dataBind: DataBind): Listeners | Subscriptions {
+    debug('Detect source value changes', { dataBind })
     let { origin, parent, source } = dataBind,
         listeners: Listeners = {},
         subscriptions: Subscriptions = {}
@@ -143,13 +171,13 @@ function watchForValueChanges(dataBind: DataBind): Listeners | Subscriptions {
             value = (<any>parent)[source]
 
             // <!> Evaluate data bind with first value
-            evaluateDataBind(dataBind)
+            callback(dataBind)
         }
 
         // Wrappers
         set = (val: any) => {
             _set.call(parent, val)
-            evaluateDataBind(dataBind)
+            callback(dataBind)
         }
         get = () => { return _get.call(parent) }
 
@@ -160,7 +188,7 @@ function watchForValueChanges(dataBind: DataBind): Listeners | Subscriptions {
     } else if (origin === ORIGIN.Event) {
 
         // Prepare the event handlers
-        let eventHandler: Listener = () => evaluateDataBind(dataBind)
+        let eventHandler: Listener = () => callback(dataBind)
 
         // Cache the handlers so they ca be removed later
         listeners[source] = eventHandler

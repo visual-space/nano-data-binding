@@ -74,8 +74,8 @@ export interface Changes {
 export type MockArr = {[key: string]: number}[]
 
 /** 
- * Matched html tags are analysed to extract the templates for the data binds 
- * Without this step, element will trigger a constructor before the rule is enabled
+ * Matched html tags are analysed to extract the templates for the data binds.
+ * Without this step, the element will trigger a constructor before the rule is enabled.
  */
 export interface HtmlTag {
     tag: string,
@@ -84,14 +84,12 @@ export interface HtmlTag {
     isSingletone: boolean,
     isOpenTag: boolean
     isDataBind: boolean
-    rule: string,
-    attributes: Attr[]
+    rule: string
 }
 
 /**
- * Used to pass the reference to a template. 
- * Using this object is far easier to iterate and modify the same template for multiple data binds 
+ * Placeholders are used to store a reference to the data binds that have been intercepted in preprocessing.
+ * Elements hosting "if" amd "for" databinds are replaced with placeholder comments to prevent the execution of constructors 
+ *     before the data binds renders the element conditionally.
  */
-export interface TemplateRef {
-    template: string
-}
+export type ElDataBinds = DataBind[]

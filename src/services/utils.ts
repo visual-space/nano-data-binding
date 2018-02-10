@@ -1,9 +1,6 @@
 // Interfaces
 import { DataBind } from '../interfaces/nano-data-binding'
 
-// Services
-import { dataBinds } from './data-binds-cache';
-
 // Constants
 import { 
     DEBUG, 
@@ -11,7 +8,8 @@ import {
     MATCH_RULE, 
     MATCH_PLACEHOLDER, 
     MATCH_CODE, 
-    MATCH_SOURCE 
+    MATCH_SOURCE, 
+    FOR_IF_ATTRIBUTES 
 } from '../constants/nano-data-binding.const'
 
 // Debug
@@ -43,17 +41,6 @@ export function getParentWebCmpContext (child: HTMLElement): HTMLElement {
             return el
     }
     return null
-}
-
-/** 
- * Preprocessing replaces the "for" and "if" data binds with placeholder comments.
- * A data bind descriptor is created and later it is retrieved to initialised the data bind. 
- */
-export function getDataBindFromComment(_commentEl: Node):DataBind {
-    let dataBind: DataBind
-    dataBinds
-    DEBUG.verbose && debug('Get data bind from comment', dataBind)
-    return dataBind
 }
 
 export function getDataBindOrigin(attribute: Attr): string {
@@ -185,4 +172,19 @@ export function checkLookupGetterIsDefined() {
     } else {
         DEBUG.verbose && debug(`Object.prototype.__lookupGetter__ is defined. Data binding can be executed successfully for all use cases.`)
     }
+}
+
+/** Usaully attributes are extracted from a DOM elemenet instance via the  */
+export function getDataBindAttributesFromString(tag: string): Attr[] {
+    let attributes: Attr[] = [],
+        _ATTRIBUTES, _attributes 
+
+    _ATTRIBUTES = new RegExp(FOR_IF_ATTRIBUTES, `gm`)
+    while (_attributes = _ATTRIBUTES.exec(tag)) { // TODO better code, this is only one loop always
+        attributes.push(<Attr>{ nodeName: _attributes[1], nodeValue: _attributes[4] || _attributes[5] }) 
+    }
+
+    DEBUG.verbose && debug('+++Tag', tag)
+    DEBUG.verbose && debug('+++Attributes', attributes)
+    return attributes
 }

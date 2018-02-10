@@ -1,6 +1,6 @@
 // Services
 import { publishManualSelectors } from './services/manual-selectors'
-import { initTemplatePreprocessing } from './services/template-preprocessing'
+import { setupTemplatePreprocessing } from './services/template-preprocessing'
 import { initAutoBindUnbind } from './services/auto-bind-unbind'
 import { checkLookupGetterIsDefined } from './services/utils'
 
@@ -21,7 +21,7 @@ function init () {
     publishManualSelectors()
     
     // Remove dynamic templates ("for", "if")
-    initTemplatePreprocessing()
+    setupTemplatePreprocessing()
     
     // A mutation observer watches for added and removed nodes and binds/unbinds them
     initAutoBindUnbind()

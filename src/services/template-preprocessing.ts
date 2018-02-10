@@ -1,20 +1,18 @@
 // Interfaces
-import { DataBind, HtmlTag, TemplateRef } from '../interfaces/nano-data-binding'
+import { HtmlTag } from '../interfaces/nano-data-binding'
 
 // Services
-import { dataBinds } from './data-binds-cache'
-import { getDataBindDescriptor } from './init-data-binds'
+import { cacheConditionalTemplate } from './data-binds-cache'
 import { getRule } from './utils'
 
 // Constants
-import { 
-    DEBUG, 
+import {
+    DEBUG,
     HAS_DATA_BIND,
-    SINGLETONE_TAG, 
-    CLOSE_TAG, 
-    HTML_TAG, 
-    TAG_NAME, 
-    FOR_IF_ATTRIBUTES 
+    SINGLETONE_TAG,
+    CLOSE_TAG,
+    HTML_TAG,
+    TAG_NAME
 } from '../constants/nano-data-binding.const'
 
 // Debug
@@ -26,8 +24,8 @@ debug('Instantiate TemplatePreprocessing')
  * <!> Prevent parsing of the dynamic templates before they are rendered at runtime.
  *     Achieved by removing "if" and "for" templates from the intercepted html
  */
-export function initTemplatePreprocessing(): void {
-    debug('Initialise template preprocessing')
+export function setupTemplatePreprocessing(): void {
+    debug('Setup template preprocessing')
 
     var setInnerHTML = Object.getOwnPropertyDescriptor(Element.prototype, 'innerHTML').set
 
@@ -36,7 +34,7 @@ export function initTemplatePreprocessing(): void {
             try {
 
                 // Cache dynamic templates
-                setInnerHTML.call(this, cacheForIfTemplates(template))
+                setInnerHTML.call(this, preprocessTemplates(template))
 
             } catch {
                 throw new Error('Check the template for syntax errors/n' + template)
@@ -46,23 +44,30 @@ export function initTemplatePreprocessing(): void {
 
 }
 
-/** <!> Exported only for testing purposes */
-export function cacheForIfTemplates(template: string) {
-    DEBUG.verbose && debug('Cache for if templates')
-    let templateRef: TemplateRef = { template }, // Pass by ref
-        allTags: HtmlTag[],
-        forIfTags: HtmlTag[]
+/** 
+ * Search for elements generated conditionally from data binds and cache them.
+ * The intercepted elements will be later retrieved and theyr data binds initialised. 
+ * <!> Exported only for testing purposes 
+ */
+export function preprocessTemplates(template: string) {
+    let allTags: HtmlTag[],
+        forIfTags: HtmlTag[],
+        closingTag: HtmlTag
 
-    // Basic html tags parsing
+    // Extract conditionally rendered tags
     allTags = matchAllTags(template)
     forIfTags = getForIfTags(allTags)
     forIfTags.reverse()
-    
-    // Extract dynamic templates  
-    forIfTags.forEach(forIfTag => cacheForIfTemplate(forIfTag, allTags, templateRef))
+
+    // Replace conditional tempalte with placeholders  
+    forIfTags.forEach(forIfTag => {
+        closingTag = getClosingTag(forIfTag, allTags)
+        template = replaceCondTemplateWithPlaceholder(forIfTag, closingTag, template)
+    })
 
     // Pass back to innerHTML
-    return templateRef.template
+    DEBUG.verbose && debug('Preprocess templates', template)
+    return template
 }
 
 /** 
@@ -92,29 +97,13 @@ function matchAllTags(template: string): HtmlTag[] {
             isOpenTag: !(new RegExp(CLOSE_TAG, `gm`).test(tag)),
             isSingletone: new RegExp(SINGLETONE_TAG, `gm`).test(tag),
             tagName: tagName,
-            rule: getRule(tag),
-            attributes: getDataBindAttributes(tag)
+            rule: getRule(tag)
         })
 
     }
 
     DEBUG.verbose && debug('Matched tags', tags)
     return tags
-}
-
-/** Extract data bind attributes from a template string */
-function getDataBindAttributes(tag: string): Attr[] {
-    let attributes: Attr[] = [],
-        _ATTRIBUTES, _attributes 
-
-    _ATTRIBUTES = new RegExp(FOR_IF_ATTRIBUTES, `gm`)
-    while (_attributes = _ATTRIBUTES.exec(tag)) { // TODO better code, this is only one loop always
-        attributes.push(<Attr>{ nodeName: _attributes[1], nodeValue: _attributes[4] || _attributes[5] }) 
-    }
-
-    DEBUG.verbose && debug('+++Tag', tag)
-    DEBUG.verbose && debug('+++Attributes', attributes)
-    return attributes
 }
 
 /** "For" and "if" data binds define dynamic templates that need to be cached */
@@ -128,9 +117,9 @@ function getForIfTags(tags: HtmlTag[]): HtmlTag[] {
  * Match pairs of tags, ignore unclosed tags and singletone tags
  * When the closing tag of the current data bound tag is found return the template 
  */
-function cacheForIfTemplate(forIfTag: HtmlTag, allTags: HtmlTag[], templateRef: TemplateRef) {
+function getClosingTag(openingTag: HtmlTag, allTags: HtmlTag[]): HtmlTag {
     DEBUG.verbose && debug('Cache dynamic template')
-    let i = allTags.indexOf(forIfTag),
+    let i = allTags.indexOf(openingTag),
         queue: HtmlTag[] = allTags.slice(i), // Tags starting from the current data bind
         stack: HtmlTag[] = [], // Starting tag adds, Closing tag removes
         currTag: HtmlTag
@@ -141,26 +130,25 @@ function cacheForIfTemplate(forIfTag: HtmlTag, allTags: HtmlTag[], templateRef: 
         // Current tag
         currTag = queue.shift()
 
-        if (currTag.isOpenTag && 
+        if (currTag.isOpenTag &&
             currTag.isSingletone === false
         ) {
-            
+
             // Stack open tags, 
             stack.push(currTag)
 
         } else if (currTag.isOpenTag === false) {
-            
-            //unstack closed pairs
+
+            // Unstack closed pairs
             unstackClosedTag(currTag, stack)
 
         }
+
+        // Log progress
         DEBUG.verbose && debug(getCurrTagName(currTag), '-', getTagXpath(stack), queue.length)
 
         // Closing tag found
-        if (stack.length === 0) {
-            extractTemplate(forIfTag, currTag, templateRef)
-            break
-        }
+        if (stack.length === 0) return currTag
 
     }
 }
@@ -188,55 +176,48 @@ function unstackClosedTag(tag: HtmlTag, stack: HtmlTag[]) {
 
 /** 
  * "For" and "if" data bind templates are replaced with placeholder comments.
- * The placeholder comment links to a cached data bind descriptor object.
+ * The placeholder comment links to a container of cached data binds.
  * This comment will be used to initialiose the "for" and "if" data binds at runtime.
+ * REVIEW Passing the index/id via comment content (data) is probably not the best approach. Check if something better can be done.
  */
-function extractTemplate(forIfTag: HtmlTag, closingTag: HtmlTag, templateRef: TemplateRef) {
-    let { template } = templateRef,
-        forIfTemplate: string,
-        dataBind: DataBind,
+function replaceCondTemplateWithPlaceholder(forIfTag: HtmlTag, closingTag: HtmlTag, template: string): string {
+    let condTemplate: string, // "for", "if" templates
+        preprocessed: string,
+        placeholder: string,
         start: number,
         end: number,
-        index: number,
-        placeholder: string
+        index: number
 
-    // Template (tags included)
-    start = forIfTag.index - forIfTag.tag.length
-    end = closingTag.index
-    forIfTemplate = template.substring(start, end)
-    DEBUG.verbose && debug('Dynamic "for" or "if" template \n', forIfTemplate)
+    // Replace with placeholders
+    condTemplate = getTemplateBeteenTags(forIfTag, closingTag, template)
+    index = cacheConditionalTemplate(condTemplate)
+    placeholder = `<!-- _nano_placeholder="${index}" -->`
+    preprocessed = template.substring(0, start) + placeholder + template.substring(end)
 
-    // Parse the "for" and "if" data binds attributes
-    forIfTag.attributes.forEach( attr => {
-        
-        dataBind = getDataBindDescriptor(attr)
-        
-        // "For" and "if" share the same template
-        dataBind.template = forIfTemplate
-    })
+    DEBUG.verbose && debug('Replace conditional template with placeholder', { template, placeholder, preprocessed })
 
-    // Cache
-    dataBinds.push(dataBind)
-
-    // Placeholder
-    // REVIEW Passing the index via comment content is not the best approach. Look for something better
-    index = dataBinds.length - 1
-    placeholder = `<!-- _nano_placeholder="${index}" -->`    
-    DEBUG.verbose && debug('Placeholder', placeholder)
-    
-    // Replace with placeholder
-    templateRef.template = template.substring(0, start) + placeholder + template.substring(end)
-
-    DEBUG.verbose && debug('Cleaned up template \n', templateRef.template)
-    console.log('Cleaned up template \n', templateRef.template)
-    DEBUG.verbose && debug('Opening tag', forIfTag)
-    DEBUG.verbose && debug('Closing tag', closingTag)
+    return preprocessed
 }
 
+function getTemplateBeteenTags(openingTag: HtmlTag, closingTag: HtmlTag, template: string): string {
+    let templateSection: string,
+        start: number,
+        end: number
+
+    start = openingTag.index - openingTag.tag.length
+    end = closingTag.index
+    templateSection = template.substring(start, end)
+
+    DEBUG.verbose && debug('Template between tags', { openingTag, closingTag }, '\n' + templateSection)
+    return templateSection
+}
+
+/** Debug helper */
 function getCurrTagName(tag: HtmlTag) {
     return (tag && tag.isOpenTag && tag.isOpenTag === true ? '' : '/') + tag.tagName
 }
 
+/** Debug helper */
 function getTagXpath(stack: HtmlTag[]) {
     let log = ''
     stack.forEach(tag => log += tag.tagName + ' ')
