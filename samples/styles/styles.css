@@ -1,0 +1,13 @@
+body {
+    font-family: Arial, Helvetica, sans-serif;
+}
+
+blog-app {
+    background: #ddd;
+    padding: 10px;
+}
+
+article-cmp {
+    background: rgb(182, 182, 216);
+    padding: 10px;
+}
