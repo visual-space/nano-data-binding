@@ -1,29 +1,31 @@
-class BlogApp extends HTMLElement {
+define(function (require, exports, module) {
 
-    constructor () {
-        super()
-        console.log('Constrcut blog app')
+    let debug = require('debug')('BlogApp')
 
-        this.articles = [ 'Article 1', 'Article 2', 'Article 3' ]
-    }
+    class BlogApp extends HTMLElement {
 
-    connectedCallback() {
-        console.log('Connect BlogApp')
-        this.render()
-    }
+        constructor() {
+            super()
+            debug('Construct blog app')
 
-    render() {
-        console.log('Render BlogApp', this.innerHTML, this)
-        let orig = this.innerHTML
+            this.articles = ['Article 1', 'Article 2', 'Article 3']
+        }
 
-        console.log(orig + `
-        Blog app
-    `)
-        this.innerHTML = orig + `
+        connectedCallback() {
+            debug('Connect BlogApp')
+            this.render()
+        }
+
+        render() {
+            debug('Render BlogApp')
+
+            this.innerHTML = `
             Blog app
-        `
+        ` + this.innerHTML
+        }
+
     }
 
-}
+    window.customElements.define('blog-app', BlogApp)
 
-window.customElements.define('blog-app', BlogApp)
+})

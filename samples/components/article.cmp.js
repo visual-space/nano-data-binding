@@ -1,22 +1,28 @@
-class ArticleCmp extends HTMLElement {
+define(function (require, exports, module) {
 
-    constructor () {
-        super()
-        console.log('Constrcut ArticleCmp')
-    }
+    let debug = require('debug')('ArticleCmp')
 
-    connectedCallback() {
-        console.log('Connect ArticleCmp')
-        this.render()
-    }
+    class ArticleCmp extends HTMLElement {
 
-    render() {
-        console.log('Render ArticleCmp')
-        this.innerHTML = `
+        constructor() {
+            super()
+            debug('Construct ArticleCmp')
+        }
+
+        connectedCallback() {
+            debug('Connect ArticleCmp')
+            this.render()
+        }
+
+        render() {
+            debug('Render ArticleCmp')
+            this.innerHTML = `
             Article component
         `
+        }
+
     }
 
-}
+    window.customElements.define('article-cmp', ArticleCmp)
 
-window.customElements.define('article-cmp', ArticleCmp)
+})

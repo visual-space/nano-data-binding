@@ -71,6 +71,8 @@ export function getDataBinds(child: HTMLElement | Comment): DataBind[] {
         template = utils.getTemplateFromPlaceholder(child as Comment)
         attributes = utils.getDataBindAttributes(template)
 
+        console.log({attributes})
+
         // // Parse the "for" and "if" data binds attributes
         // // <!> Preserve the tag by caching all data binds 
         // forIfTag.attributes.forEach( attr => {
