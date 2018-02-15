@@ -147,7 +147,7 @@ function initOnlyDataBinds(child: HTMLElement): void {
     // Block autobind via attribute (for testing purposes)
     if (parent.hasAttribute('no-auto-bind')) return
 
-    debug('Init data binds', { parent, child })
+    debug('Init only data binds', { parent, child })
     initElDataBinds(parent, child)
 }
 

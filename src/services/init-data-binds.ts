@@ -48,6 +48,9 @@ export function initElDataBinds(parent: HTMLElement, child: HTMLElement | Commen
         // Eval data bind when source value changes
         refs = detectSourceValueChanges(evaluateDataBind, dataBind)
 
+        // Evaluate first time (init)
+        evaluateDataBind(dataBind)
+
         // <!> Both events and observables can potenatially be used on the same element
         if (dataBind.origin === ORIGIN.Event) Object.assign(listeners, refs)
         if (dataBind.origin === ORIGIN.Observable) Object.assign(subscriptions, refs)
@@ -65,30 +68,17 @@ export function getDataBinds(child: HTMLElement | Comment): DataBind[] {
         dataBind: DataBind,
         template: string
 
+    // Rules with condtional templates ("for", "if") are replaced with a placehoder commnet in preprocessing.
+    // This comment is then used as the host of the data binds in order to secure total absence of the element when requested.
     if (child.nodeType === 8) {
             
         // Placeholder Comments - "For", "if"
         template = utils.getTemplateFromPlaceholder(child as Comment)
         attributes = utils.getDataBindAttributes(template)
-
-        console.log({attributes})
-
-        // // Parse the "for" and "if" data binds attributes
-        // // <!> Preserve the tag by caching all data binds 
-        // forIfTag.attributes.forEach( attr => {
-
-        //     dataBind = getDataBindDescriptorByAttr(attr)
-
-        //     // "For" and "if" share the same template
-        //     dataBind.template = forIfTemplate
-
-        //     placeholder.push(dataBind)
-
-        // })
-
-                                        // DEPRECATED
-                                        // // Custom init for "if" and "for" rules
-                                        // if (dataBind.rule === RULE.If) parser.setupIfDataBindPlaceholder(dataBind)
+        
+        // Remove data binds
+        // Rendering the if data bind won`t trigger new data bind initialisations
+        // child.removeAttribute(attribute.nodeName) // RESTORE
 
     } else {
         
@@ -235,11 +225,11 @@ function evaluateDataBind(dataBind: DataBind): void {
             break
 
         case RULE.If:
-            parser.toggleIfDataBindElement(dataBind)
+            parser.toggleConditionalElem(dataBind)
             break
 
         case RULE.For:
-            parser.updateItemsInForList(dataBind)
+            parser.updateForList(dataBind)
             break
 
         case RULE.Class:

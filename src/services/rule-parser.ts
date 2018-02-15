@@ -7,17 +7,16 @@ import * as utils from './utils'
  * These data binds have been tailored for taking advantage of the web components API.
  * 
  * <!> Behaviors
- *     `n-call` - Pass data to the target component
- *     `n-if` - Hide the target component
- *     `n-for` - Render all elements from an array using the same template
- *     `n-class` - Conditionally add CSS classes to target element
- *     `n-call` - Execute a method in the context of the target element. 
+ *     `call`  - Pass data to the target component
+ *     `if`    - Hide the target component
+ *     `for`   - Render all elements from an array using the same template
+ *     `class` - Conditionally add CSS classes to target element
  *                ALl the previous rules could be implemented using this one.     
  */
 
- // Debug
-let Debug = require('debug'), debug = Debug ? Debug('ndb:Parser') : () => {}
-debug('Instantiate Parser')
+// Debug
+let Debug = require('debug'), debug = Debug ? Debug('ndb:RuleParser') : () => {}
+debug('Instantiate RuleParser')
 
 /**
  * Binds the values defined in the descriptor object to the child element
@@ -28,17 +27,6 @@ debug('Instantiate Parser')
 export function bindDataToElem(dataBind: DataBind): void {
     let { parent, child, source, code } = dataBind
 
-    // DEPRECATED Previous attempt, will be removed eventually
-    // Capture returned value from executed code
-    // dataBind.modifier = 'this._evalOutput = '
-    
-    // let inputs: { [key: string]: any } = utils.evalInContext.call(child, dataBind)
-
-    // let inputId: string
-    // for (inputId in inputs) {
-    //     ;(child as any)[inputId] = (<any>parent)[inputId]
-    // }
-
     code = code.trim()
     
     ;(child as any)[code] = (<any>parent)[source]
@@ -46,119 +34,61 @@ export function bindDataToElem(dataBind: DataBind): void {
     debug('Write data bind values to element', { dataBind }) // inputs
 }
 
-/** 
- * Adds a comment placehodler for the if rule.
- * Initialised only once. The rest of the updates are controlled by the comment placeholder.
- * Instead of creating the event listener in the child element the if rule maintains it in the placeholder ocmmnet.
- * This simplifies a lot of the work needed to show/hide the element. However it breaks the pattern of the other rules.
- * REFACTOR & DEPRECATE  Update to the new placeholder generation from preprocessing
- */
-export function setupIfDataBindPlaceholder(dataBind: DataBind): void {
-    let { child, attribute } = dataBind,
-        placeholder: Comment
-
-        // Setup placeholder comment 
-        placeholder = document.createComment('')
-        dataBind.placeholder = placeholder
-        debug('Setup IF rule placeholder', { dataBind })
-
-        // Remove data binds
-        // Rendering the if data bind won`t trigger new data bind initialisations
-        child.removeAttribute(attribute.nodeName)
-    
-        // Hidden element clone
-        ;(placeholder as any)._nano_originalElement = child.cloneNode()
-        ;(placeholder as any)._nano_originalElement.innerHTML = child.innerHTML
-    
-        // Insert placeholder
-        child.parentNode.insertBefore(placeholder, child)
-
-        // TODO this will be done in pre processing
-        // Remove the orginal element that hosted the n-if data bind attribute
-        // <!> In case you need to show the element before the first event is dispatched
-        //     dispatch the same custom event with with the detail value set on true
-        child.remove()
-
-        // Release the original element from memory
-        delete dataBind.child
-}
-
-/** Toggle the  an element using a comment node as a placeholder */
-export function toggleIfDataBindElement(dataBind: DataBind): void {
-    let { child, placeholder } = dataBind, // , parent
-        isVisible: boolean,
-        ifElement: HTMLElement
-
+/** Toggle the element using a comment node as a placeholder */
+export function toggleConditionalElem(dataBind: DataBind): void {
     debug('Toggle IF data bind element', { dataBind })
+    let { child } = dataBind,
+        isVisible: boolean,
+        conditionalEl: HTMLElement
 
-    // Capture returned value from executed code
-    dataBind.modifier = 'this._evalOutput = '
+    // Element visibility
+    dataBind.modifier = 'this._evalOutput = ' // Capture value
+    isVisible = utils.evalInContext.call(child, dataBind)
 
-    // Retrieve visibility value from evaluated code
-    isVisible = utils.evalInContext.call(placeholder, dataBind)
-    debug('IF element is visible', isVisible)
-
-    // Fail safe for repeated values (same value multiple times in a row)
-    if (isVisible === false && child === undefined) return
-    if (isVisible === true && child !== undefined) return
-
-    // Clone the placeholder clone. Prevents any cross communication between instances
-    ifElement = (placeholder as any)._nano_originalElement.cloneNode()
-    ifElement.innerHTML = (placeholder as any)._nano_originalElement.innerHTML
-
+    // Toggle element
     if (isVisible === true) {
-        debug('Insert child', {ifElement})
-
-        // Inset the hidden element in document
-        placeholder.parentNode.insertBefore(ifElement, placeholder.nextSibling)
-
-        // Reuse data bind object (It is kept alive by the placeholder comment)
-        dataBind.child = ifElement
-
-        // Bind again, other data binds might need to execute again
-        // nanoBind(parent, ifElement) // DEPRECATED - it is already happening from the global mutation observable
-
+        conditionalEl = utils.getElementFromCachedTemplate(dataBind)
+        debug('Insert child', {conditionalEl})
+        child.parentNode.insertBefore(conditionalEl, child.nextSibling)
     } else if (isVisible === false) {
         debug('Remove child')
-
-        // Remove the IF element
         dataBind.child.remove()
-        
-        // Release the old one from memory
-        delete dataBind.child
     }
 }
 
 /**
- * Iterates all elements of an array
- * Update, Add, Remove operations are optimised to target only the changed elements
- * Renders text, html and web components
- * Binds data from the array to the web components
- * <!> The for loop is by design unabled to bind data to templates
- *     In order to encourage a simpler cleaner architecture, items are expected to be defined as webcomponents
- *     The performance cost is minimal to non-existent, and having two web components defined in the same file is permited
- * <!> Compares the old list with the new list, extracts the changes and then it syncs the dom with the new list
+ * Iterates all elements of an array.
+ * Update, Add, Remove operations are optimised to target only the changed elements.
+ * Renders text, html and web components.
+ * Binds data from the array to the web components.
+ * <!> The for loop is by design unabled to bind data to templates.
+ *     In order to encourage a simpler cleaner architecture, items are expected to be defined as webcomponents.
+ *     The performance cost is minimal to non-existent, and having two web components defined in the same file is permited.
+ * <!> Compares the old list with the new list, extracts the changes and then it syncs the dom with the new list.
+ * <!> Repeats only one element and it`s contents.
  * TODO Upgrade to allow multiple tags rendered by the same loop. In this case we need to scan for data binds and attach the data there.
+ * REFACTOR The old list can be cached somewhere instead of being retrieved from the DOM elements.
  */
-export function updateItemsInForList (dataBind: DataBind) {
+export function updateForList (dataBind: DataBind) {
     let { child } = dataBind,
         changes: Changes = { added: [], removed: [] }
     
-    // Capture returned value from executed code
-    dataBind.modifier = 'this._evalOutput = '
-
+    // Get the source array
+    // REFACTOR After simplifying the syntax, this step wont be needed anymore.
+    dataBind.modifier = 'this._evalOutput = ' // Capture value
     let newItems: any[] = utils.evalInContext.call(child, dataBind),
-        elems: HTMLElement[] = Array.from(child.children),
+        elems: HTMLElement[] = <HTMLElement[]>Array.from(child.children),
         oldItems: any[] = elems.map((el: any) => el._nano_forItemData)
     if (newItems.constructor !== Array) {
-        console.warn(`Cannot render list. Only arrays are accepted. ${utils.printDataBindInfo(dataBind)}`)
+        console.warn(`Cannot render "for" list. Only arrays are accepted. ${utils.printDataBindInfo(dataBind)}`)
         return
     }
 
+    // Label additions and deletions
     changes.added = newItems.filter(itm => !oldItems.includes(itm))
     changes.removed = oldItems.filter(itm => !newItems.includes(itm))
 
-    debug('Update items in for list', { newItems, oldItems, changes, dataBind })
+    debug('Update "for" list', { newItems, oldItems, changes, dataBind })
 
     // Validation
     elems.forEach(el => {
@@ -183,37 +113,18 @@ export function updateItemsInForList (dataBind: DataBind) {
     removedElems.forEach( remEl => remEl.remove() )
 
     // Add new elements
-    // <!> TODO Can be optimised to add all modifications at once using one parse
+    // <!> OPTIMISE Add all new items in one step (benchmark the difference)
     changes.added.forEach( add => {
-        let i: number = newItems.indexOf(add)
+        let listItemEl: HTMLElement,
+            i: number
 
-        // Parked until replaced with something better
-        // elem = parser.parseFromString(dataBind.template, "text/html").children[0] // DEPRECATED, does not fulfill the expected role of generating dom elements
+        // Create, Cache, Insert
+        listItemEl = utils.getElementFromCachedTemplate(dataBind)
+        ;(listItemEl as any)._nano_forItemData = add
+        ;(listItemEl as any).forItemData = add // TODO Add custom inputs
+        i = newItems.indexOf(add)
+        child.insertBefore(listItemEl, child.children[i])
 
-        // <!> Currently this code assumes onla one element at a time is introduced
-        // REVIEW Is this a memory leak?
-        let tmpEl = document.createElement(`div`)
-        tmpEl.innerHTML = dataBind.template
-        
-        let elem = tmpEl.children[0]
-
-        // Cache data, Insert, Bind
-        ;(elem as any)._nano_forItemData = add
-        ;(elem as any).forItemData = add // TODO Add custom inputs
-
-        child.insertBefore(elem, child.children[i])
-
-        // Fals when there are no chidlren
-        // When inserting HTML into a page by using insertAdjacentHTML be careful not to use user input that hasn't been escaped.
-        // <!> Currently this code assumes onla one element at a time is introduced
-        // child.children[i].insertAdjacentHTML('beforebegin', dataBind.template)
-
-        // let elem = child.children[i]
-
-        // ;(elem as any)._nano_forItemData = add
-        // ;(elem as any).forItemData = add // TODO Add custom inputs
-
-        // debug('Added new element', {elem, add})
     })
 }
 

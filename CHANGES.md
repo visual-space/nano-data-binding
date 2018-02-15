@@ -5,13 +5,18 @@
 * Fixed major design flaw. Parsing multiple data binds on the same element will overwrite each other.
 * Upgraded "if" and "for" rules to cache the entire tag not just the contents.
 * "If" and "for" rules use conditional templates. These templates are replaced with placeholder comments at preprocessing. This step prevents initiliasing DOM elements from the data binds before the rendering signal is received.
-    * Removed manual selectors.
+* Improved handling of placeholders and data bind initialisation, streamlined, simpler, architecture.
+* Removed manual selectors.
+* Provided samples.
+* Evaluate data binds at init. This will trigger all rules depending on the initial source value.
     * "If" and "for" data binds share the same template.
-    * Simpler declration syntax.
-    * Added string itnerpolation for text nodes.
+    * Deprecate the call method. Very little benefit. Maybe recycle it for the inline handlers.
+    * Simpler declaration syntax. Distinguishing between change trigger value and source value only makes the code more complicated. This pattern stems from the original design where a value would evaluate arbitrary code in the data binds. This is no longer the case.
+    * Simplify the evaluation of rules after simplifying the syntax.
+    * Added string interpolation for text nodes.
     * Added inline events syntax.
     * Update documentation.
-    * Provided samples.
+    * custom data inputs for the "for" rule
 
 # 0.0.10
 * "For" rule, fixed bad timing of constructors.

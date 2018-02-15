@@ -34,9 +34,9 @@ module.exports = {
 
     },
 
-    plugins: [
-      new UglifyJsPlugin()
-    ],
+    // plugins: [
+    //   new UglifyJsPlugin()
+    // ],
 
     externals: {
         // debug: 'debug' // REVIEW, this seems not to work right now

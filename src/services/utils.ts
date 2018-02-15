@@ -191,6 +191,26 @@ export function checkLookupGetterIsDefined() {
     }
 }
 
+/** Generates conditional elements from cached tempalte ("for", "if" rules) */
+export function getElementFromCachedTemplate(dataBind: DataBind): HTMLElement {
+
+    // Validate
+    if (!dataBind.template) console.warn('Cannot retrieved element from undefined template')
+
+    let tmpEl = document.createElement(`div`)
+    tmpEl.innerHTML = dataBind.template
+    let element: HTMLElement = <HTMLElement>tmpEl.children[0]
+
+    // Fail safe
+    if (!(element instanceof HTMLElement)) {
+        console.warn('Cannot retrieve element from cached template. Check for syntax errors', dataBind)
+        return null
+    }
+
+    DEBUG.verbose && debug(`Get element from cached template`, { dataBind, element })
+    return element
+}
+
 /** 
  * Usaully attributes are extracted from a DOM element instance.
  * Databinds can be recovered also from placeholder templates.

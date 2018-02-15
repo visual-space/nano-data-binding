@@ -42,9 +42,6 @@ export interface DataBind {
     // This code usually returns processed values that are used by the data binding or executes callback code
     code: string
 
-    // The n-if rule needs a placeholder in order to maintain the position of the child element
-    placeholder?: Comment
-
     // The n-for rule keeps a copy of the original template for later reuse
     template?: string
 
